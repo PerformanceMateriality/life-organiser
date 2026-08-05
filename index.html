@@ -41,6 +41,16 @@
     border-radius:12px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
   .mng:active{transform:scale(.96)}
 
+  .levelbar{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:14px;cursor:pointer}
+  .levelbar .lbtop{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+  .levelbar .lv{font-weight:800}
+  .levelbar .rank{color:var(--mind);font-weight:600}
+  .levelbar .xpn{margin-left:auto;color:var(--muted);font-size:12px}
+  .xpbar{height:8px;border-radius:8px;background:rgba(255,255,255,.09);overflow:hidden}
+  .xpbar > i{display:block;height:100%;background:linear-gradient(90deg,var(--mind),var(--health));border-radius:8px;transition:width .5s ease}
+  .xpbar.big{height:12px}
+  .xpfloat{position:fixed;transform:translateX(-50%);color:var(--flame);font-weight:800;font-size:15px;pointer-events:none;z-index:75;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+
   .datebar{display:flex;align-items:center;justify-content:space-between;gap:8px;
     background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 10px;margin-bottom:18px}
   .datebar button{background:var(--surface2);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer}
@@ -97,6 +107,25 @@
   .hstrip{display:flex;gap:3px}
   .hstrip .sq{flex:1;min-width:0;height:14px;border-radius:3px;background:rgba(255,255,255,.05)}
 
+  /* Rewards */
+  .lvlcard{background:linear-gradient(160deg,#242a44,#191d2c);border:1px solid var(--line);border-radius:20px;padding:22px;text-align:center;margin-bottom:6px}
+  .lvlbig{font-size:44px;font-weight:800;line-height:1}
+  .lvlrank{color:var(--mind);font-weight:700;letter-spacing:.5px;margin:4px 0 16px}
+  .lvlmeta{color:var(--muted);font-size:12.5px;margin-top:10px}
+  .rewh{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:22px 4px 12px}
+  .catlv{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px}
+  .catlv-top{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:14px}
+  .catlv-top .dot{width:9px;height:9px;border-radius:50%}
+  .catlv-top .tn{font-weight:600}
+  .catlv-top .cl{margin-left:auto;color:var(--muted);font-weight:700}
+  .badges{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .badge2{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center;opacity:.45;filter:grayscale(.7)}
+  .badge2.got{opacity:1;filter:none;border-color:color-mix(in srgb,var(--flame) 40%,var(--line))}
+  .badge2 .bi{font-size:26px}
+  .badge2 .bn{font-weight:700;font-size:12.5px;margin-top:5px}
+  .badge2 .bd{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.25}
+  .rewnote{color:var(--muted2);font-size:11.5px;text-align:center;margin-top:18px}
+
   /* Overlays */
   .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
     display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
@@ -137,19 +166,19 @@
   .btn-del{background:transparent;color:var(--danger);border:1px solid var(--danger)!important;flex:0 0 auto!important;padding:13px 16px!important}
   .hidden{display:none!important}
 
-  /* Bottom nav */
   .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);
     display:flex;gap:4px;background:rgba(26,30,46,.92);backdrop-filter:blur(10px);border:1px solid var(--line);
     border-radius:16px;padding:5px;z-index:40;box-shadow:0 8px 30px rgba(0,0,0,.4)}
   .navbtn{background:transparent;border:none;color:var(--muted);font-size:13.5px;font-weight:600;
-    padding:9px 22px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:7px}
+    padding:9px 18px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
   .navbtn.active{background:var(--surface2);color:var(--text)}
 
   .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(120px);
     background:#222741;border:1px solid var(--line);color:var(--text);padding:11px 16px;border-radius:12px;
-    font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s;z-index:80;max-width:90%}
+    font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s;z-index:80;max-width:90%;text-align:center}
   .toast.show{transform:translateX(-50%) translateY(0)}
   .toast.err{border-color:var(--danger)}
+  .toast.level{border-color:var(--flame);background:#2a2418;font-weight:700}
   .loading{text-align:center;color:var(--muted);padding:60px 0;font-size:14px}
   .foot{text-align:center;color:var(--muted2);font-size:11.5px;margin-top:26px}
   .confetti{position:fixed;width:9px;height:9px;border-radius:2px;pointer-events:none;z-index:70}
@@ -166,6 +195,8 @@
     <button class="mng" id="manageBtn">⚙︎ Manage</button>
   </header>
 
+  <div class="levelbar" id="levelbar"></div>
+
   <div class="datebar" id="datebar">
     <button id="prevDay" aria-label="Previous day">‹</button>
     <div class="lbl" id="dateLbl">—<small></small></div>
@@ -173,27 +204,22 @@
   </div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 5</div>
+  <div class="foot">Life Organiser · build 6</div>
 </div>
 
 <nav class="nav">
   <button class="navbtn active" data-view="today">◉ Today</button>
   <button class="navbtn" data-view="history">▦ History</button>
+  <button class="navbtn" data-view="rewards">✦ Rewards</button>
 </nav>
 
-<!-- Manage overlay -->
 <div class="overlay" id="editor">
   <div class="sheet">
     <h2 id="editorTitle">Manage routines <button class="x" id="closeEditor">×</button></h2>
     <div id="editorBody"></div>
   </div>
 </div>
-
-<!-- Detail / note overlay -->
-<div class="overlay" id="detail">
-  <div class="sheet" id="detailSheet"></div>
-</div>
-
+<div class="overlay" id="detail"><div class="sheet" id="detailSheet"></div></div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -204,12 +230,9 @@ async function rest(method, path, opts){
   opts = opts || {};
   const headers = { 'apikey': SUPABASE_KEY, 'Content-Type':'application/json' };
   if(opts.prefer) headers['Prefer'] = opts.prefer;
-  const res = await fetch(REST + path, {
-    method, headers, body: opts.body ? JSON.stringify(opts.body) : undefined
-  });
+  const res = await fetch(REST + path, { method, headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
   if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+' '+t); }
-  const txt = await res.text();
-  return txt ? JSON.parse(txt) : null;
+  const txt = await res.text(); return txt ? JSON.parse(txt) : null;
 }
 
 const CATEGORIES = [
@@ -219,6 +242,8 @@ const CATEGORIES = [
   { key:'work',    label:'Work & Life Admin',       color:'var(--work)' },
 ];
 const RAWCOLOR = { health:'#34d399', fitness:'#fb923c', mind:'#a78bfa', work:'#38bdf8' };
+const TRACK = { health:'Vitality', fitness:'Strength', mind:'Focus', work:'Order' };
+const CAT_XP = { mind:20, health:15, fitness:10, work:10 };
 const CADENCE = {
   daily:           { label:'Daily',           periodic:false },
   every_other_day: { label:'Every other day', periodic:true, interval:2 },
@@ -227,6 +252,8 @@ const CADENCE = {
   monthly:         { label:'Monthly',          periodic:true, interval:30 },
   quarterly:       { label:'Quarterly',        periodic:true, interval:90 },
 };
+const RANKS=[[30,'Grandmaster'],[24,'Master'],[19,'Veteran'],[15,'Expert'],[11,'Adept'],[8,'Apprentice'],[4,'Initiate'],[1,'Novice']];
+function rankTitle(l){ for(const [min,name] of RANKS) if(l>=min) return name; return 'Novice'; }
 
 const ymd = (d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const parseYmd = (s)=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
@@ -238,7 +265,6 @@ let view = 'today';
 let routines = [];
 let logs = new Map();
 const $ = (id)=>document.getElementById(id);
-
 function getLog(rid,ds){ return logs.get(rid)?.get(ds); }
 function isDone(rid,ds){ const l=getLog(rid,ds); return !!(l && l.completed); }
 
@@ -247,10 +273,7 @@ async function load(){
   const since = ymd(addDays(today,-160));
   const lg = await rest('GET','routine_logs?select=*&log_date=gte.'+since) || [];
   logs = new Map();
-  for(const row of lg){
-    if(!logs.has(row.routine_id)) logs.set(row.routine_id,new Map());
-    logs.get(row.routine_id).set(row.log_date,row);
-  }
+  for(const row of lg){ if(!logs.has(row.routine_id)) logs.set(row.routine_id,new Map()); logs.get(row.routine_id).set(row.log_date,row); }
 }
 async function loadAll(){ return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || []; }
 
@@ -274,19 +297,10 @@ async function setLog(routine, ds, on, value, completed, note){
 }
 
 // metrics
-function streak(rid){
-  let n=0, d=new Date(today);
-  if(!isDone(rid,ymd(d))) d=addDays(d,-1);
-  while(isDone(rid,ymd(d))){ n++; d=addDays(d,-1); }
-  return n;
-}
-function lastDone(rid){
-  const m=logs.get(rid); if(!m) return null;
-  let best=null; for(const [ds,l] of m){ if(l.completed && (!best||ds>best)) best=ds; } return best;
-}
+function streak(rid){ let n=0, d=new Date(today); if(!isDone(rid,ymd(d))) d=addDays(d,-1); while(isDone(rid,ymd(d))){ n++; d=addDays(d,-1); } return n; }
+function lastDone(rid){ const m=logs.get(rid); if(!m) return null; let best=null; for(const [ds,l] of m){ if(l.completed && (!best||ds>best)) best=ds; } return best; }
 function weekKey(d){ const dt=new Date(d); const off=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-off); return ymd(dt); }
-function countWeek(rid,ref){ const wk=weekKey(ref); let c=0; const m=logs.get(rid); if(!m)return 0;
-  for(const [ds,l] of m){ if(l.completed && weekKey(parseYmd(ds))===wk) c++; } return c; }
+function countWeek(rid,ref){ const wk=weekKey(ref); let c=0; const m=logs.get(rid); if(!m)return 0; for(const [ds,l] of m){ if(l.completed && weekKey(parseYmd(ds))===wk) c++; } return c; }
 function periodicStatus(routine){
   const cad=CADENCE[routine.cadence];
   if(cad.weekly){ const c=countWeek(routine.id,selected); return { due:c<cad.weekly, text:`${c}/${cad.weekly} this week` }; }
@@ -296,10 +310,38 @@ function periodicStatus(routine){
   if(days>=cad.interval) return { due:true, text:days===0?'Done today':`Last ${days}d ago` };
   return { due:false, text:`Next in ${cad.interval-days}d` };
 }
-function valueDone(routine, num){
-  if(num===null||num===undefined||num==='') return false;
-  const t = routine.target_value!=null ? Number(routine.target_value) : null;
-  return t ? Number(num) >= t : Number(num) > 0;
+function valueDone(routine, num){ if(num===null||num===undefined||num==='') return false; const t = routine.target_value!=null ? Number(routine.target_value) : null; return t ? Number(num) >= t : Number(num) > 0; }
+
+// ===== GAMIFICATION =====
+function catOf(rid){ const r=routines.find(x=>x.id===rid); return r?r.category:null; }
+function xpOfRoutine(r){ return CAT_XP[r.category] || 10; }
+function xpOfLog(rid){ const c=catOf(rid); return c ? (CAT_XP[c]||10) : 10; }
+function totalXp(){ let x=0; for(const [rid,m] of logs){ for(const [,l] of m){ if(l.completed) x+=xpOfLog(rid); } } return x; }
+function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [,l] of m){ if(l.completed) x+=(CAT_XP[cat]||10); } } return x; }
+function levelInfo(xp){ let lvl=1, acc=0, need=100; while(xp >= acc+need){ acc+=need; lvl++; need=100+(lvl-1)*50; } return { level:lvl, into:xp-acc, need, total:xp }; }
+function totalCheckoffs(){ let c=0; for(const [,m] of logs) for(const [,l] of m) if(l.completed) c++; return c; }
+function completedDates(rid){ const m=logs.get(rid); if(!m) return []; const a=[]; for(const [ds,l] of m) if(l.completed) a.push(ds); a.sort(); return a; }
+function longestStreak(rid){ const a=completedDates(rid); if(!a.length) return 0; let best=1,run=1; for(let i=1;i<a.length;i++){ if(Math.round((parseYmd(a[i])-parseYmd(a[i-1]))/86400000)===1) run++; else run=1; best=Math.max(best,run); } return best; }
+function maxLongestStreak(){ let m=0; for(const r of routines) m=Math.max(m,longestStreak(r.id)); return m; }
+function catCount(cat){ let c=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [,l] of m) if(l.completed) c++; } return c; }
+function isPerfect(d){ const daily=routines.filter(r=>!CADENCE[r.cadence].periodic && (!r.created_at || ymd(new Date(r.created_at))<=d)); if(!daily.length) return false; return daily.every(r=>isDone(r.id,d)); }
+function perfectDayCount(){ let c=0; for(let i=0;i<160;i++){ if(isPerfect(ymd(addDays(today,-i)))) c++; } return c; }
+function computeBadges(){
+  const total=totalCheckoffs(), longest=maxLongestStreak(), pdays=perfectDayCount(), lvl=levelInfo(totalXp()).level;
+  return [
+    {icon:'🌱',name:'First Step',desc:'Your first check-off',got: total>=1},
+    {icon:'⚡',name:'Getting Going',desc:'10 check-offs',got: total>=10},
+    {icon:'💯',name:'Centurion',desc:'100 check-offs',got: total>=100},
+    {icon:'🔥',name:'Week Warrior',desc:'A 7-day streak',got: longest>=7},
+    {icon:'🗓️',name:'Fortnight',desc:'A 14-day streak',got: longest>=14},
+    {icon:'🏆',name:'Unstoppable',desc:'A 30-day streak',got: longest>=30},
+    {icon:'⭐',name:'Perfect Day',desc:'All daily done in a day',got: pdays>=1},
+    {icon:'🧘',name:'Clear Mind',desc:'10 Mind check-offs',got: catCount('mind')>=10},
+    {icon:'💊',name:'Well Stacked',desc:'25 Health check-offs',got: catCount('health')>=25},
+    {icon:'📈',name:'Rising',desc:'Reach Level 5',got: lvl>=5},
+    {icon:'👑',name:'Seasoned',desc:'Reach Level 10',got: lvl>=10},
+    {icon:'🌟',name:'Ascendant',desc:'Reach Level 20',got: lvl>=20},
+  ];
 }
 
 // ---- top-level view switch ----
@@ -311,16 +353,26 @@ function ringSvg(done,total){
     `<svg width="60" height="60" viewBox="0 0 60 60">
        <circle cx="30" cy="30" r="${R}" stroke="rgba(255,255,255,.10)" stroke-width="6" fill="none"/>
        <circle cx="30" cy="30" r="${R}" stroke="${col}" stroke-width="6" fill="none"
-         stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"
-         style="transition:stroke-dashoffset .5s ease"/>
+         stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" style="transition:stroke-dashoffset .5s ease"/>
      </svg><div class="pct">${done}/${total}</div>`;
+}
+function renderLevelBar(){
+  const lb=$('levelbar');
+  if(view==='rewards'){ lb.style.display='none'; return; }
+  lb.style.display='';
+  const info=levelInfo(totalXp());
+  const pct=info.need?Math.round(info.into/info.need*100):0;
+  lb.innerHTML=`<div class="lbtop"><span class="lv">Lv ${info.level}</span><span class="rank">${rankTitle(info.level)}</span>
+     <span class="xpn">${info.into}/${info.need} XP</span></div>
+     <div class="xpbar"><i style="width:${pct}%"></i></div>`;
+  lb.onclick=()=>{ view='rewards'; render(); };
 }
 function render(){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   $('datebar').style.display = view==='today' ? '' : 'none';
-  if(view==='today') renderToday(); else renderHistory();
+  renderLevelBar();
+  if(view==='today') renderToday(); else if(view==='history') renderHistory(); else renderRewards();
 }
-
 function dateLabel(){
   const diff=Math.round((selected-today)/86400000);
   let word = diff===0?'Today':diff===-1?'Yesterday':diff===1?'Tomorrow':'';
@@ -336,14 +388,12 @@ function renderToday(){
   ringSvg(dailyDone, daily.length);
   const duePeriodic = routines.filter(r=>CADENCE[r.cadence].periodic && periodicStatus(r).due).length;
   $('subtitle').textContent = `${dailyDone}/${daily.length} daily done` + (duePeriodic?` · ${duePeriodic} periodic due`:'');
-
   const app=$('app'); app.innerHTML='';
   if(!routines.length){ app.innerHTML='<div class="loading">No routines yet. Tap ⚙︎ Manage to add one.</div>'; return; }
   for(const cat of CATEGORIES){
     const items = routines.filter(r=>r.category===cat.key);
     if(!items.length) continue;
-    const section=document.createElement('section');
-    section.className='cat'; section.style.setProperty('--acc',cat.color);
+    const section=document.createElement('section'); section.className='cat'; section.style.setProperty('--acc',cat.color);
     const dailyInCat = items.filter(r=>!CADENCE[r.cadence].periodic);
     const doneInCat = dailyInCat.filter(r=>isDone(r.id,ds)).length;
     section.innerHTML = `<h2><span class="dot" style="background:${cat.color}"></span>${cat.label}
@@ -356,9 +406,7 @@ function rowEl(r,cat,ds){
   const cad=CADENCE[r.cadence];
   const done=isDone(r.id,ds);
   const log=getLog(r.id,ds);
-  const el=document.createElement('div');
-  el.className='row'+(done?' done':''); el.style.setProperty('--acc',cat.color);
-
+  const el=document.createElement('div'); el.className='row'+(done?' done':''); el.style.setProperty('--acc',cat.color);
   let meta='';
   if(cad.periodic){
     const st=periodicStatus(r);
@@ -370,33 +418,19 @@ function rowEl(r,cat,ds){
     meta += s>0 ? `<span class="flame">🔥 ${s}</span>` : `<span style="color:var(--muted2)">Build a streak</span>`;
   }
   const hasTarget = r.track_value && r.target_value!=null;
-  if(hasTarget){
-    const cur = log && log.value!=null ? log.value : 0;
-    meta += `<span class="tgt">${cur} / ${r.target_value}${r.unit||''}</span>`;
-  }
+  if(hasTarget){ const cur = log && log.value!=null ? log.value : 0; meta += `<span class="tgt">${cur} / ${r.target_value}${r.unit||''}</span>`; }
   let pbar='';
-  if(hasTarget){
-    const cur = log && log.value!=null ? Number(log.value) : 0;
-    const pct = Math.max(0, Math.min(1, cur/Number(r.target_value)))*100;
-    pbar = `<div class="pbar"><i style="width:${pct}%"></i></div>`;
-  }
+  if(hasTarget){ const cur = log && log.value!=null ? Number(log.value) : 0; const pct = Math.max(0, Math.min(1, cur/Number(r.target_value)))*100; pbar = `<div class="pbar"><i style="width:${pct}%"></i></div>`; }
   const noteFlag = (log && log.note) ? `<span class="noteflag" title="Has a note">📝</span>` : '';
-
-  const valHtml = r.track_value
-    ? `<div class="val"><input type="number" inputmode="decimal" data-val="${r.id}" placeholder="0"
-         value="${log&&log.value!=null?log.value:''}"><span class="unit">${r.unit||''}</span></div>` : '';
-  const control = cad.periodic
-    ? `<button class="check log" data-toggle="${r.id}">${done?'Done ✓':'Log'}</button>`
-    : `<button class="check" data-toggle="${r.id}" aria-label="Toggle">
-         <svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg></button>`;
-
-  el.innerHTML = `<div class="info" data-detail="${r.id}"><div class="name">${escapeHtml(r.name)} ${noteFlag}</div>
-    <div class="meta">${meta}</div>${pbar}</div>${valHtml}${control}`;
+  const valHtml = r.track_value ? `<div class="val"><input type="number" inputmode="decimal" data-val="${r.id}" placeholder="0" value="${log&&log.value!=null?log.value:''}"><span class="unit">${r.unit||''}</span></div>` : '';
+  const control = cad.periodic ? `<button class="check log" data-toggle="${r.id}">${done?'Done ✓':'Log'}</button>`
+    : `<button class="check" data-toggle="${r.id}" aria-label="Toggle"><svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg></button>`;
+  el.innerHTML = `<div class="info" data-detail="${r.id}"><div class="name">${escapeHtml(r.name)} ${noteFlag}</div><div class="meta">${meta}</div>${pbar}</div>${valHtml}${control}`;
   return el;
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-// ---- HISTORY VIEW ----
+// ---- HISTORY ----
 const HDAYS = 28;
 function dayState(r, ds){
   const created = r.created_at ? ymd(new Date(r.created_at)) : null;
@@ -411,57 +445,71 @@ function sqColor(state, raw){
   if(state==='done') return raw;
   if(state==='partial') return 'color-mix(in srgb,'+raw+' 42%, transparent)';
   if(state==='miss') return 'rgba(255,255,255,.06)';
-  return 'rgba(255,255,255,.03)'; // na
+  return 'rgba(255,255,255,.03)';
 }
 function renderHistory(){
-  // header: today's progress + label
   const dsToday = ymd(today);
   const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
   ringSvg(daily.filter(r=>isDone(r.id,dsToday)).length, daily.length);
   $('subtitle').textContent = `Last ${HDAYS/7} weeks`;
-
-  // week stats
   const wkStart = parseYmd(weekKey(today));
   const elapsed = Math.round((today - wkStart)/86400000) + 1;
   let possible=0, done=0, checkoffs=0;
-  for(const r of daily){
-    for(let i=0;i<elapsed;i++){ const d=ymd(addDays(wkStart,i)); if(d>dsToday) break;
-      if(dayState(r,d)!=='na'){ possible++; if(isDone(r.id,d)) done++; } }
-  }
-  for(const [rid,m] of logs){ for(const [ds,l] of m){ if(l.completed && weekKey(parseYmd(ds))===weekKey(today)) checkoffs++; } }
+  for(const r of daily){ for(let i=0;i<elapsed;i++){ const d=ymd(addDays(wkStart,i)); if(d>dsToday) break; if(dayState(r,d)!=='na'){ possible++; if(isDone(r.id,d)) done++; } } }
+  for(const [,m] of logs){ for(const [ds,l] of m){ if(l.completed && weekKey(parseYmd(ds))===weekKey(today)) checkoffs++; } }
   const pct = possible? Math.round(done/possible*100):0;
   const best = daily.reduce((m,r)=>Math.max(m,streak(r.id)),0);
-
-  const app=$('app');
   let html = `<div class="tiles">
       <div class="tile"><div class="big" style="color:var(--health)">${pct}%</div><div class="lbl">This week</div></div>
       <div class="tile"><div class="big" style="color:var(--flame)">🔥 ${best}</div><div class="lbl">Best streak</div></div>
       <div class="tile"><div class="big">${checkoffs}</div><div class="lbl">Check-offs</div></div>
     </div>
-    <div class="legend">
-      <span><i style="background:#34d399"></i>Done</span>
+    <div class="legend"><span><i style="background:#34d399"></i>Done</span>
       <span><i style="background:color-mix(in srgb,#34d399 42%,transparent)"></i>Partial</span>
-      <span><i style="background:rgba(255,255,255,.06)"></i>Missed</span>
-    </div>`;
-
-  if(!routines.length){ app.innerHTML = html + '<div class="loading">No routines yet.</div>'; return; }
-
+      <span><i style="background:rgba(255,255,255,.06)"></i>Missed</span></div>`;
+  if(!routines.length){ $('app').innerHTML = html + '<div class="loading">No routines yet.</div>'; return; }
   const days=[]; for(let i=HDAYS-1;i>=0;i--) days.push(ymd(addDays(today,-i)));
   for(const cat of CATEGORIES){
-    const items = routines.filter(r=>r.category===cat.key);
-    if(!items.length) continue;
+    const items = routines.filter(r=>r.category===cat.key); if(!items.length) continue;
     html += `<div class="cat"><h2><span class="dot" style="background:${cat.color}"></span>${cat.label}</h2>`;
     for(const r of items){
       const raw = RAWCOLOR[r.category];
       const per = CADENCE[r.cadence].periodic;
       const sub = per ? CADENCE[r.cadence].label : (streak(r.id)>0?`🔥 ${streak(r.id)} day streak`:'No active streak');
       const sq = days.map(d=>`<div class="sq" style="background:${sqColor(dayState(r,d),raw)}"></div>`).join('');
-      html += `<div class="hcard"><div class="top"><span class="n">${escapeHtml(r.name)}</span><span class="s">${sub}</span></div>
-        <div class="hstrip">${sq}</div></div>`;
+      html += `<div class="hcard"><div class="top"><span class="n">${escapeHtml(r.name)}</span><span class="s">${sub}</span></div><div class="hstrip">${sq}</div></div>`;
     }
     html += `</div>`;
   }
-  app.innerHTML = html;
+  $('app').innerHTML = html;
+}
+
+// ---- REWARDS ----
+function renderRewards(){
+  const dsToday = ymd(today);
+  const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
+  ringSvg(daily.filter(r=>isDone(r.id,dsToday)).length, daily.length);
+  $('subtitle').textContent = 'Your progress';
+  const info=levelInfo(totalXp());
+  const pct=info.need?Math.round(info.into/info.need*100):0;
+  let html=`<div class="lvlcard">
+      <div class="lvlbig">Lv ${info.level}</div>
+      <div class="lvlrank">${rankTitle(info.level)}</div>
+      <div class="xpbar big"><i style="width:${pct}%"></i></div>
+      <div class="lvlmeta">${info.into} / ${info.need} XP to Level ${info.level+1} · ${info.total} total XP</div>
+    </div><h2 class="rewh">Life areas</h2>`;
+  for(const cat of CATEGORIES){
+    const ci=levelInfo(xpByCat(cat.key)); const cp=ci.need?Math.round(ci.into/ci.need*100):0;
+    html+=`<div class="catlv"><div class="catlv-top"><span class="dot" style="background:${cat.color}"></span>
+        <span class="tn">${TRACK[cat.key]}</span><span class="cl">Lv ${ci.level}</span></div>
+      <div class="xpbar"><i style="width:${cp}%;background:${cat.color}"></i></div></div>`;
+  }
+  html+=`<h2 class="rewh">Badges</h2><div class="badges">`;
+  for(const b of computeBadges()){
+    html+=`<div class="badge2 ${b.got?'got':''}"><div class="bi">${b.icon}</div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div></div>`;
+  }
+  html+=`</div><div class="rewnote">Mind &amp; Health habits earn bonus XP — the game rewards showing up where it's hardest.</div>`;
+  $('app').innerHTML=html;
 }
 
 // ---- interactions ----
@@ -472,9 +520,10 @@ async function onToggle(rid, btn){
   const currentlyDone=isDone(rid,ds);
   const valInput=document.querySelector(`[data-val="${rid}"]`);
   const val=valInput?valInput.value:undefined;
+  const preLevel = levelInfo(totalXp()).level;
   try{
     await setLog(r, ds, !currentlyDone, val, true);
-    if(!currentlyDone){ btn.classList.add('pop'); if(navigator.vibrate) navigator.vibrate(18); burst(btn); }
+    if(!currentlyDone){ btn.classList.add('pop'); if(navigator.vibrate) navigator.vibrate(18); burst(btn); floatXp(btn, xpOfRoutine(r)); checkLevelUp(preLevel); }
     render();
   }catch(e){ toast('Could not save — check connection', true); console.error(e); }
   busy=false;
@@ -483,12 +532,20 @@ async function onValue(rid, input){
   if(busy) return; busy=true;
   const r=routines.find(x=>x.id===rid); const ds=ymd(selected);
   const v=input.value.trim();
+  const wasDone=isDone(rid,ds);
+  const preLevel = levelInfo(totalXp()).level;
   try{
     if(v===''){ const cur=getLog(rid,ds); if(cur&&cur.note){ await setLog(r,ds,true,null,false); } else { await setLog(r,ds,false); } }
-    else { const done=valueDone(r,v); await setLog(r,ds,true,v,done); if(navigator.vibrate)navigator.vibrate(12); }
+    else { const done=valueDone(r,v); await setLog(r,ds,true,v,done);
+      if(done && !wasDone){ if(navigator.vibrate)navigator.vibrate(14); floatXp(input, xpOfRoutine(r)); checkLevelUp(preLevel); } }
     render();
   }catch(e){ toast('Could not save value', true); console.error(e); }
   busy=false;
+}
+function checkLevelUp(preLevel){
+  const post=levelInfo(totalXp()).level;
+  if(post>preLevel){ setTimeout(()=>{ toast(`✦ Level up! You reached Level ${post} · ${rankTitle(post)}`, false, true);
+    if(navigator.vibrate) navigator.vibrate([30,40,30]); bigBurst(); }, 350); }
 }
 document.addEventListener('click',(e)=>{
   const t=e.target.closest('[data-toggle]'); if(t){ onToggle(t.getAttribute('data-toggle'), t); return; }
@@ -502,8 +559,7 @@ document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{ view=b.dataset.v
 // ---- detail / notes ----
 function openDetail(rid){
   const r=routines.find(x=>x.id===rid); if(!r) return;
-  const ds=ymd(selected);
-  const log=getLog(rid,ds);
+  const ds=ymd(selected); const log=getLog(rid,ds);
   const diff=Math.round((selected-today)/86400000);
   const word = diff===0?'Today':diff===-1?'Yesterday':selected.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
   $('detailSheet').innerHTML = `
@@ -511,14 +567,12 @@ function openDetail(rid){
     <div style="color:var(--muted);font-size:13px;margin-bottom:14px">${CADENCE[r.cadence].label} · ${word}</div>
     <div class="field"><label>Note for this day</label>
       <textarea id="d-note" rows="4" placeholder="Anything worth remembering…">${log&&log.note?escapeHtml(log.note):''}</textarea></div>
-    <div class="formbtns"><button class="btn-cancel" id="d-close">Close</button>
-      <button class="btn-save" id="d-save">Save note</button></div>`;
+    <div class="formbtns"><button class="btn-cancel" id="d-close">Close</button><button class="btn-save" id="d-save">Save note</button></div>`;
   $('detail').classList.add('show');
   $('closeDetail').onclick = ()=>$('detail').classList.remove('show');
   $('d-close').onclick = ()=>$('detail').classList.remove('show');
   $('d-save').onclick = async ()=>{
-    const note = $('d-note').value.trim();
-    const cur = getLog(rid,ds) || {};
+    const note = $('d-note').value.trim(); const cur = getLog(rid,ds) || {};
     try{
       if(!note && !cur.completed && cur.value==null){ await setLog(r,ds,false); }
       else { await setLog(r,ds,true, undefined, cur.completed||false, note); }
@@ -527,13 +581,12 @@ function openDetail(rid){
   };
 }
 
-// ===== MANAGE / EDITOR =====
+// ===== MANAGE =====
 let allRoutines = [];
 $('manageBtn').onclick = openEditor;
 $('closeEditor').onclick = ()=>$('editor').classList.remove('show');
 async function openEditor(){
-  $('editor').classList.add('show');
-  $('editorBody').innerHTML = '<div class="loading">Loading…</div>';
+  $('editor').classList.add('show'); $('editorBody').innerHTML = '<div class="loading">Loading…</div>';
   try{ allRoutines = await loadAll(); renderEditorList(); }
   catch(e){ $('editorBody').innerHTML='<div class="loading">Could not load routines.</div>'; console.error(e); }
 }
@@ -541,21 +594,17 @@ function renderEditorList(){
   $('editorTitle').firstChild.textContent = 'Manage routines ';
   let html = `<button class="addbtn" id="addRoutine">＋ Add a routine</button>`;
   for(const cat of CATEGORIES){
-    const items = allRoutines.filter(r=>r.category===cat.key);
-    if(!items.length) continue;
+    const items = allRoutines.filter(r=>r.category===cat.key); if(!items.length) continue;
     html += `<div class="egroup"><div class="glabel"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${cat.color}"></span>${cat.label}</div>`;
     items.forEach((r,i)=>{
       const cad=CADENCE[r.cadence];
       const tgt = (r.track_value && r.target_value!=null)?` · ${r.target_value}${r.unit||''}`:'';
       html += `<div class="erow${r.active?'':' inactive'}">
-        <div class="ord">
-          <button data-move="up" data-id="${r.id}" ${i===0?'disabled style=opacity:.3':''}>▲</button>
-          <button data-move="down" data-id="${r.id}" ${i===items.length-1?'disabled style=opacity:.3':''}>▼</button>
-        </div>
+        <div class="ord"><button data-move="up" data-id="${r.id}" ${i===0?'disabled style=opacity:.3':''}>▲</button>
+          <button data-move="down" data-id="${r.id}" ${i===items.length-1?'disabled style=opacity:.3':''}>▼</button></div>
         <div class="en"><div class="n">${escapeHtml(r.name)}${r.active?'':' <span style="color:var(--muted2);font-weight:400">(retired)</span>'}</div>
           <div class="c">${cad.label}${tgt}</div></div>
-        <button class="ib" data-edit="${r.id}" aria-label="Edit">✎</button>
-      </div>`;
+        <button class="ib" data-edit="${r.id}" aria-label="Edit">✎</button></div>`;
     });
     html += `</div>`;
   }
@@ -572,55 +621,44 @@ function openForm(routine){
   const cadOpts = Object.entries(CADENCE).map(([k,v])=>`<option value="${k}" ${r.cadence===k?'selected':''}>${v.label}</option>`).join('');
   $('editorBody').innerHTML = `
     <div class="field"><label>Name</label><input type="text" id="f-name" value="${escapeHtml(r.name)}" placeholder="e.g. Vitamin D"></div>
-    <div class="field rowly">
-      <div><label>Category</label><select id="f-cat">${catOpts}</select></div>
-      <div><label>Cadence</label><select id="f-cad">${cadOpts}</select></div>
-    </div>
+    <div class="field rowly"><div><label>Category</label><select id="f-cat">${catOpts}</select></div>
+      <div><label>Cadence</label><select id="f-cad">${cadOpts}</select></div></div>
     <div class="field"><div class="toggle ${r.track_value?'on':''}" id="f-track"><div class="sw"></div>
       <div><div style="font-weight:600;font-size:14px">Track a number</div>
       <div style="font-size:12px;color:var(--muted)">e.g. grams, kg, minutes — not just a checkmark</div></div></div></div>
     <div class="field rowly ${r.track_value?'':'hidden'}" id="f-numwrap">
       <div><label>Unit</label><input type="text" id="f-unit" value="${escapeHtml(r.unit||'')}" placeholder="g, kg, min"></div>
-      <div><label>Daily target (optional)</label><input type="number" id="f-target" value="${r.target_value!=null?r.target_value:''}" placeholder="e.g. 150"></div>
-    </div>
+      <div><label>Daily target (optional)</label><input type="number" id="f-target" value="${r.target_value!=null?r.target_value:''}" placeholder="e.g. 150"></div></div>
     <div class="field"><div class="toggle ${r.active?'on':''}" id="f-active"><div class="sw"></div>
       <div style="font-weight:600;font-size:14px">Active</div></div></div>
-    <div class="formbtns">
-      ${isNew?'':'<button class="btn-del" id="f-del">Delete</button>'}
-      <button class="btn-cancel" id="f-cancel">Cancel</button>
-      <button class="btn-save" id="f-save">Save</button>
-    </div>`;
+    <div class="formbtns">${isNew?'':'<button class="btn-del" id="f-del">Delete</button>'}
+      <button class="btn-cancel" id="f-cancel">Cancel</button><button class="btn-save" id="f-save">Save</button></div>`;
   let track = r.track_value, active = r.active;
   $('f-track').onclick = ()=>{ track=!track; $('f-track').classList.toggle('on',track); $('f-numwrap').classList.toggle('hidden',!track); };
   $('f-active').onclick = ()=>{ active=!active; $('f-active').classList.toggle('on',active); };
   $('f-cancel').onclick = renderEditorList;
   if(!isNew) $('f-del').onclick = ()=>deleteRoutine(r);
   $('f-save').onclick = async ()=>{
-    const name=$('f-name').value.trim();
-    if(!name){ toast('Give it a name', true); return; }
-    const body={ name, category:$('f-cat').value, cadence:$('f-cad').value,
-      track_value:track, unit: track?($('f-unit').value.trim()||null):null,
+    const name=$('f-name').value.trim(); if(!name){ toast('Give it a name', true); return; }
+    const body={ name, category:$('f-cat').value, cadence:$('f-cad').value, track_value:track,
+      unit: track?($('f-unit').value.trim()||null):null,
       target_value: track && $('f-target').value!=='' ? Number($('f-target').value) : null, active };
     try{
       if(isNew){ body.sort_order = maxSort(body.category)+1; await rest('POST','routines',{body,prefer:'return=minimal'}); }
       else { await rest('PATCH','routines?id=eq.'+r.id,{body,prefer:'return=minimal'}); }
-      toast('Saved');
-      allRoutines = await loadAll(); await load(); render(); renderEditorList();
+      toast('Saved'); allRoutines = await loadAll(); await load(); render(); renderEditorList();
     }catch(e){ toast('Could not save routine', true); console.error(e); }
   };
 }
 function maxSort(cat){ return allRoutines.filter(r=>r.category===cat).reduce((m,r)=>Math.max(m,r.sort_order||0),0); }
 async function deleteRoutine(r){
   if(!confirm(`Delete "${r.name}" and all its history? This cannot be undone.\n\nTip: turn Active off to retire it instead.`)) return;
-  try{ await rest('DELETE','routines?id=eq.'+r.id); toast('Deleted');
-    allRoutines = await loadAll(); await load(); render(); renderEditorList();
-  }catch(e){ toast('Could not delete', true); console.error(e); }
+  try{ await rest('DELETE','routines?id=eq.'+r.id); toast('Deleted'); allRoutines = await loadAll(); await load(); render(); renderEditorList(); }
+  catch(e){ toast('Could not delete', true); console.error(e); }
 }
 async function moveRoutine(id, dir){
-  const r=allRoutines.find(x=>x.id===id);
-  const group=allRoutines.filter(x=>x.category===r.category);
-  const i=group.findIndex(x=>x.id===id), j=dir==='up'?i-1:i+1;
-  if(j<0||j>=group.length) return;
+  const r=allRoutines.find(x=>x.id===id); const group=allRoutines.filter(x=>x.category===r.category);
+  const i=group.findIndex(x=>x.id===id), j=dir==='up'?i-1:i+1; if(j<0||j>=group.length) return;
   const a=group[i], b=group[j];
   try{
     await rest('PATCH','routines?id=eq.'+a.id,{body:{sort_order:b.sort_order},prefer:'return=minimal'});
@@ -629,32 +667,36 @@ async function moveRoutine(id, dir){
   }catch(e){ toast('Could not reorder', true); console.error(e); }
 }
 
-// confetti + toast
+// confetti + toast + xp
 const CONF=['#34d399','#fb923c','#a78bfa','#38bdf8','#fbbf24'];
-function burst(anchor){
-  const rect=anchor.getBoundingClientRect();
-  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-  for(let i=0;i<12;i++){
+function spawnConfetti(cx,cy,count,spread){
+  for(let i=0;i<count;i++){
     const s=document.createElement('div'); s.className='confetti';
     s.style.background=CONF[i%CONF.length]; s.style.left=cx+'px'; s.style.top=cy+'px';
     document.body.appendChild(s);
-    const ang=Math.random()*Math.PI*2, dist=40+Math.random()*46;
+    const ang=Math.random()*Math.PI*2, dist=spread*(0.5+Math.random());
     const dx=Math.cos(ang)*dist, dy=Math.sin(ang)*dist-20;
-    s.animate([{transform:'translate(0,0) scale(1)',opacity:1},
-      {transform:`translate(${dx}px,${dy+70}px) scale(.3)`,opacity:0}],
-      {duration:650+Math.random()*300,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>s.remove();
+    s.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${dx}px,${dy+80}px) scale(.3)`,opacity:0}],
+      {duration:700+Math.random()*400,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>s.remove();
   }
 }
+function burst(anchor){ const r=anchor.getBoundingClientRect(); spawnConfetti(r.left+r.width/2, r.top+r.height/2, 12, 70); }
+function bigBurst(){ spawnConfetti(window.innerWidth/2, window.innerHeight*0.32, 46, 200); }
+function floatXp(anchor, amt){
+  const r=anchor.getBoundingClientRect();
+  const el=document.createElement('div'); el.className='xpfloat'; el.textContent='+'+amt+' XP';
+  el.style.left=(r.left+r.width/2)+'px'; el.style.top=r.top+'px'; document.body.appendChild(el);
+  el.animate([{transform:'translateX(-50%) translateY(0)',opacity:0},{transform:'translateX(-50%) translateY(-14px)',opacity:1,offset:.3},
+    {transform:'translateX(-50%) translateY(-46px)',opacity:0}],{duration:1100,easing:'ease-out'}).onfinish=()=>el.remove();
+}
 let toastT;
-function toast(msg,err){ const t=$('toast'); t.textContent=msg; t.className='toast show'+(err?' err':'');
-  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast'+(err?' err':''),2400); }
+function toast(msg,err,level){ const t=$('toast'); t.textContent=msg; t.className='toast show'+(err?' err':'')+(level?' level':'');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast'+(err?' err':'')+(level?' level':''), level?3200:2400); }
 
 // boot
 (async ()=>{
   try{ await load(); render(); }
-  catch(e){ console.error(e);
-    $('app').innerHTML=`<div class="loading">Couldn't connect to the database.<br>Check your internet and refresh.</div>`;
-    toast('Connection failed',true); }
+  catch(e){ console.error(e); $('app').innerHTML=`<div class="loading">Couldn't connect to the database.<br>Check your internet and refresh.</div>`; toast('Connection failed',true); }
 })();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
