@@ -148,7 +148,7 @@
 
   .field{margin-bottom:12px}
   .field label{display:block;font-size:12.5px;color:var(--muted);margin:0 2px 6px}
-  .field input[type=text],.field input[type=number],.field select,.field textarea{
+  .field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number],.field select,.field textarea{
     width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);
     border-radius:12px;padding:11px 12px;font-size:15px;outline:none;font-family:inherit}
   .field textarea{resize:vertical}
@@ -204,7 +204,7 @@
   </div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 6</div>
+  <div class="foot">Life Organiser · build 7</div>
 </div>
 
 <nav class="nav">
@@ -220,17 +220,57 @@
   </div>
 </div>
 <div class="overlay" id="detail"><div class="sheet" id="detailSheet"></div></div>
+
+<div class="overlay" id="login">
+  <div class="sheet" style="max-width:380px;margin-top:12vh">
+    <h2 style="justify-content:center">Life Organiser</h2>
+    <div style="text-align:center;color:var(--muted);font-size:13px;margin:-8px 0 18px">Sign in to your dashboard</div>
+    <div class="field"><label>Email</label><input type="email" id="l-email" autocomplete="username" inputmode="email"></div>
+    <div class="field"><label>Password</label><input type="password" id="l-pass" autocomplete="current-password"></div>
+    <div id="l-err" style="color:var(--danger);font-size:13px;min-height:18px;margin:0 2px 4px"></div>
+    <div class="formbtns"><button class="btn-save" id="l-go" style="flex:1">Sign in</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 const SUPABASE_URL = 'https://ncxictnhhmnexhmvqvhd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_iIeb5avDs70-9OJX0yJLzw_bfWR_ReZ';
 const REST = SUPABASE_URL + '/rest/v1/';
-async function rest(method, path, opts){
+const AUTH = SUPABASE_URL + '/auth/v1/';
+let session = null;
+function loadSession(){ try{ const s=localStorage.getItem('lo_session'); if(s) session=JSON.parse(s); }catch(e){} }
+function saveSession(s){ session=s; try{ localStorage.setItem('lo_session', JSON.stringify(s)); }catch(e){} }
+function clearSession(){ session=null; try{ localStorage.removeItem('lo_session'); }catch(e){} }
+async function signIn(email,password){
+  const res=await fetch(AUTH+'token?grant_type=password',{method:'POST',
+    headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({email,password})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error_description||data.msg||data.error||'Sign-in failed');
+  saveSession({access_token:data.access_token, refresh_token:data.refresh_token});
+  return true;
+}
+async function refreshSession(){
+  if(!session||!session.refresh_token) return false;
+  try{
+    const res=await fetch(AUTH+'token?grant_type=refresh_token',{method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:session.refresh_token})});
+    if(!res.ok){ clearSession(); return false; }
+    const data=await res.json(); saveSession({access_token:data.access_token, refresh_token:data.refresh_token}); return true;
+  }catch(e){ return false; }
+}
+function signOut(){ clearSession(); location.reload(); }
+
+async function rest(method, path, opts, _retry){
   opts = opts || {};
   const headers = { 'apikey': SUPABASE_KEY, 'Content-Type':'application/json' };
+  if(session && session.access_token) headers['Authorization'] = 'Bearer '+session.access_token;
   if(opts.prefer) headers['Prefer'] = opts.prefer;
   const res = await fetch(REST + path, { method, headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if(res.status===401 && session && !_retry){ const ok=await refreshSession(); if(ok) return rest(method,path,opts,true); }
   if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+' '+t); }
   const txt = await res.text(); return txt ? JSON.parse(txt) : null;
 }
@@ -608,8 +648,10 @@ function renderEditorList(){
     });
     html += `</div>`;
   }
+  html += '<button class="btn-cancel" id="signout" style="width:100%;margin-top:6px">Sign out</button>';
   const body=$('editorBody'); body.innerHTML = html;
   $('addRoutine').onclick = ()=>openForm(null);
+  $('signout').onclick = signOut;
   body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openForm(allRoutines.find(r=>r.id===b.getAttribute('data-edit'))));
   body.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>moveRoutine(b.getAttribute('data-id'), b.getAttribute('data-move')));
 }
@@ -694,10 +736,24 @@ function toast(msg,err,level){ const t=$('toast'); t.textContent=msg; t.classNam
   clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast'+(err?' err':'')+(level?' level':''), level?3200:2400); }
 
 // boot
-(async ()=>{
+function showLogin(){ $('login').classList.add('show'); }
+async function start(){
+  $('login').classList.remove('show');
   try{ await load(); render(); }
-  catch(e){ console.error(e); $('app').innerHTML=`<div class="loading">Couldn't connect to the database.<br>Check your internet and refresh.</div>`; toast('Connection failed',true); }
-})();
+  catch(e){ console.error(e);
+    if(String(e).includes('HTTP 401') || String(e).includes('JWT')){ clearSession(); showLogin(); }
+    else { $('app').innerHTML=`<div class="loading">Couldn't connect.<br>Check your internet and refresh.</div>`; toast('Connection failed',true); } }
+}
+$('l-go').onclick = async ()=>{
+  const email=$('l-email').value.trim(), pass=$('l-pass').value;
+  $('l-err').textContent=''; $('l-go').textContent='Signing in…';
+  try{ await signIn(email,pass); await start(); }
+  catch(e){ $('l-err').textContent = String(e.message||e); }
+  $('l-go').textContent='Sign in';
+};
+$('l-pass').addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('l-go').click(); });
+loadSession();
+if(session) start(); else showLogin();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
   if(window.caches) caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{});
