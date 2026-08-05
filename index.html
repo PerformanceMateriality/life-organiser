@@ -57,6 +57,9 @@
   .datebar button:disabled{opacity:.35;cursor:default}
   .datebar .lbl{font-weight:600;font-size:15px;text-align:center}
   .datebar .lbl small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+  .restrow{margin:-8px 0 18px}
+  .restbtn{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:12px;padding:9px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .restbtn.on{color:#7dd3fc;border-color:color-mix(in srgb,#38bdf8 40%,var(--line));background:color-mix(in srgb,#38bdf8 8%,var(--surface))}
 
   .cat{margin-bottom:22px}
   .cat h2{display:flex;align-items:center;gap:9px;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 4px 10px}
@@ -202,9 +205,10 @@
     <div class="lbl" id="dateLbl">—<small></small></div>
     <button id="nextDay" aria-label="Next day">›</button>
   </div>
+  <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 7</div>
+  <div class="foot">Life Organiser · build 8</div>
 </div>
 
 <nav class="nav">
@@ -308,12 +312,45 @@ const $ = (id)=>document.getElementById(id);
 function getLog(rid,ds){ return logs.get(rid)?.get(ds); }
 function isDone(rid,ds){ const l=getLog(rid,ds); return !!(l && l.completed); }
 
+let restDays = new Set();
+function isRest(ds){ return restDays.has(ds); }
+async function toggleRest(ds){
+  try{
+    if(isRest(ds)){ await rest('DELETE','rest_days?day=eq.'+ds); restDays.delete(ds); }
+    else { await rest('POST','rest_days?on_conflict=day',{body:{day:ds},prefer:'resolution=merge-duplicates'}); restDays.add(ds); }
+    render();
+  }catch(e){ toast('Could not update rest day — did the SQL run?', true); console.error(e); }
+}
+function renderRestRow(ds){
+  const el=$('restrow'); if(!el) return;
+  const on=isRest(ds);
+  el.innerHTML = `<button class="restbtn ${on?'on':''}" id="restToggle">${on?'❄️ Rest day — streaks protected':'❄️ Mark as rest day'}</button>`;
+  $('restToggle').onclick = ()=>toggleRest(ds);
+}
+async function exportData(){
+  try{
+    toast('Preparing export…');
+    const [rs, lg, rd] = await Promise.all([
+      loadAll(),
+      rest('GET','routine_logs?select=*&order=log_date.asc'),
+      rest('GET','rest_days?select=*').catch(()=>[])
+    ]);
+    const payload={ app:'Life Organiser', exported_at:new Date().toISOString(), routines:rs||[], routine_logs:lg||[], rest_days:rd||[] };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='life-organiser-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    toast('Backup downloaded');
+  }catch(e){ toast('Export failed', true); console.error(e); }
+}
+
 async function load(){
   routines = await rest('GET','routines?select=*&active=eq.true&order=category.asc,sort_order.asc') || [];
   const since = ymd(addDays(today,-160));
   const lg = await rest('GET','routine_logs?select=*&log_date=gte.'+since) || [];
   logs = new Map();
   for(const row of lg){ if(!logs.has(row.routine_id)) logs.set(row.routine_id,new Map()); logs.get(row.routine_id).set(row.log_date,row); }
+  try{ const rd = await rest('GET','rest_days?select=day') || []; restDays = new Set(rd.map(x=>x.day)); }catch(e){ restDays = new Set(); }
 }
 async function loadAll(){ return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || []; }
 
@@ -337,7 +374,16 @@ async function setLog(routine, ds, on, value, completed, note){
 }
 
 // metrics
-function streak(rid){ let n=0, d=new Date(today); if(!isDone(rid,ymd(d))) d=addDays(d,-1); while(isDone(rid,ymd(d))){ n++; d=addDays(d,-1); } return n; }
+function streak(rid){
+  let n=0, d=new Date(today), guard=0;
+  if(!isDone(rid,ymd(d)) && !isRest(ymd(d))) d=addDays(d,-1);
+  while(guard++ < 600){ const ds=ymd(d);
+    if(isDone(rid,ds)){ n++; d=addDays(d,-1); }
+    else if(isRest(ds)){ d=addDays(d,-1); }
+    else break;
+  }
+  return n;
+}
 function lastDone(rid){ const m=logs.get(rid); if(!m) return null; let best=null; for(const [ds,l] of m){ if(l.completed && (!best||ds>best)) best=ds; } return best; }
 function weekKey(d){ const dt=new Date(d); const off=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-off); return ymd(dt); }
 function countWeek(rid,ref){ const wk=weekKey(ref); let c=0; const m=logs.get(rid); if(!m)return 0; for(const [ds,l] of m){ if(l.completed && weekKey(parseYmd(ds))===wk) c++; } return c; }
@@ -361,7 +407,16 @@ function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat)
 function levelInfo(xp){ let lvl=1, acc=0, need=100; while(xp >= acc+need){ acc+=need; lvl++; need=100+(lvl-1)*50; } return { level:lvl, into:xp-acc, need, total:xp }; }
 function totalCheckoffs(){ let c=0; for(const [,m] of logs) for(const [,l] of m) if(l.completed) c++; return c; }
 function completedDates(rid){ const m=logs.get(rid); if(!m) return []; const a=[]; for(const [ds,l] of m) if(l.completed) a.push(ds); a.sort(); return a; }
-function longestStreak(rid){ const a=completedDates(rid); if(!a.length) return 0; let best=1,run=1; for(let i=1;i<a.length;i++){ if(Math.round((parseYmd(a[i])-parseYmd(a[i-1]))/86400000)===1) run++; else run=1; best=Math.max(best,run); } return best; }
+function longestStreak(rid){
+  const a=completedDates(rid); if(!a.length) return 0;
+  let best=0, run=0;
+  for(let d=new Date(parseYmd(a[0])); d<=today; d=addDays(d,1)){ const ds=ymd(d);
+    if(isDone(rid,ds)){ run++; if(run>best) best=run; }
+    else if(isRest(ds)){ /* frozen — hold the run */ }
+    else run=0;
+  }
+  return best;
+}
 function maxLongestStreak(){ let m=0; for(const r of routines) m=Math.max(m,longestStreak(r.id)); return m; }
 function catCount(cat){ let c=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [,l] of m) if(l.completed) c++; } return c; }
 function isPerfect(d){ const daily=routines.filter(r=>!CADENCE[r.cadence].periodic && (!r.created_at || ymd(new Date(r.created_at))<=d)); if(!daily.length) return false; return daily.every(r=>isDone(r.id,d)); }
@@ -410,6 +465,7 @@ function renderLevelBar(){
 function render(){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   $('datebar').style.display = view==='today' ? '' : 'none';
+  $('restrow').style.display = view==='today' ? '' : 'none';
   renderLevelBar();
   if(view==='today') renderToday(); else if(view==='history') renderHistory(); else renderRewards();
 }
@@ -423,6 +479,7 @@ function dateLabel(){
 function renderToday(){
   const ds = ymd(selected);
   dateLabel();
+  renderRestRow(ds);
   const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
   const dailyDone = daily.filter(r=>isDone(r.id,ds)).length;
   ringSvg(dailyDone, daily.length);
@@ -475,6 +532,7 @@ const HDAYS = 28;
 function dayState(r, ds){
   const created = r.created_at ? ymd(new Date(r.created_at)) : null;
   if(created && ds < created) return 'na';
+  if(isRest(ds)) return 'rest';
   const log = getLog(r.id, ds);
   if(CADENCE[r.cadence].periodic){ return (log && log.completed) ? 'done' : 'na'; }
   if(log && log.completed) return 'done';
@@ -485,6 +543,7 @@ function sqColor(state, raw){
   if(state==='done') return raw;
   if(state==='partial') return 'color-mix(in srgb,'+raw+' 42%, transparent)';
   if(state==='miss') return 'rgba(255,255,255,.06)';
+  if(state==='rest') return 'rgba(56,189,248,.30)';
   return 'rgba(255,255,255,.03)';
 }
 function renderHistory(){
@@ -495,7 +554,7 @@ function renderHistory(){
   const wkStart = parseYmd(weekKey(today));
   const elapsed = Math.round((today - wkStart)/86400000) + 1;
   let possible=0, done=0, checkoffs=0;
-  for(const r of daily){ for(let i=0;i<elapsed;i++){ const d=ymd(addDays(wkStart,i)); if(d>dsToday) break; if(dayState(r,d)!=='na'){ possible++; if(isDone(r.id,d)) done++; } } }
+  for(const r of daily){ for(let i=0;i<elapsed;i++){ const d=ymd(addDays(wkStart,i)); if(d>dsToday) break; const st=dayState(r,d); if(st!=='na' && st!=='rest'){ possible++; if(isDone(r.id,d)) done++; } } }
   for(const [,m] of logs){ for(const [ds,l] of m){ if(l.completed && weekKey(parseYmd(ds))===weekKey(today)) checkoffs++; } }
   const pct = possible? Math.round(done/possible*100):0;
   const best = daily.reduce((m,r)=>Math.max(m,streak(r.id)),0);
@@ -506,7 +565,8 @@ function renderHistory(){
     </div>
     <div class="legend"><span><i style="background:#34d399"></i>Done</span>
       <span><i style="background:color-mix(in srgb,#34d399 42%,transparent)"></i>Partial</span>
-      <span><i style="background:rgba(255,255,255,.06)"></i>Missed</span></div>`;
+      <span><i style="background:rgba(255,255,255,.06)"></i>Missed</span>
+      <span><i style="background:rgba(56,189,248,.30)"></i>Rest</span></div>`;
   if(!routines.length){ $('app').innerHTML = html + '<div class="loading">No routines yet.</div>'; return; }
   const days=[]; for(let i=HDAYS-1;i>=0;i--) days.push(ymd(addDays(today,-i)));
   for(const cat of CATEGORIES){
@@ -648,9 +708,11 @@ function renderEditorList(){
     });
     html += `</div>`;
   }
+  html += '<button class="btn-cancel" id="exportBtn" style="width:100%;margin-top:8px">⬇ Export my data (backup)</button>';
   html += '<button class="btn-cancel" id="signout" style="width:100%;margin-top:6px">Sign out</button>';
   const body=$('editorBody'); body.innerHTML = html;
   $('addRoutine').onclick = ()=>openForm(null);
+  $('exportBtn').onclick = exportData;
   $('signout').onclick = signOut;
   body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openForm(allRoutines.find(r=>r.id===b.getAttribute('data-edit'))));
   body.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>moveRoutine(b.getAttribute('data-id'), b.getAttribute('data-move')));
