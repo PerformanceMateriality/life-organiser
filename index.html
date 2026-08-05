@@ -28,7 +28,7 @@
     min-height:100vh;
     padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
-  .wrap{max-width:600px;margin:0 auto;padding:18px 16px 90px}
+  .wrap{max-width:600px;margin:0 auto;padding:18px 16px 110px}
 
   header{display:flex;align-items:center;gap:13px;margin-bottom:14px}
   .ring{position:relative;width:60px;height:60px;flex:0 0 auto}
@@ -56,8 +56,9 @@
   .row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);
     border-radius:var(--radius);padding:13px 14px;margin-bottom:9px;transition:transform .12s ease,border-color .2s}
   .row.done{border-color:var(--acc);background:linear-gradient(0deg,color-mix(in srgb,var(--acc) 9%,var(--surface)),var(--surface))}
-  .row .info{flex:1;min-width:0}
-  .row .name{font-weight:600;font-size:15.5px;line-height:1.2}
+  .row .info{flex:1;min-width:0;cursor:pointer}
+  .row .name{font-weight:600;font-size:15.5px;line-height:1.2;display:flex;align-items:center;gap:6px}
+  .row .name .noteflag{font-size:12px;opacity:.8}
   .row .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:12.5px;color:var(--muted)}
   .flame{color:var(--flame);font-weight:700}
   .tgt{color:var(--muted)}
@@ -81,7 +82,22 @@
   @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
   .check.pop{animation:pop .32s ease}
 
-  /* Overlay editor */
+  /* History */
+  .tiles{display:flex;gap:10px;margin-bottom:16px}
+  .tile{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 12px;text-align:center}
+  .tile .big{font-size:24px;font-weight:800;line-height:1}
+  .tile .lbl{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.3px}
+  .legend{display:flex;gap:14px;justify-content:center;margin:0 0 18px;font-size:11.5px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .hcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:9px}
+  .hcard .top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .hcard .top .n{font-weight:600;font-size:14.5px}
+  .hcard .top .s{margin-left:auto;font-size:12px;color:var(--muted)}
+  .hstrip{display:flex;gap:3px}
+  .hstrip .sq{flex:1;min-width:0;height:14px;border-radius:3px;background:rgba(255,255,255,.05)}
+
+  /* Overlays */
   .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
     display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
   .overlay.show{display:block}
@@ -103,9 +119,10 @@
 
   .field{margin-bottom:12px}
   .field label{display:block;font-size:12.5px;color:var(--muted);margin:0 2px 6px}
-  .field input[type=text],.field input[type=number],.field select{
+  .field input[type=text],.field input[type=number],.field select,.field textarea{
     width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);
     border-radius:12px;padding:11px 12px;font-size:15px;outline:none;font-family:inherit}
+  .field textarea{resize:vertical}
   .field.rowly{display:flex;gap:10px}
   .field.rowly > div{flex:1}
   .toggle{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer}
@@ -120,7 +137,15 @@
   .btn-del{background:transparent;color:var(--danger);border:1px solid var(--danger)!important;flex:0 0 auto!important;padding:13px 16px!important}
   .hidden{display:none!important}
 
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);
+  /* Bottom nav */
+  .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);
+    display:flex;gap:4px;background:rgba(26,30,46,.92);backdrop-filter:blur(10px);border:1px solid var(--line);
+    border-radius:16px;padding:5px;z-index:40;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+  .navbtn{background:transparent;border:none;color:var(--muted);font-size:13.5px;font-weight:600;
+    padding:9px 22px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:7px}
+  .navbtn.active{background:var(--surface2);color:var(--text)}
+
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(120px);
     background:#222741;border:1px solid var(--line);color:var(--text);padding:11px 16px;border-radius:12px;
     font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s;z-index:80;max-width:90%}
   .toast.show{transform:translateX(-50%) translateY(0)}
@@ -141,15 +166,20 @@
     <button class="mng" id="manageBtn">⚙︎ Manage</button>
   </header>
 
-  <div class="datebar">
+  <div class="datebar" id="datebar">
     <button id="prevDay" aria-label="Previous day">‹</button>
     <div class="lbl" id="dateLbl">—<small></small></div>
     <button id="nextDay" aria-label="Next day">›</button>
   </div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 4</div>
+  <div class="foot">Life Organiser · build 5</div>
 </div>
+
+<nav class="nav">
+  <button class="navbtn active" data-view="today">◉ Today</button>
+  <button class="navbtn" data-view="history">▦ History</button>
+</nav>
 
 <!-- Manage overlay -->
 <div class="overlay" id="editor">
@@ -159,11 +189,15 @@
   </div>
 </div>
 
+<!-- Detail / note overlay -->
+<div class="overlay" id="detail">
+  <div class="sheet" id="detailSheet"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 const SUPABASE_URL = 'https://ncxictnhhmnexhmvqvhd.supabase.co';
-// Publishable key, sent ONLY as the apikey header (no Authorization: Bearer).
 const SUPABASE_KEY = 'sb_publishable_iIeb5avDs70-9OJX0yJLzw_bfWR_ReZ';
 const REST = SUPABASE_URL + '/rest/v1/';
 async function rest(method, path, opts){
@@ -184,7 +218,7 @@ const CATEGORIES = [
   { key:'mind',    label:'Mind & Wellbeing',        color:'var(--mind)' },
   { key:'work',    label:'Work & Life Admin',       color:'var(--work)' },
 ];
-const CATCOLOR = { health:'var(--health)', fitness:'var(--fitness)', mind:'var(--mind)', work:'var(--work)' };
+const RAWCOLOR = { health:'#34d399', fitness:'#fb923c', mind:'#a78bfa', work:'#38bdf8' };
 const CADENCE = {
   daily:           { label:'Daily',           periodic:false },
   every_other_day: { label:'Every other day', periodic:true, interval:2 },
@@ -199,6 +233,7 @@ const parseYmd = (s)=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,
 const addDays = (d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
 const today = new Date(); today.setHours(0,0,0,0);
 let selected = new Date(today);
+let view = 'today';
 
 let routines = [];
 let logs = new Map();
@@ -217,15 +252,16 @@ async function load(){
     logs.get(row.routine_id).set(row.log_date,row);
   }
 }
-// all routines incl. inactive — for the manager
-async function loadAll(){
-  return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || [];
-}
+async function loadAll(){ return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || []; }
 
-async function setLog(routine, ds, on, value, completed){
+async function setLog(routine, ds, on, value, completed, note){
   if(on){
+    const cur = getLog(routine.id, ds) || {};
     const payload={ routine_id:routine.id, log_date:ds, completed: completed===undefined?true:completed };
     if(value!==undefined && value!==null && value!=='') payload.value=Number(value);
+    else if(cur.value!=null) payload.value=cur.value;
+    if(note!==undefined) payload.note = note || null;
+    else if(cur.note!=null) payload.note = cur.note;
     const rows = await rest('POST','routine_logs?on_conflict=routine_id,log_date',
       { body:payload, prefer:'resolution=merge-duplicates,return=representation' });
     const data = Array.isArray(rows) ? rows[0] : rows;
@@ -237,7 +273,7 @@ async function setLog(routine, ds, on, value, completed){
   }
 }
 
-// ----- metrics -----
+// metrics
 function streak(rid){
   let n=0, d=new Date(today);
   if(!isDone(rid,ymd(d))) d=addDays(d,-1);
@@ -260,14 +296,13 @@ function periodicStatus(routine){
   if(days>=cad.interval) return { due:true, text:days===0?'Done today':`Last ${days}d ago` };
   return { due:false, text:`Next in ${cad.interval-days}d` };
 }
-// completion threshold for value routines
 function valueDone(routine, num){
   if(num===null||num===undefined||num==='') return false;
   const t = routine.target_value!=null ? Number(routine.target_value) : null;
   return t ? Number(num) >= t : Number(num) > 0;
 }
 
-// ----- render main -----
+// ---- top-level view switch ----
 function ringSvg(done,total){
   const pct = total? done/total : 0;
   const R=25, C=2*Math.PI*R, off=C*(1-pct);
@@ -280,6 +315,12 @@ function ringSvg(done,total){
          style="transition:stroke-dashoffset .5s ease"/>
      </svg><div class="pct">${done}/${total}</div>`;
 }
+function render(){
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  $('datebar').style.display = view==='today' ? '' : 'none';
+  if(view==='today') renderToday(); else renderHistory();
+}
+
 function dateLabel(){
   const diff=Math.round((selected-today)/86400000);
   let word = diff===0?'Today':diff===-1?'Yesterday':diff===1?'Tomorrow':'';
@@ -287,7 +328,7 @@ function dateLabel(){
   $('dateLbl').innerHTML = `${word||dstr}<small>${word?dstr:''}</small>`;
   $('nextDay').disabled = ymd(selected)>=ymd(today);
 }
-function render(){
+function renderToday(){
   const ds = ymd(selected);
   dateLabel();
   const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
@@ -328,36 +369,102 @@ function rowEl(r,cat,ds){
     const s=streak(r.id);
     meta += s>0 ? `<span class="flame">🔥 ${s}</span>` : `<span style="color:var(--muted2)">Build a streak</span>`;
   }
-  // target text for value routines
   const hasTarget = r.track_value && r.target_value!=null;
   if(hasTarget){
     const cur = log && log.value!=null ? log.value : 0;
     meta += `<span class="tgt">${cur} / ${r.target_value}${r.unit||''}</span>`;
   }
-
   let pbar='';
   if(hasTarget){
     const cur = log && log.value!=null ? Number(log.value) : 0;
     const pct = Math.max(0, Math.min(1, cur/Number(r.target_value)))*100;
     pbar = `<div class="pbar"><i style="width:${pct}%"></i></div>`;
   }
+  const noteFlag = (log && log.note) ? `<span class="noteflag" title="Has a note">📝</span>` : '';
 
   const valHtml = r.track_value
     ? `<div class="val"><input type="number" inputmode="decimal" data-val="${r.id}" placeholder="0"
          value="${log&&log.value!=null?log.value:''}"><span class="unit">${r.unit||''}</span></div>` : '';
-
   const control = cad.periodic
     ? `<button class="check log" data-toggle="${r.id}">${done?'Done ✓':'Log'}</button>`
     : `<button class="check" data-toggle="${r.id}" aria-label="Toggle">
          <svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg></button>`;
 
-  el.innerHTML = `<div class="info"><div class="name">${escapeHtml(r.name)}</div>
+  el.innerHTML = `<div class="info" data-detail="${r.id}"><div class="name">${escapeHtml(r.name)} ${noteFlag}</div>
     <div class="meta">${meta}</div>${pbar}</div>${valHtml}${control}`;
   return el;
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-// ----- interactions (tracking) -----
+// ---- HISTORY VIEW ----
+const HDAYS = 28;
+function dayState(r, ds){
+  const created = r.created_at ? ymd(new Date(r.created_at)) : null;
+  if(created && ds < created) return 'na';
+  const log = getLog(r.id, ds);
+  if(CADENCE[r.cadence].periodic){ return (log && log.completed) ? 'done' : 'na'; }
+  if(log && log.completed) return 'done';
+  if(log && log.value!=null) return 'partial';
+  return 'miss';
+}
+function sqColor(state, raw){
+  if(state==='done') return raw;
+  if(state==='partial') return 'color-mix(in srgb,'+raw+' 42%, transparent)';
+  if(state==='miss') return 'rgba(255,255,255,.06)';
+  return 'rgba(255,255,255,.03)'; // na
+}
+function renderHistory(){
+  // header: today's progress + label
+  const dsToday = ymd(today);
+  const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
+  ringSvg(daily.filter(r=>isDone(r.id,dsToday)).length, daily.length);
+  $('subtitle').textContent = `Last ${HDAYS/7} weeks`;
+
+  // week stats
+  const wkStart = parseYmd(weekKey(today));
+  const elapsed = Math.round((today - wkStart)/86400000) + 1;
+  let possible=0, done=0, checkoffs=0;
+  for(const r of daily){
+    for(let i=0;i<elapsed;i++){ const d=ymd(addDays(wkStart,i)); if(d>dsToday) break;
+      if(dayState(r,d)!=='na'){ possible++; if(isDone(r.id,d)) done++; } }
+  }
+  for(const [rid,m] of logs){ for(const [ds,l] of m){ if(l.completed && weekKey(parseYmd(ds))===weekKey(today)) checkoffs++; } }
+  const pct = possible? Math.round(done/possible*100):0;
+  const best = daily.reduce((m,r)=>Math.max(m,streak(r.id)),0);
+
+  const app=$('app');
+  let html = `<div class="tiles">
+      <div class="tile"><div class="big" style="color:var(--health)">${pct}%</div><div class="lbl">This week</div></div>
+      <div class="tile"><div class="big" style="color:var(--flame)">🔥 ${best}</div><div class="lbl">Best streak</div></div>
+      <div class="tile"><div class="big">${checkoffs}</div><div class="lbl">Check-offs</div></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#34d399"></i>Done</span>
+      <span><i style="background:color-mix(in srgb,#34d399 42%,transparent)"></i>Partial</span>
+      <span><i style="background:rgba(255,255,255,.06)"></i>Missed</span>
+    </div>`;
+
+  if(!routines.length){ app.innerHTML = html + '<div class="loading">No routines yet.</div>'; return; }
+
+  const days=[]; for(let i=HDAYS-1;i>=0;i--) days.push(ymd(addDays(today,-i)));
+  for(const cat of CATEGORIES){
+    const items = routines.filter(r=>r.category===cat.key);
+    if(!items.length) continue;
+    html += `<div class="cat"><h2><span class="dot" style="background:${cat.color}"></span>${cat.label}</h2>`;
+    for(const r of items){
+      const raw = RAWCOLOR[r.category];
+      const per = CADENCE[r.cadence].periodic;
+      const sub = per ? CADENCE[r.cadence].label : (streak(r.id)>0?`🔥 ${streak(r.id)} day streak`:'No active streak');
+      const sq = days.map(d=>`<div class="sq" style="background:${sqColor(dayState(r,d),raw)}"></div>`).join('');
+      html += `<div class="hcard"><div class="top"><span class="n">${escapeHtml(r.name)}</span><span class="s">${sub}</span></div>
+        <div class="hstrip">${sq}</div></div>`;
+    }
+    html += `</div>`;
+  }
+  app.innerHTML = html;
+}
+
+// ---- interactions ----
 let busy=false;
 async function onToggle(rid, btn){
   if(busy) return; busy=true;
@@ -377,32 +484,61 @@ async function onValue(rid, input){
   const r=routines.find(x=>x.id===rid); const ds=ymd(selected);
   const v=input.value.trim();
   try{
-    if(v===''){ await setLog(r,ds,false); }
+    if(v===''){ const cur=getLog(rid,ds); if(cur&&cur.note){ await setLog(r,ds,true,null,false); } else { await setLog(r,ds,false); } }
     else { const done=valueDone(r,v); await setLog(r,ds,true,v,done); if(navigator.vibrate)navigator.vibrate(12); }
     render();
   }catch(e){ toast('Could not save value', true); console.error(e); }
   busy=false;
 }
-document.addEventListener('click',(e)=>{ const t=e.target.closest('[data-toggle]'); if(t) onToggle(t.getAttribute('data-toggle'), t); });
+document.addEventListener('click',(e)=>{
+  const t=e.target.closest('[data-toggle]'); if(t){ onToggle(t.getAttribute('data-toggle'), t); return; }
+  const d=e.target.closest('[data-detail]'); if(d && view==='today'){ openDetail(d.getAttribute('data-detail')); }
+});
 document.addEventListener('change',(e)=>{ const v=e.target.closest('[data-val]'); if(v) onValue(v.getAttribute('data-val'), v); });
 $('prevDay').onclick=()=>{ selected=addDays(selected,-1); render(); };
 $('nextDay').onclick=()=>{ if(ymd(selected)<ymd(today)){ selected=addDays(selected,1); render(); } };
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{ view=b.dataset.view; if(view==='today') selected=new Date(today); render(); });
+
+// ---- detail / notes ----
+function openDetail(rid){
+  const r=routines.find(x=>x.id===rid); if(!r) return;
+  const ds=ymd(selected);
+  const log=getLog(rid,ds);
+  const diff=Math.round((selected-today)/86400000);
+  const word = diff===0?'Today':diff===-1?'Yesterday':selected.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
+  $('detailSheet').innerHTML = `
+    <h2>${escapeHtml(r.name)} <button class="x" id="closeDetail">×</button></h2>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:14px">${CADENCE[r.cadence].label} · ${word}</div>
+    <div class="field"><label>Note for this day</label>
+      <textarea id="d-note" rows="4" placeholder="Anything worth remembering…">${log&&log.note?escapeHtml(log.note):''}</textarea></div>
+    <div class="formbtns"><button class="btn-cancel" id="d-close">Close</button>
+      <button class="btn-save" id="d-save">Save note</button></div>`;
+  $('detail').classList.add('show');
+  $('closeDetail').onclick = ()=>$('detail').classList.remove('show');
+  $('d-close').onclick = ()=>$('detail').classList.remove('show');
+  $('d-save').onclick = async ()=>{
+    const note = $('d-note').value.trim();
+    const cur = getLog(rid,ds) || {};
+    try{
+      if(!note && !cur.completed && cur.value==null){ await setLog(r,ds,false); }
+      else { await setLog(r,ds,true, undefined, cur.completed||false, note); }
+      $('detail').classList.remove('show'); toast('Note saved'); render();
+    }catch(e){ toast('Could not save note', true); console.error(e); }
+  };
+}
 
 // ===== MANAGE / EDITOR =====
 let allRoutines = [];
 $('manageBtn').onclick = openEditor;
-$('closeEditor').onclick = closeEditor;
+$('closeEditor').onclick = ()=>$('editor').classList.remove('show');
 async function openEditor(){
   $('editor').classList.add('show');
   $('editorBody').innerHTML = '<div class="loading">Loading…</div>';
   try{ allRoutines = await loadAll(); renderEditorList(); }
   catch(e){ $('editorBody').innerHTML='<div class="loading">Could not load routines.</div>'; console.error(e); }
 }
-function closeEditor(){ $('editor').classList.remove('show'); }
-
 function renderEditorList(){
   $('editorTitle').firstChild.textContent = 'Manage routines ';
-  const body=$('editorBody');
   let html = `<button class="addbtn" id="addRoutine">＋ Add a routine</button>`;
   for(const cat of CATEGORIES){
     const items = allRoutines.filter(r=>r.category===cat.key);
@@ -423,12 +559,11 @@ function renderEditorList(){
     });
     html += `</div>`;
   }
-  body.innerHTML = html;
+  const body=$('editorBody'); body.innerHTML = html;
   $('addRoutine').onclick = ()=>openForm(null);
   body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openForm(allRoutines.find(r=>r.id===b.getAttribute('data-edit'))));
   body.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>moveRoutine(b.getAttribute('data-id'), b.getAttribute('data-move')));
 }
-
 function openForm(routine){
   const isNew = !routine;
   $('editorTitle').firstChild.textContent = isNew ? 'Add routine ' : 'Edit routine ';
@@ -465,8 +600,7 @@ function openForm(routine){
     if(!name){ toast('Give it a name', true); return; }
     const body={ name, category:$('f-cat').value, cadence:$('f-cad').value,
       track_value:track, unit: track?($('f-unit').value.trim()||null):null,
-      target_value: track && $('f-target').value!=='' ? Number($('f-target').value) : null,
-      active };
+      target_value: track && $('f-target').value!=='' ? Number($('f-target').value) : null, active };
     try{
       if(isNew){ body.sort_order = maxSort(body.category)+1; await rest('POST','routines',{body,prefer:'return=minimal'}); }
       else { await rest('PATCH','routines?id=eq.'+r.id,{body,prefer:'return=minimal'}); }
@@ -475,9 +609,9 @@ function openForm(routine){
     }catch(e){ toast('Could not save routine', true); console.error(e); }
   };
 }
-function maxSort(cat){ const items=allRoutines.filter(r=>r.category===cat); return items.reduce((m,r)=>Math.max(m,r.sort_order||0),0); }
+function maxSort(cat){ return allRoutines.filter(r=>r.category===cat).reduce((m,r)=>Math.max(m,r.sort_order||0),0); }
 async function deleteRoutine(r){
-  if(!confirm(`Delete "${r.name}" and all its history? This cannot be undone.\n\nTip: use Active → off to retire it instead.`)) return;
+  if(!confirm(`Delete "${r.name}" and all its history? This cannot be undone.\n\nTip: turn Active off to retire it instead.`)) return;
   try{ await rest('DELETE','routines?id=eq.'+r.id); toast('Deleted');
     allRoutines = await loadAll(); await load(); render(); renderEditorList();
   }catch(e){ toast('Could not delete', true); console.error(e); }
@@ -485,8 +619,7 @@ async function deleteRoutine(r){
 async function moveRoutine(id, dir){
   const r=allRoutines.find(x=>x.id===id);
   const group=allRoutines.filter(x=>x.category===r.category);
-  const i=group.findIndex(x=>x.id===id);
-  const j=dir==='up'?i-1:i+1;
+  const i=group.findIndex(x=>x.id===id), j=dir==='up'?i-1:i+1;
   if(j<0||j>=group.length) return;
   const a=group[i], b=group[j];
   try{
@@ -496,7 +629,7 @@ async function moveRoutine(id, dir){
   }catch(e){ toast('Could not reorder', true); console.error(e); }
 }
 
-// ----- confetti + toast -----
+// confetti + toast
 const CONF=['#34d399','#fb923c','#a78bfa','#38bdf8','#fbbf24'];
 function burst(anchor){
   const rect=anchor.getBoundingClientRect();
@@ -516,15 +649,13 @@ let toastT;
 function toast(msg,err){ const t=$('toast'); t.textContent=msg; t.className='toast show'+(err?' err':'');
   clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast'+(err?' err':''),2400); }
 
-// ----- boot -----
+// boot
 (async ()=>{
   try{ await load(); render(); }
   catch(e){ console.error(e);
     $('app').innerHTML=`<div class="loading">Couldn't connect to the database.<br>Check your internet and refresh.</div>`;
     toast('Connection failed',true); }
 })();
-
-// remove any previously-installed service worker + caches (no offline caching yet)
 if('serviceWorker' in navigator){
   navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
   if(window.caches) caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{});
