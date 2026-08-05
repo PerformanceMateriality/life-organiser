@@ -17,8 +17,7 @@
     --bg:#0f1220; --bg2:#12141c; --surface:#1a1e2e; --surface2:#222741;
     --line:rgba(255,255,255,.08); --text:#e7e9f0; --muted:#9aa0b4; --muted2:#6b7186;
     --health:#34d399; --fitness:#fb923c; --mind:#a78bfa; --work:#38bdf8;
-    --flame:#fbbf24; --danger:#f87171;
-    --radius:18px;
+    --flame:#fbbf24; --danger:#f87171; --radius:18px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
@@ -31,47 +30,47 @@
   }
   .wrap{max-width:600px;margin:0 auto;padding:18px 16px 90px}
 
-  /* Header */
-  header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-  .ring{position:relative;width:66px;height:66px;flex:0 0 auto}
+  header{display:flex;align-items:center;gap:13px;margin-bottom:14px}
+  .ring{position:relative;width:60px;height:60px;flex:0 0 auto}
   .ring svg{transform:rotate(-90deg)}
-  .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
   .htitle{flex:1;min-width:0}
-  .htitle h1{margin:0;font-size:20px;letter-spacing:.2px}
-  .htitle .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .htitle h1{margin:0;font-size:19px;letter-spacing:.2px}
+  .htitle .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .mng{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);color:var(--text);
+    border-radius:12px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .mng:active{transform:scale(.96)}
 
-  /* Date switcher */
   .datebar{display:flex;align-items:center;justify-content:space-between;gap:8px;
     background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 10px;margin-bottom:18px}
   .datebar button{background:var(--surface2);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer}
   .datebar button:disabled{opacity:.35;cursor:default}
-  .datebar .lbl{font-weight:600;font-size:15px}
-  .datebar .lbl small{display:block;font-weight:400;color:var(--muted);font-size:12px;text-align:center}
+  .datebar .lbl{font-weight:600;font-size:15px;text-align:center}
+  .datebar .lbl small{display:block;font-weight:400;color:var(--muted);font-size:12px}
 
-  /* Category */
   .cat{margin-bottom:22px}
   .cat h2{display:flex;align-items:center;gap:9px;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 4px 10px}
   .cat h2 .dot{width:9px;height:9px;border-radius:50%}
   .cat h2 .cnt{margin-left:auto;font-size:12px;color:var(--muted2);letter-spacing:.5px}
 
-  /* Row */
   .row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);
     border-radius:var(--radius);padding:13px 14px;margin-bottom:9px;transition:transform .12s ease,border-color .2s}
   .row.done{border-color:var(--acc);background:linear-gradient(0deg,color-mix(in srgb,var(--acc) 9%,var(--surface)),var(--surface))}
   .row .info{flex:1;min-width:0}
   .row .name{font-weight:600;font-size:15.5px;line-height:1.2}
-  .row.done .name{color:var(--text)}
   .row .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:12.5px;color:var(--muted)}
   .flame{color:var(--flame);font-weight:700}
+  .tgt{color:var(--muted)}
   .badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
   .badge.due{color:#0f1220;background:var(--acc);border-color:transparent;font-weight:700}
   .badge.cad{background:var(--surface2)}
+  .pbar{height:6px;border-radius:6px;background:rgba(255,255,255,.09);margin-top:8px;overflow:hidden}
+  .pbar > i{display:block;height:100%;background:var(--acc);border-radius:6px;transition:width .35s ease}
 
   .val{display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:5px 8px}
-  .val input{width:56px;background:transparent;border:none;color:var(--text);font-size:15px;text-align:right;outline:none;font-weight:600}
+  .val input{width:52px;background:transparent;border:none;color:var(--text);font-size:15px;text-align:right;outline:none;font-weight:600}
   .val .unit{font-size:12px;color:var(--muted)}
 
-  /* Check control */
   .check{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:2px solid var(--muted2);
     background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative}
   .check svg{width:20px;height:20px;stroke:#0f1220;stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.4);transition:all .18s}
@@ -82,15 +81,53 @@
   @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
   .check.pop{animation:pop .32s ease}
 
-  /* Toast + status */
+  /* Overlay editor */
+  .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
+    display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
+  .overlay.show{display:block}
+  .sheet{max-width:600px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:16px}
+  .sheet h2{margin:2px 0 14px;font-size:18px;display:flex;align-items:center}
+  .sheet h2 .x{margin-left:auto;background:var(--surface2);border:none;color:var(--text);width:34px;height:34px;border-radius:10px;font-size:18px;cursor:pointer}
+  .addbtn{width:100%;background:var(--surface2);border:1px dashed var(--line);color:var(--text);border-radius:14px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px}
+  .egroup{margin-bottom:16px}
+  .egroup .glabel{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 2px 8px;display:flex;align-items:center;gap:8px}
+  .erow{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:7px}
+  .erow.inactive{opacity:.5}
+  .erow .en{flex:1;min-width:0}
+  .erow .en .n{font-weight:600;font-size:14.5px}
+  .erow .en .c{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .erow .ord{display:flex;flex-direction:column;gap:2px}
+  .erow .ord button,.erow .ib{background:var(--surface2);border:none;color:var(--text);border-radius:8px;cursor:pointer}
+  .erow .ord button{width:26px;height:20px;font-size:11px;line-height:1}
+  .erow .ib{width:34px;height:34px;font-size:15px}
+
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin:0 2px 6px}
+  .field input[type=text],.field input[type=number],.field select{
+    width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);
+    border-radius:12px;padding:11px 12px;font-size:15px;outline:none;font-family:inherit}
+  .field.rowly{display:flex;gap:10px}
+  .field.rowly > div{flex:1}
+  .toggle{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer}
+  .toggle .sw{width:44px;height:26px;border-radius:999px;background:var(--surface2);position:relative;transition:background .2s;flex:0 0 auto}
+  .toggle .sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+  .toggle.on .sw{background:var(--mind)}
+  .toggle.on .sw::after{transform:translateX(18px)}
+  .formbtns{display:flex;gap:10px;margin-top:16px}
+  .formbtns button{flex:1;border:none;border-radius:12px;padding:13px;font-size:14.5px;font-weight:700;cursor:pointer}
+  .btn-save{background:var(--mind);color:#12101f}
+  .btn-cancel{background:var(--surface2);color:var(--text)}
+  .btn-del{background:transparent;color:var(--danger);border:1px solid var(--danger)!important;flex:0 0 auto!important;padding:13px 16px!important}
+  .hidden{display:none!important}
+
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);
     background:#222741;border:1px solid var(--line);color:var(--text);padding:11px 16px;border-radius:12px;
-    font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s;z-index:50;max-width:90%}
+    font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s;z-index:80;max-width:90%}
   .toast.show{transform:translateX(-50%) translateY(0)}
   .toast.err{border-color:var(--danger)}
   .loading{text-align:center;color:var(--muted);padding:60px 0;font-size:14px}
   .foot{text-align:center;color:var(--muted2);font-size:11.5px;margin-top:26px}
-  .confetti{position:fixed;width:9px;height:9px;border-radius:2px;pointer-events:none;z-index:40}
+  .confetti{position:fixed;width:9px;height:9px;border-radius:2px;pointer-events:none;z-index:70}
 </style>
 </head>
 <body>
@@ -101,6 +138,7 @@
       <h1>Life Organiser</h1>
       <div class="sub" id="subtitle">Loading…</div>
     </div>
+    <button class="mng" id="manageBtn">⚙︎ Manage</button>
   </header>
 
   <div class="datebar">
@@ -110,17 +148,35 @@
   </div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-
-  <div class="foot">Life Organiser · Phase 1 · saves to your private cloud</div>
+  <div class="foot">Life Organiser · build 4</div>
 </div>
+
+<!-- Manage overlay -->
+<div class="overlay" id="editor">
+  <div class="sheet">
+    <h2 id="editorTitle">Manage routines <button class="x" id="closeEditor">×</button></h2>
+    <div id="editorBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
 const SUPABASE_URL = 'https://ncxictnhhmnexhmvqvhd.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jeGljdG5oaG1uZXhobXZxdmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MzI4MzQsImV4cCI6MjEwMTUwODgzNH0.Md3Y3HeeUyAuObOxWjFTAqEj-UsBBAuZrNvbhbyscRc';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Publishable key, sent ONLY as the apikey header (no Authorization: Bearer).
+const SUPABASE_KEY = 'sb_publishable_iIeb5avDs70-9OJX0yJLzw_bfWR_ReZ';
+const REST = SUPABASE_URL + '/rest/v1/';
+async function rest(method, path, opts){
+  opts = opts || {};
+  const headers = { 'apikey': SUPABASE_KEY, 'Content-Type':'application/json' };
+  if(opts.prefer) headers['Prefer'] = opts.prefer;
+  const res = await fetch(REST + path, {
+    method, headers, body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+' '+t); }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
 
 const CATEGORIES = [
   { key:'health',  label:'Health & Supplements', color:'var(--health)' },
@@ -128,6 +184,7 @@ const CATEGORIES = [
   { key:'mind',    label:'Mind & Wellbeing',        color:'var(--mind)' },
   { key:'work',    label:'Work & Life Admin',       color:'var(--work)' },
 ];
+const CATCOLOR = { health:'var(--health)', fitness:'var(--fitness)', mind:'var(--mind)', work:'var(--work)' };
 const CADENCE = {
   daily:           { label:'Daily',           periodic:false },
   every_other_day: { label:'Every other day', periodic:true, interval:2 },
@@ -137,54 +194,50 @@ const CADENCE = {
   quarterly:       { label:'Quarterly',        periodic:true, interval:90 },
 };
 
-// ---------- date helpers (local time) ----------
 const ymd = (d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const parseYmd = (s)=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
 const addDays = (d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
 const today = new Date(); today.setHours(0,0,0,0);
 let selected = new Date(today);
 
-// ---------- state ----------
 let routines = [];
-let logs = new Map(); // routine_id -> Map(dateStr -> row)
-
+let logs = new Map();
 const $ = (id)=>document.getElementById(id);
 
 function getLog(rid,ds){ return logs.get(rid)?.get(ds); }
 function isDone(rid,ds){ const l=getLog(rid,ds); return !!(l && l.completed); }
 
 async function load(){
-  const { data:r, error:er } = await supabase.from('routines').select('*')
-    .eq('active',true).order('category',{ascending:true}).order('sort_order',{ascending:true});
-  if(er) throw er;
-  routines = r || [];
+  routines = await rest('GET','routines?select=*&active=eq.true&order=category.asc,sort_order.asc') || [];
   const since = ymd(addDays(today,-160));
-  const { data:lg, error:el } = await supabase.from('routine_logs').select('*').gte('log_date',since);
-  if(el) throw el;
+  const lg = await rest('GET','routine_logs?select=*&log_date=gte.'+since) || [];
   logs = new Map();
-  for(const row of (lg||[])){
+  for(const row of lg){
     if(!logs.has(row.routine_id)) logs.set(row.routine_id,new Map());
     logs.get(row.routine_id).set(row.log_date,row);
   }
 }
+// all routines incl. inactive — for the manager
+async function loadAll(){
+  return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || [];
+}
 
-async function setLog(routine, ds, on, value){
+async function setLog(routine, ds, on, value, completed){
   if(on){
-    const payload={ routine_id:routine.id, log_date:ds, completed:true };
+    const payload={ routine_id:routine.id, log_date:ds, completed: completed===undefined?true:completed };
     if(value!==undefined && value!==null && value!=='') payload.value=Number(value);
-    const { data, error } = await supabase.from('routine_logs')
-      .upsert(payload,{ onConflict:'routine_id,log_date' }).select().single();
-    if(error) throw error;
+    const rows = await rest('POST','routine_logs?on_conflict=routine_id,log_date',
+      { body:payload, prefer:'resolution=merge-duplicates,return=representation' });
+    const data = Array.isArray(rows) ? rows[0] : rows;
     if(!logs.has(routine.id)) logs.set(routine.id,new Map());
-    logs.get(routine.id).set(ds,data);
+    logs.get(routine.id).set(ds, data || payload);
   } else {
-    const { error } = await supabase.from('routine_logs').delete().eq('routine_id',routine.id).eq('log_date',ds);
-    if(error) throw error;
+    await rest('DELETE','routine_logs?routine_id=eq.'+routine.id+'&log_date=eq.'+ds);
     logs.get(routine.id)?.delete(ds);
   }
 }
 
-// ---------- metrics ----------
+// ----- metrics -----
 function streak(rid){
   let n=0, d=new Date(today);
   if(!isDone(rid,ymd(d))) d=addDays(d,-1);
@@ -193,9 +246,7 @@ function streak(rid){
 }
 function lastDone(rid){
   const m=logs.get(rid); if(!m) return null;
-  let best=null;
-  for(const [ds,l] of m){ if(l.completed && (!best||ds>best)) best=ds; }
-  return best;
+  let best=null; for(const [ds,l] of m){ if(l.completed && (!best||ds>best)) best=ds; } return best;
 }
 function weekKey(d){ const dt=new Date(d); const off=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-off); return ymd(dt); }
 function countWeek(rid,ref){ const wk=weekKey(ref); let c=0; const m=logs.get(rid); if(!m)return 0;
@@ -209,21 +260,26 @@ function periodicStatus(routine){
   if(days>=cad.interval) return { due:true, text:days===0?'Done today':`Last ${days}d ago` };
   return { due:false, text:`Next in ${cad.interval-days}d` };
 }
+// completion threshold for value routines
+function valueDone(routine, num){
+  if(num===null||num===undefined||num==='') return false;
+  const t = routine.target_value!=null ? Number(routine.target_value) : null;
+  return t ? Number(num) >= t : Number(num) > 0;
+}
 
-// ---------- rendering ----------
+// ----- render main -----
 function ringSvg(done,total){
   const pct = total? done/total : 0;
-  const R=28, C=2*Math.PI*R, off=C*(1-pct);
+  const R=25, C=2*Math.PI*R, off=C*(1-pct);
   const col = pct>=1? 'var(--health)' : 'var(--mind)';
   $('ring').innerHTML =
-    `<svg width="66" height="66" viewBox="0 0 66 66">
-       <circle cx="33" cy="33" r="${R}" stroke="rgba(255,255,255,.10)" stroke-width="6" fill="none"/>
-       <circle cx="33" cy="33" r="${R}" stroke="${col}" stroke-width="6" fill="none"
+    `<svg width="60" height="60" viewBox="0 0 60 60">
+       <circle cx="30" cy="30" r="${R}" stroke="rgba(255,255,255,.10)" stroke-width="6" fill="none"/>
+       <circle cx="30" cy="30" r="${R}" stroke="${col}" stroke-width="6" fill="none"
          stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"
          style="transition:stroke-dashoffset .5s ease"/>
      </svg><div class="pct">${done}/${total}</div>`;
 }
-
 function dateLabel(){
   const diff=Math.round((selected-today)/86400000);
   let word = diff===0?'Today':diff===-1?'Yesterday':diff===1?'Tomorrow':'';
@@ -231,11 +287,9 @@ function dateLabel(){
   $('dateLbl').innerHTML = `${word||dstr}<small>${word?dstr:''}</small>`;
   $('nextDay').disabled = ymd(selected)>=ymd(today);
 }
-
 function render(){
   const ds = ymd(selected);
   dateLabel();
-
   const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
   const dailyDone = daily.filter(r=>isDone(r.id,ds)).length;
   ringSvg(dailyDone, daily.length);
@@ -243,6 +297,7 @@ function render(){
   $('subtitle').textContent = `${dailyDone}/${daily.length} daily done` + (duePeriodic?` · ${duePeriodic} periodic due`:'');
 
   const app=$('app'); app.innerHTML='';
+  if(!routines.length){ app.innerHTML='<div class="loading">No routines yet. Tap ⚙︎ Manage to add one.</div>'; return; }
   for(const cat of CATEGORIES){
     const items = routines.filter(r=>r.category===cat.key);
     if(!items.length) continue;
@@ -256,28 +311,37 @@ function render(){
     app.appendChild(section);
   }
 }
-
 function rowEl(r,cat,ds){
   const cad=CADENCE[r.cadence];
   const done=isDone(r.id,ds);
+  const log=getLog(r.id,ds);
   const el=document.createElement('div');
   el.className='row'+(done?' done':''); el.style.setProperty('--acc',cat.color);
 
-  // meta line
   let meta='';
   if(cad.periodic){
     const st=periodicStatus(r);
     meta += `<span class="badge cad">${cad.label}</span>`;
     meta += st.due ? `<span class="badge due">Due</span>` : `<span class="badge">${st.text}</span>`;
-    if(!st.due && st.text.startsWith('Next')) {} else if(st.due && st.text!=='Due') meta+=`<span>${st.text}</span>`;
+    if(st.due && st.text!=='Due' && st.text!=='Not done yet') meta+=`<span>${st.text}</span>`;
   } else {
     const s=streak(r.id);
-    if(s>0) meta += `<span class="flame">🔥 ${s}</span>`;
-    else meta += `<span style="color:var(--muted2)">Build a streak</span>`;
+    meta += s>0 ? `<span class="flame">🔥 ${s}</span>` : `<span style="color:var(--muted2)">Build a streak</span>`;
+  }
+  // target text for value routines
+  const hasTarget = r.track_value && r.target_value!=null;
+  if(hasTarget){
+    const cur = log && log.value!=null ? log.value : 0;
+    meta += `<span class="tgt">${cur} / ${r.target_value}${r.unit||''}</span>`;
   }
 
-  // value input
-  const log=getLog(r.id,ds);
+  let pbar='';
+  if(hasTarget){
+    const cur = log && log.value!=null ? Number(log.value) : 0;
+    const pct = Math.max(0, Math.min(1, cur/Number(r.target_value)))*100;
+    pbar = `<div class="pbar"><i style="width:${pct}%"></i></div>`;
+  }
+
   const valHtml = r.track_value
     ? `<div class="val"><input type="number" inputmode="decimal" data-val="${r.id}" placeholder="0"
          value="${log&&log.value!=null?log.value:''}"><span class="unit">${r.unit||''}</span></div>` : '';
@@ -287,22 +351,22 @@ function rowEl(r,cat,ds){
     : `<button class="check" data-toggle="${r.id}" aria-label="Toggle">
          <svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg></button>`;
 
-  el.innerHTML = `<div class="info"><div class="name">${r.name}</div><div class="meta">${meta}</div></div>
-    ${valHtml}${control}`;
+  el.innerHTML = `<div class="info"><div class="name">${escapeHtml(r.name)}</div>
+    <div class="meta">${meta}</div>${pbar}</div>${valHtml}${control}`;
   return el;
 }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-// ---------- interactions ----------
+// ----- interactions (tracking) -----
 let busy=false;
 async function onToggle(rid, btn){
   if(busy) return; busy=true;
-  const r=routines.find(x=>x.id===rid);
-  const ds=ymd(selected);
+  const r=routines.find(x=>x.id===rid); const ds=ymd(selected);
   const currentlyDone=isDone(rid,ds);
   const valInput=document.querySelector(`[data-val="${rid}"]`);
   const val=valInput?valInput.value:undefined;
   try{
-    await setLog(r, ds, !currentlyDone, val);
+    await setLog(r, ds, !currentlyDone, val, true);
     if(!currentlyDone){ btn.classList.add('pop'); if(navigator.vibrate) navigator.vibrate(18); burst(btn); }
     render();
   }catch(e){ toast('Could not save — check connection', true); console.error(e); }
@@ -310,29 +374,129 @@ async function onToggle(rid, btn){
 }
 async function onValue(rid, input){
   if(busy) return; busy=true;
-  const r=routines.find(x=>x.id===rid);
-  const ds=ymd(selected);
+  const r=routines.find(x=>x.id===rid); const ds=ymd(selected);
   const v=input.value.trim();
   try{
-    if(v==='' ) { await setLog(r,ds,false); }
-    else { await setLog(r,ds,true,v); if(navigator.vibrate)navigator.vibrate(12); }
+    if(v===''){ await setLog(r,ds,false); }
+    else { const done=valueDone(r,v); await setLog(r,ds,true,v,done); if(navigator.vibrate)navigator.vibrate(12); }
     render();
   }catch(e){ toast('Could not save value', true); console.error(e); }
   busy=false;
 }
-
-document.addEventListener('click',(e)=>{
-  const t=e.target.closest('[data-toggle]');
-  if(t){ onToggle(t.getAttribute('data-toggle'), t); }
-});
-document.addEventListener('change',(e)=>{
-  const v=e.target.closest('[data-val]');
-  if(v){ onValue(v.getAttribute('data-val'), v); }
-});
+document.addEventListener('click',(e)=>{ const t=e.target.closest('[data-toggle]'); if(t) onToggle(t.getAttribute('data-toggle'), t); });
+document.addEventListener('change',(e)=>{ const v=e.target.closest('[data-val]'); if(v) onValue(v.getAttribute('data-val'), v); });
 $('prevDay').onclick=()=>{ selected=addDays(selected,-1); render(); };
 $('nextDay').onclick=()=>{ if(ymd(selected)<ymd(today)){ selected=addDays(selected,1); render(); } };
 
-// confetti burst
+// ===== MANAGE / EDITOR =====
+let allRoutines = [];
+$('manageBtn').onclick = openEditor;
+$('closeEditor').onclick = closeEditor;
+async function openEditor(){
+  $('editor').classList.add('show');
+  $('editorBody').innerHTML = '<div class="loading">Loading…</div>';
+  try{ allRoutines = await loadAll(); renderEditorList(); }
+  catch(e){ $('editorBody').innerHTML='<div class="loading">Could not load routines.</div>'; console.error(e); }
+}
+function closeEditor(){ $('editor').classList.remove('show'); }
+
+function renderEditorList(){
+  $('editorTitle').firstChild.textContent = 'Manage routines ';
+  const body=$('editorBody');
+  let html = `<button class="addbtn" id="addRoutine">＋ Add a routine</button>`;
+  for(const cat of CATEGORIES){
+    const items = allRoutines.filter(r=>r.category===cat.key);
+    if(!items.length) continue;
+    html += `<div class="egroup"><div class="glabel"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${cat.color}"></span>${cat.label}</div>`;
+    items.forEach((r,i)=>{
+      const cad=CADENCE[r.cadence];
+      const tgt = (r.track_value && r.target_value!=null)?` · ${r.target_value}${r.unit||''}`:'';
+      html += `<div class="erow${r.active?'':' inactive'}">
+        <div class="ord">
+          <button data-move="up" data-id="${r.id}" ${i===0?'disabled style=opacity:.3':''}>▲</button>
+          <button data-move="down" data-id="${r.id}" ${i===items.length-1?'disabled style=opacity:.3':''}>▼</button>
+        </div>
+        <div class="en"><div class="n">${escapeHtml(r.name)}${r.active?'':' <span style="color:var(--muted2);font-weight:400">(retired)</span>'}</div>
+          <div class="c">${cad.label}${tgt}</div></div>
+        <button class="ib" data-edit="${r.id}" aria-label="Edit">✎</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  body.innerHTML = html;
+  $('addRoutine').onclick = ()=>openForm(null);
+  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openForm(allRoutines.find(r=>r.id===b.getAttribute('data-edit'))));
+  body.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>moveRoutine(b.getAttribute('data-id'), b.getAttribute('data-move')));
+}
+
+function openForm(routine){
+  const isNew = !routine;
+  $('editorTitle').firstChild.textContent = isNew ? 'Add routine ' : 'Edit routine ';
+  const r = routine || { name:'', category:'health', cadence:'daily', track_value:false, unit:'', target_value:null, active:true };
+  const catOpts = CATEGORIES.map(c=>`<option value="${c.key}" ${r.category===c.key?'selected':''}>${c.label}</option>`).join('');
+  const cadOpts = Object.entries(CADENCE).map(([k,v])=>`<option value="${k}" ${r.cadence===k?'selected':''}>${v.label}</option>`).join('');
+  $('editorBody').innerHTML = `
+    <div class="field"><label>Name</label><input type="text" id="f-name" value="${escapeHtml(r.name)}" placeholder="e.g. Vitamin D"></div>
+    <div class="field rowly">
+      <div><label>Category</label><select id="f-cat">${catOpts}</select></div>
+      <div><label>Cadence</label><select id="f-cad">${cadOpts}</select></div>
+    </div>
+    <div class="field"><div class="toggle ${r.track_value?'on':''}" id="f-track"><div class="sw"></div>
+      <div><div style="font-weight:600;font-size:14px">Track a number</div>
+      <div style="font-size:12px;color:var(--muted)">e.g. grams, kg, minutes — not just a checkmark</div></div></div></div>
+    <div class="field rowly ${r.track_value?'':'hidden'}" id="f-numwrap">
+      <div><label>Unit</label><input type="text" id="f-unit" value="${escapeHtml(r.unit||'')}" placeholder="g, kg, min"></div>
+      <div><label>Daily target (optional)</label><input type="number" id="f-target" value="${r.target_value!=null?r.target_value:''}" placeholder="e.g. 150"></div>
+    </div>
+    <div class="field"><div class="toggle ${r.active?'on':''}" id="f-active"><div class="sw"></div>
+      <div style="font-weight:600;font-size:14px">Active</div></div></div>
+    <div class="formbtns">
+      ${isNew?'':'<button class="btn-del" id="f-del">Delete</button>'}
+      <button class="btn-cancel" id="f-cancel">Cancel</button>
+      <button class="btn-save" id="f-save">Save</button>
+    </div>`;
+  let track = r.track_value, active = r.active;
+  $('f-track').onclick = ()=>{ track=!track; $('f-track').classList.toggle('on',track); $('f-numwrap').classList.toggle('hidden',!track); };
+  $('f-active').onclick = ()=>{ active=!active; $('f-active').classList.toggle('on',active); };
+  $('f-cancel').onclick = renderEditorList;
+  if(!isNew) $('f-del').onclick = ()=>deleteRoutine(r);
+  $('f-save').onclick = async ()=>{
+    const name=$('f-name').value.trim();
+    if(!name){ toast('Give it a name', true); return; }
+    const body={ name, category:$('f-cat').value, cadence:$('f-cad').value,
+      track_value:track, unit: track?($('f-unit').value.trim()||null):null,
+      target_value: track && $('f-target').value!=='' ? Number($('f-target').value) : null,
+      active };
+    try{
+      if(isNew){ body.sort_order = maxSort(body.category)+1; await rest('POST','routines',{body,prefer:'return=minimal'}); }
+      else { await rest('PATCH','routines?id=eq.'+r.id,{body,prefer:'return=minimal'}); }
+      toast('Saved');
+      allRoutines = await loadAll(); await load(); render(); renderEditorList();
+    }catch(e){ toast('Could not save routine', true); console.error(e); }
+  };
+}
+function maxSort(cat){ const items=allRoutines.filter(r=>r.category===cat); return items.reduce((m,r)=>Math.max(m,r.sort_order||0),0); }
+async function deleteRoutine(r){
+  if(!confirm(`Delete "${r.name}" and all its history? This cannot be undone.\n\nTip: use Active → off to retire it instead.`)) return;
+  try{ await rest('DELETE','routines?id=eq.'+r.id); toast('Deleted');
+    allRoutines = await loadAll(); await load(); render(); renderEditorList();
+  }catch(e){ toast('Could not delete', true); console.error(e); }
+}
+async function moveRoutine(id, dir){
+  const r=allRoutines.find(x=>x.id===id);
+  const group=allRoutines.filter(x=>x.category===r.category);
+  const i=group.findIndex(x=>x.id===id);
+  const j=dir==='up'?i-1:i+1;
+  if(j<0||j>=group.length) return;
+  const a=group[i], b=group[j];
+  try{
+    await rest('PATCH','routines?id=eq.'+a.id,{body:{sort_order:b.sort_order},prefer:'return=minimal'});
+    await rest('PATCH','routines?id=eq.'+b.id,{body:{sort_order:a.sort_order},prefer:'return=minimal'});
+    allRoutines = await loadAll(); await load(); render(); renderEditorList();
+  }catch(e){ toast('Could not reorder', true); console.error(e); }
+}
+
+// ----- confetti + toast -----
 const CONF=['#34d399','#fb923c','#a78bfa','#38bdf8','#fbbf24'];
 function burst(anchor){
   const rect=anchor.getBoundingClientRect();
@@ -348,21 +512,19 @@ function burst(anchor){
       {duration:650+Math.random()*300,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>s.remove();
   }
 }
-
 let toastT;
 function toast(msg,err){ const t=$('toast'); t.textContent=msg; t.className='toast show'+(err?' err':'');
-  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast'+(err?' err':''),2600); }
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast'+(err?' err':''),2400); }
 
-// ---------- boot ----------
+// ----- boot -----
 (async ()=>{
   try{ await load(); render(); }
   catch(e){ console.error(e);
-    $('app').innerHTML=`<div class="loading">Couldn't connect to the database.<br>
-      Check your internet and refresh.</div>`; toast('Connection failed',true); }
+    $('app').innerHTML=`<div class="loading">Couldn't connect to the database.<br>Check your internet and refresh.</div>`;
+    toast('Connection failed',true); }
 })();
 
-// Service worker disabled during active development to avoid stale caches.
-// Actively unregister any previously-installed worker and clear its caches.
+// remove any previously-installed service worker + caches (no offline caching yet)
 if('serviceWorker' in navigator){
   navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
   if(window.caches) caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{});
