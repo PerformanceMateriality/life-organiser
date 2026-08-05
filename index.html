@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <title>Life Organiser</title>
 <meta name="theme-color" content="#0f1220" />
+<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Life OS" />
@@ -118,7 +119,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = 'https://ncxictnhhmnexhmvqvhd.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_iIeb5avDs70-9OJX0yJLzw_bfWR_ReZ';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jeGljdG5oaG1uZXhobXZxdmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MzI4MzQsImV4cCI6MjEwMTUwODgzNH0.Md3Y3HeeUyAuObOxWjFTAqEj-UsBBAuZrNvbhbyscRc';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const CATEGORIES = [
@@ -360,8 +361,11 @@ function toast(msg,err){ const t=$('toast'); t.textContent=msg; t.className='toa
       Check your internet and refresh.</div>`; toast('Connection failed',true); }
 })();
 
+// Service worker disabled during active development to avoid stale caches.
+// Actively unregister any previously-installed worker and clear its caches.
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+  if(window.caches) caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{});
 }
 </script>
 </body>
