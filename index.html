@@ -129,6 +129,64 @@
   .badge2 .bd{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.25}
   .rewnote{color:var(--muted2);font-size:11.5px;text-align:center;margin-top:18px}
 
+  /* Daily quests */
+  .quests{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:18px}
+  .qhead{display:flex;align-items:center;gap:8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 11px}
+  .qhead .qsum{margin-left:auto;letter-spacing:.3px;text-transform:none;font-size:12px;color:var(--muted2)}
+  .qhead .qsum b{color:var(--flame)}
+  .quest{display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--line)}
+  .quest:first-of-type{border-top:none;padding-top:2px}
+  .quest .qic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s}
+  .quest.done .qic{background:color-mix(in srgb,var(--flame) 22%,var(--surface2));box-shadow:0 0 0 1px color-mix(in srgb,var(--flame) 45%,transparent)}
+  .quest .qmid{flex:1;min-width:0}
+  .quest .qn{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
+  .quest .qn .qtick{color:var(--flame)}
+  .quest .qd{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .quest .qbar{height:5px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+  .quest .qbar > i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--mind),var(--flame));transition:width .4s ease}
+  .quest.done .qbar > i{background:var(--flame)}
+  .quest .qxp{flex:0 0 auto;font-size:12.5px;font-weight:800;color:var(--muted2);min-width:42px;text-align:right}
+  .quest.done .qxp{color:var(--flame)}
+  .qfoot{color:var(--muted2);font-size:11px;text-align:center;margin-top:11px;padding-top:9px;border-top:1px solid var(--line)}
+  .setnote{display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--flame) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--flame) 30%,var(--line));border-radius:12px;padding:10px 13px;margin-bottom:9px;font-size:12.5px;color:var(--text)}
+  .setnote b{color:var(--flame)}
+
+  /* Badge progress on tiles */
+  .badge2{cursor:pointer;position:relative}
+  .badge2:active{transform:scale(.97)}
+  .badge2 .bprog{height:4px;border-radius:4px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:8px}
+  .badge2 .bprog > i{display:block;height:100%;border-radius:4px;background:var(--muted);transition:width .4s ease}
+  .badge2.got .bprog{display:none}
+  .badge2 .bcount{font-size:10px;color:var(--muted2);margin-top:4px}
+  .badge2 .bgot{position:absolute;top:7px;right:8px;font-size:12px;color:var(--flame)}
+  /* Badge detail sheet */
+  .bdhero{text-align:center;padding:8px 0 4px}
+  .bdhero .bdi{font-size:60px;line-height:1}
+  .bdhero .bdn{font-weight:800;font-size:20px;margin-top:8px}
+  .bdhero .bds{color:var(--muted);font-size:13.5px;margin-top:4px}
+  .bdstat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:18px}
+  .bdstat .bl{display:flex;align-items:center;font-size:13px;color:var(--muted);margin-bottom:8px}
+  .bdstat .bl b{margin-left:auto;color:var(--text);font-size:14px}
+  .bdstat .xpbar{height:10px}
+  .bdunlocked{text-align:center;color:var(--flame);font-weight:700;font-size:14px;margin-top:18px}
+
+  /* Level-up moment */
+  .lvlup{background:radial-gradient(900px 500px at 50% 30%, rgba(251,191,36,.18), rgba(8,10,18,.92) 60%)!important}
+  .lucard{max-width:400px;margin:16vh auto 0;text-align:center;padding:20px}
+  .lucard .luspark{font-size:52px;animation:luspin 2.4s linear infinite;display:inline-block}
+  @keyframes luspin{to{transform:rotate(360deg)}}
+  .lucard .lulabel{margin-top:6px;font-size:14px;letter-spacing:4px;text-transform:uppercase;color:var(--flame);font-weight:800}
+  .lucard .lubig{font-size:74px;font-weight:800;line-height:1;margin:6px 0 2px;
+    background:linear-gradient(180deg,#fff,var(--flame));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .lucard .lurank{font-size:17px;font-weight:700;color:var(--mind)}
+  .lucard .lurankup{display:inline-block;margin-top:12px;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:700;
+    color:var(--flame);background:color-mix(in srgb,var(--flame) 14%,transparent);border:1px solid color-mix(in srgb,var(--flame) 45%,transparent)}
+  .lucard .lunext{color:var(--muted);font-size:13px;margin-top:16px}
+  .lucard .lugo{margin-top:22px;width:100%;background:var(--flame);color:#2a1e02;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:800;cursor:pointer}
+  .lucard .lugo:active{transform:scale(.97)}
+  @keyframes lupop{0%{transform:scale(.6);opacity:0}55%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+  .lvlup.show .lucard{animation:lupop .5s cubic-bezier(.2,.8,.3,1.2)}
+
   /* Overlays */
   .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
     display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
@@ -208,7 +266,7 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 8</div>
+  <div class="foot">Life Organiser · build 9</div>
 </div>
 
 <nav class="nav">
@@ -224,6 +282,7 @@
   </div>
 </div>
 <div class="overlay" id="detail"><div class="sheet" id="detailSheet"></div></div>
+<div class="overlay lvlup" id="levelup"><div class="lucard" id="lucard"></div></div>
 
 <div class="overlay" id="login">
   <div class="sheet" style="max-width:380px;margin-top:12vh">
@@ -402,7 +461,8 @@ function valueDone(routine, num){ if(num===null||num===undefined||num==='') retu
 function catOf(rid){ const r=routines.find(x=>x.id===rid); return r?r.category:null; }
 function xpOfRoutine(r){ return CAT_XP[r.category] || 10; }
 function xpOfLog(rid){ const c=catOf(rid); return c ? (CAT_XP[c]||10) : 10; }
-function totalXp(){ let x=0; for(const [rid,m] of logs){ for(const [,l] of m){ if(l.completed) x+=xpOfLog(rid); } } return x; }
+function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [,l] of m){ if(l.completed) x+=xpOfLog(rid); } } return x + totalQuestXp(); }
+function totalXp(){ return activityXp() + setBonusXp(); }
 function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [,l] of m){ if(l.completed) x+=(CAT_XP[cat]||10); } } return x; }
 function levelInfo(xp){ let lvl=1, acc=0, need=100; while(xp >= acc+need){ acc+=need; lvl++; need=100+(lvl-1)*50; } return { level:lvl, into:xp-acc, need, total:xp }; }
 function totalCheckoffs(){ let c=0; for(const [,m] of logs) for(const [,l] of m) if(l.completed) c++; return c; }
@@ -421,22 +481,90 @@ function maxLongestStreak(){ let m=0; for(const r of routines) m=Math.max(m,long
 function catCount(cat){ let c=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [,l] of m) if(l.completed) c++; } return c; }
 function isPerfect(d){ const daily=routines.filter(r=>!CADENCE[r.cadence].periodic && (!r.created_at || ymd(new Date(r.created_at))<=d)); if(!daily.length) return false; return daily.every(r=>isDone(r.id,d)); }
 function perfectDayCount(){ let c=0; for(let i=0;i<160;i++){ if(isPerfect(ymd(addDays(today,-i)))) c++; } return c; }
-function computeBadges(){
-  const total=totalCheckoffs(), longest=maxLongestStreak(), pdays=perfectDayCount(), lvl=levelInfo(totalXp()).level;
-  return [
-    {icon:'🌱',name:'First Step',desc:'Your first check-off',got: total>=1},
-    {icon:'⚡',name:'Getting Going',desc:'10 check-offs',got: total>=10},
-    {icon:'💯',name:'Centurion',desc:'100 check-offs',got: total>=100},
-    {icon:'🔥',name:'Week Warrior',desc:'A 7-day streak',got: longest>=7},
-    {icon:'🗓️',name:'Fortnight',desc:'A 14-day streak',got: longest>=14},
-    {icon:'🏆',name:'Unstoppable',desc:'A 30-day streak',got: longest>=30},
-    {icon:'⭐',name:'Perfect Day',desc:'All daily done in a day',got: pdays>=1},
-    {icon:'🧘',name:'Clear Mind',desc:'10 Mind check-offs',got: catCount('mind')>=10},
-    {icon:'💊',name:'Well Stacked',desc:'25 Health check-offs',got: catCount('health')>=25},
-    {icon:'📈',name:'Rising',desc:'Reach Level 5',got: lvl>=5},
-    {icon:'👑',name:'Seasoned',desc:'Reach Level 10',got: lvl>=10},
-    {icon:'🌟',name:'Ascendant',desc:'Reach Level 20',got: lvl>=20},
-  ];
+// ---- Badge sets (tiers / prestige) ----
+function badgeStats(){
+  return { total:totalCheckoffs(), longest:maxLongestStreak(), pdays:perfectDayCount(),
+    mind:catCount('mind'), health:catCount('health'), fitness:catCount('fitness'),
+    lvl:levelInfo(activityXp()).level };
+}
+const TIER1=[
+  {icon:'🌱',name:'First Step',    d:'Log your very first check-off',       stat:'total',   goal:1,   unit:'check-offs'},
+  {icon:'⚡',name:'Getting Going',  d:'Reach 10 check-offs',                 stat:'total',   goal:10,  unit:'check-offs'},
+  {icon:'💯',name:'Centurion',     d:'Reach 100 check-offs',                stat:'total',   goal:100, unit:'check-offs'},
+  {icon:'🔥',name:'Week Warrior',  d:'Build a 7-day streak',                stat:'longest', goal:7,   unit:'day streak'},
+  {icon:'🗓️',name:'Fortnight',     d:'Build a 14-day streak',               stat:'longest', goal:14,  unit:'day streak'},
+  {icon:'🏆',name:'Unstoppable',   d:'Build a 30-day streak',               stat:'longest', goal:30,  unit:'day streak'},
+  {icon:'⭐',name:'Perfect Day',   d:'Complete every daily habit in a day', stat:'pdays',   goal:1,   unit:'perfect days'},
+  {icon:'🧘',name:'Clear Mind',    d:'Log 10 Mind check-offs',              stat:'mind',    goal:10,  unit:'Mind check-offs'},
+  {icon:'💊',name:'Well Stacked',  d:'Log 25 Health check-offs',            stat:'health',  goal:25,  unit:'Health check-offs'},
+  {icon:'📈',name:'Rising',        d:'Reach Level 5',                       stat:'lvl',     goal:5,   unit:'levels'},
+  {icon:'👑',name:'Seasoned',      d:'Reach Level 10',                      stat:'lvl',     goal:10,  unit:'levels'},
+  {icon:'🌟',name:'Ascendant',     d:'Reach Level 20',                      stat:'lvl',     goal:20,  unit:'levels'},
+];
+const TIER2=[
+  {icon:'🎯',name:'Dedicated',        d:'Reach {g} check-offs',       stat:'total',   goal:300, unit:'check-offs'},
+  {icon:'🚀',name:'Machine',          d:'Reach {g} check-offs',       stat:'total',   goal:750, unit:'check-offs'},
+  {icon:'🧊',name:'Iron Will',        d:'Build a {g}-day streak',     stat:'longest', goal:45,  unit:'day streak'},
+  {icon:'💎',name:'Diamond Streak',   d:'Build a {g}-day streak',     stat:'longest', goal:75,  unit:'day streak'},
+  {icon:'🌋',name:'Relentless',       d:'Build a {g}-day streak',     stat:'longest', goal:120, unit:'day streak'},
+  {icon:'🌕',name:'Perfect Fortnight',d:'Log {g} perfect days',       stat:'pdays',   goal:14,  unit:'perfect days'},
+  {icon:'🏅',name:'Perfectionist',    d:'Log {g} perfect days',       stat:'pdays',   goal:40,  unit:'perfect days'},
+  {icon:'🧠',name:'Zen Master',       d:'Log {g} Mind check-offs',    stat:'mind',    goal:75,  unit:'Mind check-offs'},
+  {icon:'🥗',name:'Fully Loaded',     d:'Log {g} Health check-offs',  stat:'health',  goal:150, unit:'Health check-offs'},
+  {icon:'⚔️',name:'Warrior',          d:'Log {g} Fitness check-offs', stat:'fitness', goal:100, unit:'Fitness check-offs'},
+  {icon:'✨',name:'Luminary',         d:'Reach Level {g}',            stat:'lvl',     goal:30,  unit:'levels'},
+  {icon:'🏛️',name:'Legend',           d:'Reach Level {g}',            stat:'lvl',     goal:50,  unit:'levels'},
+];
+function roman(n){ const R=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']; return R[n]||('×'+n); }
+function tierBadges(tier){
+  const s=badgeStats();
+  const defs = tier<=1 ? TIER1 : TIER2;
+  const scale = tier<=1 ? 1 : (tier-1);
+  return defs.map(t=>{
+    const goal = t.goal*scale;
+    const cur = s[t.stat];
+    return { icon:t.icon, name: tier>2 ? t.name+' '+roman(tier-1) : t.name,
+             desc: t.d.replace('{g}', goal), cur, goal, unit:t.unit, got: cur>=goal };
+  });
+}
+function tierComplete(tier){ return tierBadges(tier).every(b=>b.got); }
+function completedTierCount(){ let n=0; while(n<40 && tierComplete(n+1)) n++; return n; }
+function setBonus(tier){ return 250*tier; }
+function setBonusXp(){ let x=0; const n=completedTierCount(); for(let t=1;t<=n;t++) x+=setBonus(t); return x; }
+function activeTier(){ return completedTierCount()+1; }
+function activeBadges(){ return tierBadges(activeTier()); }
+
+// ---- Daily Quests (weekly-rotating set; derived bonus XP) ----
+function countCompletedOn(ds){ let c=0; for(const r of routines){ if(isDone(r.id,ds)) c++; } return c; }
+function countCatCompletedOn(cat,ds){ let c=0; for(const r of routines){ if(r.category===cat && isDone(r.id,ds)) c++; } return c; }
+function countTargetsHitOn(ds){ let c=0; for(const r of routines){ if(!(r.track_value && r.target_value!=null)) continue; const l=getLog(r.id,ds); if(l && l.completed && l.value!=null && Number(l.value)>=Number(r.target_value)) c++; } return c; }
+function countAreasOn(ds){ const s=new Set(); for(const r of routines){ if(isDone(r.id,ds)) s.add(r.category); } return s.size; }
+function dailyRoutines(){ return routines.filter(r=>!CADENCE[r.cadence].periodic); }
+const QUEST_POOL = [
+  { id:'momentum3', icon:'⚡', name:'Momentum',         desc:'Complete any 3 habits',       xp:10, applies:()=>routines.length>=3,                                  progress:(ds)=>({have:countCompletedOn(ds), need:3}) },
+  { id:'momentum5', icon:'🔋', name:'On a roll',         desc:'Complete any 5 habits',       xp:15, applies:()=>routines.length>=5,                                  progress:(ds)=>({have:countCompletedOn(ds), need:5}) },
+  { id:'mind1',     icon:'🧘', name:'Mind over matter',  desc:'Complete a Mind habit',       xp:20, applies:()=>routines.some(r=>r.category==='mind'),               progress:(ds)=>({have:countCatCompletedOn('mind',ds), need:1}) },
+  { id:'health2',   icon:'💊', name:'Fuel up',           desc:'Complete 2 Health habits',    xp:15, applies:()=>routines.filter(r=>r.category==='health').length>=2, progress:(ds)=>({have:countCatCompletedOn('health',ds), need:2}) },
+  { id:'health3',   icon:'🥗', name:'Well fed',          desc:'Complete 3 Health habits',    xp:20, applies:()=>routines.filter(r=>r.category==='health').length>=3, progress:(ds)=>({have:countCatCompletedOn('health',ds), need:3}) },
+  { id:'fit1',      icon:'🏃', name:'Get moving',        desc:'Complete a Fitness habit',    xp:10, applies:()=>routines.some(r=>r.category==='fitness'),            progress:(ds)=>({have:countCatCompletedOn('fitness',ds), need:1}) },
+  { id:'target1',   icon:'🎯', name:'On target',         desc:'Hit a numeric target',        xp:15, applies:()=>routines.some(r=>r.track_value && r.target_value!=null), progress:(ds)=>({have:countTargetsHitOn(ds), need:1}) },
+  { id:'balance3',  icon:'⚖️', name:'Balanced',          desc:'Habits across 3 areas',       xp:15, applies:()=>new Set(routines.map(r=>r.category)).size>=3,        progress:(ds)=>({have:countAreasOn(ds), need:3}) },
+  { id:'flawless',  icon:'✨', name:'Flawless day',      desc:'Complete all daily habits',   xp:25, applies:()=>dailyRoutines().length>0,                            progress:(ds)=>{ const d=dailyRoutines(); return {have:d.filter(r=>isDone(r.id,ds)).length, need:d.length}; } },
+];
+function weekIndex(ds){ const monday=parseYmd(weekKey(parseYmd(ds))); const epoch=new Date(2024,0,1); return Math.round((monday-epoch)/604800000); }
+function questsForDate(ds){
+  const avail=QUEST_POOL.filter(q=>q.applies()); const n=avail.length; if(!n) return [];
+  const start=(((weekIndex(ds)%n)+n)%n); const picks=[];
+  for(let k=0;k<n && picks.length<4;k++) picks.push(avail[(start+k)%n]);
+  return picks;
+}
+function activeQuests(){ return questsForDate(ymd(today)); }
+function questDone(q,ds){ const p=q.progress(ds); return p.have>=p.need; }
+function completedQuestIds(ds){ const s=new Set(); for(const q of questsForDate(ds)) if(questDone(q,ds)) s.add(q.id); return s; }
+function questXpForDay(ds){ let x=0; for(const q of questsForDate(ds)) if(questDone(q,ds)) x+=q.xp; return x; }
+function totalQuestXp(){
+  const dates=new Set(); for(const [,m] of logs) for(const [ds,l] of m) if(l.completed) dates.add(ds);
+  let x=0; for(const ds of dates) x+=questXpForDay(ds); return x;
 }
 
 // ---- top-level view switch ----
@@ -498,6 +626,28 @@ function renderToday(){
     for(const r of items) section.appendChild(rowEl(r,cat,ds));
     app.appendChild(section);
   }
+}
+function questsHtml(ds){
+  const qs=questsForDate(ds); if(!qs.length) return '';
+  const doneCount=qs.filter(q=>questDone(q,ds)).length;
+  const earned=questXpForDay(ds);
+  let rows='';
+  for(const q of qs){
+    const p=q.progress(ds); const done=p.have>=p.need;
+    const pct=Math.max(0,Math.min(1, p.need? p.have/p.need : 0))*100;
+    rows+=`<div class="quest${done?' done':''}">
+      <div class="qic">${done?'✓':q.icon}</div>
+      <div class="qmid">
+        <div class="qn">${q.name}${done?'<span class="qtick">✦</span>':''}</div>
+        <div class="qd">${q.desc} · ${Math.min(p.have,p.need)}/${p.need}</div>
+        <div class="qbar"><i style="width:${pct}%"></i></div>
+      </div>
+      <div class="qxp">+${q.xp}</div>
+    </div>`;
+  }
+  return `<div class="quests"><div class="qhead">◈ Daily Quests
+    <span class="qsum">${doneCount}/${qs.length} done · <b>+${earned} XP</b></span></div>${rows}
+    <div class="qfoot">Reset daily · fresh set every Monday</div></div>`;
 }
 function rowEl(r,cat,ds){
   const cad=CADENCE[r.cadence];
@@ -597,18 +747,25 @@ function renderRewards(){
       <div class="lvlrank">${rankTitle(info.level)}</div>
       <div class="xpbar big"><i style="width:${pct}%"></i></div>
       <div class="lvlmeta">${info.into} / ${info.need} XP to Level ${info.level+1} · ${info.total} total XP</div>
-    </div><h2 class="rewh">Life areas</h2>`;
+    </div>${questsHtml(dsToday)}<h2 class="rewh">Life areas</h2>`;
   for(const cat of CATEGORIES){
     const ci=levelInfo(xpByCat(cat.key)); const cp=ci.need?Math.round(ci.into/ci.need*100):0;
     html+=`<div class="catlv"><div class="catlv-top"><span class="dot" style="background:${cat.color}"></span>
         <span class="tn">${TRACK[cat.key]}</span><span class="cl">Lv ${ci.level}</span></div>
       <div class="xpbar"><i style="width:${cp}%;background:${cat.color}"></i></div></div>`;
   }
-  html+=`<h2 class="rewh">Badges</h2><div class="badges">`;
-  for(const b of computeBadges()){
-    html+=`<div class="badge2 ${b.got?'got':''}"><div class="bi">${b.icon}</div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div></div>`;
-  }
-  html+=`</div><div class="rewnote">Mind &amp; Health habits earn bonus XP — the game rewards showing up where it's hardest.</div>`;
+  const tier=activeTier(), doneSets=completedTierCount();
+  const bl=activeBadges(); const gotN=bl.filter(b=>b.got).length;
+  if(doneSets>0){ html+=`<div class="setnote">🏅 <div><b>${doneSets} badge set${doneSets>1?'s':''} complete</b> · +${setBonusXp()} bonus XP earned — a fresh set is unlocked.</div></div>`; }
+  const setLabel = tier>1 ? `Badge Set ${roman(tier)}` : 'Badges';
+  html+=`<h2 class="rewh">${setLabel} <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">${gotN}/${bl.length} earned</span></h2><div class="badges">`;
+  bl.forEach((b,i)=>{
+    const pct=Math.max(0,Math.min(1,b.goal? b.cur/b.goal:0))*100;
+    const prog = b.got ? '' : `<div class="bprog"><i style="width:${pct}%"></i></div><div class="bcount">${Math.min(b.cur,b.goal)} / ${b.goal}</div>`;
+    const gotMark = b.got ? '<div class="bgot">✓</div>' : '';
+    html+=`<div class="badge2 ${b.got?'got':''}" data-badge="${i}">${gotMark}<div class="bi">${b.icon}</div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div>${prog}</div>`;
+  });
+  html+=`</div><div class="rewnote">Tap any badge for details. Clear all 12 to earn a bonus and unlock the next set. Mind &amp; Health habits earn bonus XP — the game rewards showing up where it's hardest.</div>`;
   $('app').innerHTML=html;
 }
 
@@ -621,9 +778,12 @@ async function onToggle(rid, btn){
   const valInput=document.querySelector(`[data-val="${rid}"]`);
   const val=valInput?valInput.value:undefined;
   const preLevel = levelInfo(totalXp()).level;
+  const preTiers = completedTierCount();
+  const preQuests = completedQuestIds(ds);
   try{
     await setLog(r, ds, !currentlyDone, val, true);
-    if(!currentlyDone){ btn.classList.add('pop'); if(navigator.vibrate) navigator.vibrate(18); burst(btn); floatXp(btn, xpOfRoutine(r)); checkLevelUp(preLevel); }
+    if(!currentlyDone){ btn.classList.add('pop'); if(navigator.vibrate) navigator.vibrate(18); burst(btn); floatXp(btn, xpOfRoutine(r)); checkQuests(preQuests, ds);
+      if(!checkSetComplete(preTiers)) checkLevelUp(preLevel); }
     render();
   }catch(e){ toast('Could not save — check connection', true); console.error(e); }
   busy=false;
@@ -634,23 +794,93 @@ async function onValue(rid, input){
   const v=input.value.trim();
   const wasDone=isDone(rid,ds);
   const preLevel = levelInfo(totalXp()).level;
+  const preTiers = completedTierCount();
+  const preQuests = completedQuestIds(ds);
   try{
     if(v===''){ const cur=getLog(rid,ds); if(cur&&cur.note){ await setLog(r,ds,true,null,false); } else { await setLog(r,ds,false); } }
     else { const done=valueDone(r,v); await setLog(r,ds,true,v,done);
-      if(done && !wasDone){ if(navigator.vibrate)navigator.vibrate(14); floatXp(input, xpOfRoutine(r)); checkLevelUp(preLevel); } }
+      if(done && !wasDone){ if(navigator.vibrate)navigator.vibrate(14); floatXp(input, xpOfRoutine(r)); checkQuests(preQuests, ds);
+        if(!checkSetComplete(preTiers)) checkLevelUp(preLevel); } }
     render();
   }catch(e){ toast('Could not save value', true); console.error(e); }
   busy=false;
 }
+function checkQuests(preIds, ds){
+  const post=completedQuestIds(ds);
+  const fresh=questsForDate(ds).filter(q=>post.has(q.id) && !preIds.has(q.id));
+  if(!fresh.length) return;
+  const q=fresh[fresh.length-1];
+  if(navigator.vibrate) navigator.vibrate([12,30,12]);
+  const extra = fresh.length>1 ? ` (+${fresh.length-1} more)` : '';
+  toast(`✦ Quest complete — ${q.name} · +${q.xp} XP${extra}`, false, true);
+}
+function showLevelUp(level, prevLevel){
+  const rank=rankTitle(level), prevRank=rankTitle(prevLevel);
+  const info=levelInfo(totalXp());
+  const rankUp = rank!==prevRank ? `<div class="lurankup">✦ New rank unlocked — ${rank}</div>` : '';
+  $('lucard').innerHTML=`
+    <div class="luspark">✦</div>
+    <div class="lulabel">Level up</div>
+    <div class="lubig">Lv ${level}</div>
+    <div class="lurank">${rank}</div>
+    ${rankUp}
+    <div class="lunext">${Math.max(0,info.need-info.into)} XP to Level ${level+1}</div>
+    <button class="lugo" id="lugo">Continue</button>`;
+  const ov=$('levelup'); ov.classList.add('show');
+  const close=()=>ov.classList.remove('show');
+  $('lugo').onclick=close;
+  ov.onclick=(e)=>{ if(e.target===ov) close(); };
+  if(navigator.vibrate) navigator.vibrate([30,40,30,40,60]);
+  bigBurst(); setTimeout(bigBurst, 260);
+}
 function checkLevelUp(preLevel){
   const post=levelInfo(totalXp()).level;
-  if(post>preLevel){ setTimeout(()=>{ toast(`✦ Level up! You reached Level ${post} · ${rankTitle(post)}`, false, true);
-    if(navigator.vibrate) navigator.vibrate([30,40,30]); bigBurst(); }, 350); }
+  if(post>preLevel){ setTimeout(()=>showLevelUp(post, preLevel), 380); }
+}
+function showSetComplete(tier){
+  const bonus=setBonus(tier);
+  $('lucard').innerHTML=`
+    <div class="luspark" style="animation:none">🏅</div>
+    <div class="lulabel" style="color:var(--mind)">Badge set complete</div>
+    <div class="lubig" style="font-size:46px">Set ${roman(tier)} cleared</div>
+    <div class="lurank">All 12 badges earned</div>
+    <div class="lurankup">✦ +${bonus} bonus XP</div>
+    <div class="lunext">A fresh set of 12 badges has unlocked</div>
+    <button class="lugo" id="lugo">Claim reward</button>`;
+  const ov=$('levelup'); ov.classList.add('show');
+  const close=()=>ov.classList.remove('show');
+  $('lugo').onclick=close;
+  ov.onclick=(e)=>{ if(e.target===ov) close(); };
+  if(navigator.vibrate) navigator.vibrate([40,60,40,60,90]);
+  bigBurst(); setTimeout(bigBurst, 240); setTimeout(bigBurst, 480);
+}
+function checkSetComplete(preTiers){
+  const post=completedTierCount();
+  if(post>preTiers){ setTimeout(()=>showSetComplete(post), 380); return true; }
+  return false;
 }
 document.addEventListener('click',(e)=>{
   const t=e.target.closest('[data-toggle]'); if(t){ onToggle(t.getAttribute('data-toggle'), t); return; }
-  const d=e.target.closest('[data-detail]'); if(d && view==='today'){ openDetail(d.getAttribute('data-detail')); }
+  const d=e.target.closest('[data-detail]'); if(d && view==='today'){ openDetail(d.getAttribute('data-detail')); return; }
+  const bd=e.target.closest('[data-badge]'); if(bd){ openBadgeDetail(Number(bd.getAttribute('data-badge'))); }
 });
+function openBadgeDetail(i){
+  const b=activeBadges()[i]; if(!b) return;
+  const pct=Math.max(0,Math.min(1,b.goal? b.cur/b.goal:0))*100;
+  const cur=Math.min(b.cur,b.goal);
+  const body = b.got
+    ? `<div class="bdunlocked">✓ Unlocked</div>`
+    : `<div class="bdstat"><div class="bl">Progress <b>${cur} / ${b.goal}</b></div>
+         <div class="xpbar"><i style="width:${pct}%"></i></div></div>
+       <div class="bdunlocked" style="color:var(--muted);font-weight:600">${b.goal-cur} ${b.unit||''} to go</div>`;
+  $('detailSheet').innerHTML=`
+    <h2 style="justify-content:flex-end;margin-bottom:0"><button class="x" id="closeBadge">×</button></h2>
+    <div class="bdhero"><div class="bdi" style="${b.got?'':'filter:grayscale(.6);opacity:.65'}">${b.icon}</div>
+      <div class="bdn">${b.name}</div><div class="bds">${b.desc}</div></div>
+    ${body}`;
+  $('detail').classList.add('show');
+  $('closeBadge').onclick=()=>$('detail').classList.remove('show');
+}
 document.addEventListener('change',(e)=>{ const v=e.target.closest('[data-val]'); if(v) onValue(v.getAttribute('data-val'), v); });
 $('prevDay').onclick=()=>{ selected=addDays(selected,-1); render(); };
 $('nextDay').onclick=()=>{ if(ymd(selected)<ymd(today)){ selected=addDays(selected,1); render(); } };
