@@ -242,6 +242,31 @@
   .gpick button.pk .pm{margin-left:auto;font-size:11px;color:var(--muted2);font-weight:600}
   .gpick .pglabel{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 2px 4px}
 
+  /* Gym v2 (build 11) */
+  .gresume{background:linear-gradient(160deg,#2a3350,#1b2136);border:1px solid color-mix(in srgb,var(--mind) 45%,var(--line));border-radius:16px;padding:13px 14px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:12px}
+  .gresume:active{transform:scale(.99)}
+  .gresume .gri{font-size:22px;flex:0 0 auto}
+  .gresume .grt{font-weight:800;font-size:14.5px}
+  .gresume .grs{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .gresume .grgo{margin-left:auto;font-size:12.5px;font-weight:800;color:var(--mind);flex:0 0 auto}
+  .gchip{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:999px;
+    background:color-mix(in srgb,var(--flame) 16%,var(--surface2));color:var(--flame);border:1px solid color-mix(in srgb,var(--flame) 35%,transparent)}
+  .gdetails{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin-bottom:12px}
+  .gdetails .gdrow{display:flex;gap:10px}
+  .gdetails .gdrow>div{flex:1;min-width:0}
+  .gdetails label{display:block;font-size:11px;color:var(--muted);margin:0 2px 5px}
+  .gdetails input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 10px;font-size:14px;outline:none;font-family:inherit}
+  .gexord{display:flex;gap:3px;margin-left:auto}
+  .gexord button{background:var(--surface2);border:none;color:var(--text);width:26px;height:24px;border-radius:7px;font-size:10px;line-height:1;cursor:pointer}
+  .gexord button:disabled{opacity:.3;cursor:default}
+  .gex .gexpr{margin-left:8px}
+  .gexnbtn{background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 3px}
+  .gexnbtn.on{color:var(--mind)}
+  .gexnote{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px 10px;font-size:12.5px;outline:none;font-family:inherit;margin:2px 0 9px;resize:vertical}
+  .ghist{cursor:pointer}
+  .ghist:active{transform:scale(.995)}
+  .ghedit{margin-top:6px;font-size:11px;color:var(--muted2)}
+
   /* Overlays */
   .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
     display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
@@ -321,7 +346,7 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 10</div>
+  <div class="foot">Life Organiser · build 11</div>
 </div>
 
 <nav class="nav">
@@ -482,7 +507,18 @@ async function exportData(){
       rest('GET','routine_logs?select=*&order=log_date.asc'),
       rest('GET','rest_days?select=*').catch(()=>[])
     ]);
-    const payload={ app:'Life Organiser', exported_at:new Date().toISOString(), routines:rs||[], routine_logs:lg||[], rest_days:rd||[] };
+    let gym={ gym_exercises:[], gym_workouts:[], gym_sets:[] };
+    try{
+      const [gx,gw,gs]=await Promise.all([
+        rest('GET','gym_exercises?select=*&order=sort_order.asc'),
+        rest('GET','gym_workouts?select=*&order=workout_date.asc,created_at.asc'),
+        rest('GET','gym_sets?select=*&order=set_no.asc')
+      ]);
+      gym={ gym_exercises:gx||[], gym_workouts:gw||[], gym_sets:gs||[] };
+    }catch(e){ console.warn('gym tables not exported (not set up yet)', e.message||e); }
+    const payload={ app:'Life Organiser', version:11, exported_at:new Date().toISOString(),
+      routines:rs||[], routine_logs:lg||[], rest_days:rd||[],
+      gym_exercises:gym.gym_exercises, gym_workouts:gym.gym_workouts, gym_sets:gym.gym_sets };
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url; a.download='life-organiser-backup-'+new Date().toISOString().slice(0,10)+'.json';
@@ -490,7 +526,6 @@ async function exportData(){
     toast('Backup downloaded');
   }catch(e){ toast('Export failed', true); console.error(e); }
 }
-
 async function load(){
   routines = await rest('GET','routines?select=*&active=eq.true&order=category.asc,sort_order.asc') || [];
   const since = ymd(addDays(today,-160));
@@ -507,8 +542,14 @@ async function loadGym(){
     if(!gymExercises.length){ await seedGym(); gymExercises = await rest('GET','gym_exercises?select=*&order=sort_order.asc') || []; }
     gymWorkouts = await rest('GET','gym_workouts?select=*&order=workout_date.desc,created_at.desc') || [];
     gymSets = await rest('GET','gym_sets?select=*&order=set_no.asc') || [];
+    // sweep abandoned 0-set unfinished workouts (silent cleanup of empties)
+    const empties = gymWorkouts.filter(w=>w.finished===false && !gymSets.some(s=>s.workout_id===w.id));
+    if(empties.length){
+      for(const w of empties){ try{ await rest('DELETE','gym_workouts?id=eq.'+w.id); }catch(e){} }
+      const ids=new Set(empties.map(w=>w.id)); gymWorkouts = gymWorkouts.filter(w=>!ids.has(w.id));
+    }
     gymReady = true;
-  }catch(e){ gymReady=false; gymExercises=[]; gymWorkouts=[]; gymSets=[]; console.warn('Gym tables not ready (run gym-setup.sql):', e.message||e); }
+  }catch(e){ gymReady=false; gymExercises=[]; gymWorkouts=[]; gymSets=[]; console.warn('Gym tables not ready (run gym setup SQL):', e.message||e); }
 }
 async function seedGym(){
   const rows = GYM_SEED.map((e,i)=>({ name:e.name, muscle:e.muscle, in_template:e.tpl||null, is_extra:!!e.extra, sort_order:i, active:true }));
@@ -876,7 +917,14 @@ function exName(id){ const e=gymExercises.find(x=>x.id===id); return e?e.name:'E
 function fmtW(w){ w=Number(w)||0; return Number.isInteger(w)?String(w):w.toFixed(1); }
 function fmtDate(ds){ try{ return parseYmd(ds).toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }catch(e){ return ds; } }
 function fmtTime(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function isTodayDate(ds){ return ds===ymd(today); }
+// local gymSets mirror maintenance (keeps derived PR/XP/charts correct without refetch)
+function gsAdd(row){ gymSets.push(row); }
+function gsPatch(id,f){ const s=gymSets.find(x=>x.id===id); if(s) Object.assign(s,f); }
+function gsDel(id){ const i=gymSets.findIndex(x=>x.id===id); if(i>=0) gymSets.splice(i,1); }
 function exercisePR(id){ let m=0; for(const s of gymSets){ if(s.exercise_id===id && s.weight!=null) m=Math.max(m,Number(s.weight)); } return m; }
+function historicalTop(exId,exclWid){ let m=0; for(const s of gymSets){ if(s.exercise_id!==exId||s.workout_id===exclWid) continue; if(s.weight!=null) m=Math.max(m,Number(s.weight)); } return m; }
+function workoutTop(exId,wid){ let m=0; for(const s of gymSets){ if(s.exercise_id===exId&&s.workout_id===wid&&s.weight!=null) m=Math.max(m,Number(s.weight)); } return m; }
 function exerciseLastSets(id, excludeWid){
   for(const w of gymWorkouts){ if(w.id===excludeWid) continue;
     const ss=gymSets.filter(s=>s.workout_id===w.id && s.exercise_id===id).sort((a,b)=>a.set_no-b.set_no);
@@ -915,7 +963,7 @@ function renderGym(){
   $('subtitle').textContent='Gym';
   const app=$('app');
   if(!gymReady){
-    app.innerHTML=`<div class="gwarn"><b>Gym tracker needs a one-time setup.</b><br>Run <code>gym-setup.sql</code> in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
+    app.innerHTML=`<div class="gwarn"><b>Gym tracker needs a one-time setup.</b><br>Run the gym setup SQL (<code>gym-setup.sql</code> then <code>gym-v2-setup.sql</code>) in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
     return;
   }
   let html=`<div class="gsub">
@@ -931,17 +979,27 @@ function renderGym(){
 }
 function gymLogHtml(){
   if(gymSession) return sessionHtml();
-  return `<div class="gymhero">
+  const unfinished=gymWorkouts.filter(w=>w.finished===false && gymSets.some(s=>s.workout_id===w.id));
+  let resume='';
+  if(unfinished.length){ const w=unfinished[0]; const n=gymSets.filter(s=>s.workout_id===w.id).length;
+    resume=`<div class="gresume" data-gresume="${w.id}"><span class="gri">⏳</span>
+      <div><div class="grt">Continue ${escapeHtml(w.label||'workout')}</div>
+      <div class="grs">Unfinished · ${fmtDate(w.workout_date)} · ${n} set${n>1?'s':''} logged</div></div>
+      <span class="grgo">Resume ›</span></div>`; }
+  const done=gymWorkouts.filter(w=>w.finished!==false);
+  return resume+`<div class="gymhero">
       <button class="gbtn" data-start="A"><div class="gt">Full Body A</div><div class="gs">quad + push</div></button>
       <button class="gbtn" data-start="B"><div class="gt">Full Body B</div><div class="gs">hinge + pull</div></button>
       <button class="gbtn empty" data-start="empty" aria-label="Empty session">＋</button>
     </div>
-    <div class="gempty">Pick a template to start, or ＋ for an empty session.${gymWorkouts.length?`<br>Last workout: ${escapeHtml(gymWorkouts[0].label||'Workout')} · ${fmtDate(gymWorkouts[0].workout_date)}.`:''}</div>`;
+    <div class="gempty">Pick a template to start, or ＋ for an empty session.${done.length?`<br>Last workout: ${escapeHtml(done[0].label||'Workout')} · ${fmtDate(done[0].workout_date)}.`:''}</div>`;
 }
+function noteOpen(e){ return e._noteOpen===true || (e._noteOpen==null && !!(e.note&&e.note.trim())); }
 function sessionHtml(){
-  const s=gymSession; let ex='';
+  const s=gymSession; const editing=!!s.finished;
+  let ex='';
   s.exercises.forEach((e,i)=>{
-    const last=exerciseLastSets(e.exId,null); const pr=exercisePR(e.exId);
+    const last=exerciseLastSets(e.exId, s.id); const pr=exercisePR(e.exId);
     const lastTxt = last ? `Last (${fmtDate(last.date)}): ${last.sets.map(x=>`${fmtW(x.weight)}×${x.reps}`).join(', ')}` : 'No history yet — set the baseline';
     let sets='';
     e.sets.forEach((st,j)=>{
@@ -950,35 +1008,52 @@ function sessionHtml(){
         <div class="gcell"><input inputmode="numeric" data-gex="${i}" data-gset="${j}" data-gfield="reps" value="${st.reps}" placeholder="0"><span class="gu">reps</span></div>
         <button class="grm" data-grm="${i}:${j}" aria-label="Remove set">×</button></div>`;
     });
+    const nOpen=noteOpen(e);
+    const noteField = nOpen ? `<textarea class="gexnote" rows="2" data-gexnote="${i}" placeholder="Note for this exercise… (e.g. left shoulder tweaky, straps used)">${escapeHtml(e.note||'')}</textarea>` : '';
     ex+=`<div class="gex"><div class="gexh"><span class="gexn">${escapeHtml(exName(e.exId))}</span>
-        ${pr?`<span class="gexpr">PR ${fmtW(pr)}kg</span>`:''}
+        <span class="gexpr" data-prchip="${e.exId}">${pr?'PR '+fmtW(pr)+'kg':''}</span>
+        <div class="gexord">
+          <button data-gmoveex="${i}:-1" ${i===0?'disabled':''} aria-label="Move up">▲</button>
+          <button data-gmoveex="${i}:1" ${i===s.exercises.length-1?'disabled':''} aria-label="Move down">▼</button></div>
+        <button class="gexnbtn${nOpen?' on':''}" data-gexntoggle="${i}" aria-label="Exercise note">📝</button>
         <button class="gexrm" data-gexrm="${i}" aria-label="Remove exercise">🗑</button></div>
-      <div class="gexlast">${lastTxt}</div>${sets}
+      <div class="gexlast">${lastTxt}</div>${noteField}${sets}
       <button class="gaddset" data-gaddset="${i}">＋ Add set</button></div>`;
   });
   const running=!!restT;
-  return `<div class="gsesshead"><div><div class="gn">${escapeHtml(s.label||'Workout')}</div>
-      <div class="gd">${fmtDate(ymd(today))} · every set logged (kg × reps)</div></div></div>
+  const primaryLabel = editing ? 'Done' : 'Finish &amp; save';
+  return `<div class="gdetails">
+      <div class="gdrow">
+        <div><label>Workout</label><input type="text" id="g-label" value="${escapeHtml(s.label||'')}" placeholder="Workout"></div>
+        <div><label>Date</label><input type="date" id="g-date" value="${s.date}" max="${ymd(today)}"></div>
+      </div>
+      <div style="margin-top:8px"><label>Session note</label>
+        <input type="text" id="g-note" value="${escapeHtml(s.note||'')}" placeholder="How did it go?"></div>
+      <div class="gd" id="gsavestat" style="margin-top:9px">${editing?'Editing — changes save automatically ✓':'Every set saves automatically ✓'}</div>
+    </div>
     ${ex}
     <button class="gaddex" data-gaddex="1">＋ Add exercise</button>
     <div class="rtimer ${running?'run':''}" id="rtimer">
       <span class="rt" id="rtimerval">${fmtTime(running?restLeft:restDur)}</span><span class="rlbl">Rest</span>
       <button data-radj="-15">−15</button><button data-radj="15">+15</button>
       <button data-rtoggle="1">${running?'Skip':'Start'}</button></div>
-    <div class="gsave"><button class="btn-cancel" data-gcancel="1">Cancel</button>
-      <button class="btn-save" data-gsave="1">Finish &amp; save</button></div>`;
+    <div class="gsave"><button class="btn-del" data-gdiscard="1" style="flex:0 0 auto">Discard</button>
+      <button class="btn-save" data-gfinish="1">${primaryLabel}</button></div>`;
 }
 function gymHistoryHtml(){
-  if(!gymWorkouts.length) return `<div class="gempty">No workouts logged yet. Head to the Log tab to start one.</div>`;
+  const shown=gymWorkouts.filter(w=>!(w.finished===false && !gymSets.some(s=>s.workout_id===w.id)));
+  if(!shown.length) return `<div class="gempty">No workouts logged yet. Head to the Log tab to start one.</div>`;
   let h='';
-  for(const w of gymWorkouts.slice(0,40)){
+  for(const w of shown.slice(0,60)){
     const sets=gymSets.filter(s=>s.workout_id===w.id);
     const byEx=new Map(); for(const s of sets){ const n=exName(s.exercise_id); byEx.set(n,(byEx.get(n)||0)+1); }
     const summary=[...byEx.entries()].map(([n,c])=>`${escapeHtml(n)} ×${c}`).join(' · ');
-    h+=`<div class="ghist"><div class="ghd"><span class="ghn">${escapeHtml(w.label||'Workout')}</span>
+    const chip = w.finished===false ? `<span class="gchip">Unfinished</span>` : '';
+    h+=`<div class="ghist" data-gedit="${w.id}"><div class="ghd"><span class="ghn">${escapeHtml(w.label||'Workout')}</span>${chip}
       <span class="ghdate">${fmtDate(w.workout_date)}</span>
       <button class="ghx" data-gdel="${w.id}" aria-label="Delete workout">🗑</button></div>
-      <div class="ghsets">${summary||'No sets'}</div></div>`;
+      <div class="ghsets">${summary||'No sets'}</div>
+      <div class="ghedit">Tap to edit ›</div></div>`;
   }
   return h;
 }
@@ -994,55 +1069,183 @@ function bindGym(){
   const app=$('app');
   app.querySelectorAll('[data-gtab]').forEach(b=>b.onclick=()=>{ gymTab=b.getAttribute('data-gtab'); renderGym(); });
   app.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>startSession(b.getAttribute('data-start')));
+  app.querySelectorAll('[data-gresume]').forEach(b=>b.onclick=()=>openWorkout(b.getAttribute('data-gresume')));
   app.querySelectorAll('[data-gaddset]').forEach(b=>b.onclick=()=>gAddSet(+b.getAttribute('data-gaddset')));
   app.querySelectorAll('[data-grm]').forEach(b=>b.onclick=()=>{ const p=b.getAttribute('data-grm').split(':'); gRmSet(+p[0],+p[1]); });
   app.querySelectorAll('[data-gexrm]').forEach(b=>b.onclick=()=>gRmExercise(+b.getAttribute('data-gexrm')));
+  app.querySelectorAll('[data-gmoveex]').forEach(b=>b.onclick=()=>{ const p=b.getAttribute('data-gmoveex').split(':'); gMoveEx(+p[0],+p[1]); });
+  app.querySelectorAll('[data-gexntoggle]').forEach(b=>b.onclick=()=>{ const i=+b.getAttribute('data-gexntoggle'); const e=gymSession.exercises[i]; e._noteOpen=!noteOpen(e); renderGym(); });
+  app.querySelectorAll('[data-gexnote]').forEach(t=>{ t.onchange=()=>{ const i=+t.getAttribute('data-gexnote'); if(gymSession.exercises[i]){ gymSession.exercises[i].note=t.value; persistExNotes(); } }; });
   app.querySelectorAll('[data-gaddex]').forEach(b=>b.onclick=()=>openExPicker());
-  app.querySelectorAll('[data-gcancel]').forEach(b=>b.onclick=()=>gCancel());
-  app.querySelectorAll('[data-gsave]').forEach(b=>b.onclick=()=>gSave());
-  app.querySelectorAll('[data-gdel]').forEach(b=>b.onclick=()=>gDelete(b.getAttribute('data-gdel')));
+  app.querySelectorAll('[data-gdiscard]').forEach(b=>b.onclick=()=>gDiscard());
+  app.querySelectorAll('[data-gfinish]').forEach(b=>b.onclick=()=>gFinish());
+  app.querySelectorAll('[data-gdel]').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); gDelete(b.getAttribute('data-gdel')); });
+  app.querySelectorAll('[data-gedit]').forEach(c=>c.onclick=()=>openWorkout(c.getAttribute('data-gedit')));
   app.querySelectorAll('[data-radj]').forEach(b=>b.onclick=()=>adjustRest(+b.getAttribute('data-radj')));
   app.querySelectorAll('[data-rtoggle]').forEach(b=>b.onclick=()=>restTimerToggle());
+  ['g-label','g-date','g-note'].forEach(id=>{ const el=$(id); if(el) el.onchange=persistMeta; });
 }
-function startSession(kind){
+
+// ---- session lifecycle ----
+async function startSession(kind){
+  if(busy||!gymReady) return;
   let label, exIds;
   if(kind==='A'||kind==='B'){ label='Full Body '+kind; exIds=gymExercises.filter(e=>e.in_template===kind).sort((a,b)=>a.sort_order-b.sort_order).map(e=>e.id); }
   else { label='Workout'; exIds=[]; }
-  gymSession={ label, exercises: exIds.map(id=>({exId:id, sets:[{weight:'',reps:''}]})) };
+  busy=true;
+  const ds=ymd(today);
+  try{
+    const wk=await rest('POST','gym_workouts',{body:{workout_date:ds, label, finished:false, ex_order:exIds, ex_notes:{}}, prefer:'return=representation'});
+    const w=Array.isArray(wk)?wk[0]:wk;
+    gymWorkouts.unshift(w);
+    gymSession={ id:w.id, label, date:ds, note:'', ex_order:exIds.slice(), ex_notes:{},
+      exercises: exIds.map(id=>({exId:id, note:'', sets:[{weight:'',reps:''}]})),
+      finished:false, tickedRoutine:false,
+      preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), prToasted:new Set() };
+    gymTab='log'; stopRest(); renderGym();
+  }catch(e){ toast('Could not start workout — did the SQL run?', true); console.error(e); }
+  busy=false;
+}
+function buildExercisesFromWorkout(w){
+  const sets=gymSets.filter(s=>s.workout_id===w.id);
+  const present=[...new Set(sets.map(s=>s.exercise_id))];
+  let order = Array.isArray(w.ex_order)&&w.ex_order.length ? w.ex_order.slice() : null;
+  if(!order){
+    order = present.slice().sort((a,b)=>{ const ea=gymExercises.find(x=>x.id===a),eb=gymExercises.find(x=>x.id===b); return (ea?ea.sort_order:0)-(eb?eb.sort_order:0); });
+  } else {
+    present.forEach(id=>{ if(!order.includes(id)) order.push(id); });
+    order = order.filter(id=>gymExercises.some(x=>x.id===id));
+  }
+  const notes = (w.ex_notes && typeof w.ex_notes==='object') ? w.ex_notes : {};
+  return order.map(id=>{
+    const ss=sets.filter(s=>s.exercise_id===id).sort((a,b)=>(a.set_no||0)-(b.set_no||0))
+       .map(s=>({id:s.id, set_no:s.set_no, weight:s.weight, reps:s.reps}));
+    if(!ss.length) ss.push({weight:'',reps:''});
+    return { exId:id, note: notes[id]||'', sets: ss };
+  });
+}
+function openWorkout(wid){
+  if(busy) return;
+  const w=gymWorkouts.find(x=>String(x.id)===String(wid)); if(!w) return;
+  gymSession={ id:w.id, label:w.label||'Workout', date:w.workout_date, note:w.note||'',
+    ex_order:Array.isArray(w.ex_order)?w.ex_order.slice():null, ex_notes:(w.ex_notes&&typeof w.ex_notes==='object')?w.ex_notes:{},
+    exercises: buildExercisesFromWorkout(w),
+    finished: w.finished!==false,
+    tickedRoutine: gymSets.some(s=>s.workout_id===w.id),
+    preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), prToasted:new Set() };
   gymTab='log'; stopRest(); renderGym();
 }
+function nextSetNo(ex){ let m=0; ex.sets.forEach(s=>{ if(s.set_no) m=Math.max(m,s.set_no); }); return m+1; }
+async function persistSet(i,j){
+  if(!gymSession) return;
+  const ex=gymSession.exercises[i]; if(!ex) return; const st=ex.sets[j]; if(!st||st._saving) return;
+  const reps=parseInt(st.reps,10);
+  const weight=(st.weight===''||st.weight==null)?0:Number(st.weight);
+  if(!(reps>0) || isNaN(weight)){
+    if(st.id){ st._saving=true; try{ await rest('DELETE','gym_sets?id=eq.'+st.id); gsDel(st.id); }catch(e){} st.id=null; st._saving=false; }
+    return;
+  }
+  st._saving=true;
+  try{
+    if(st.id){
+      await rest('PATCH','gym_sets?id=eq.'+st.id,{body:{weight,reps},prefer:'return=minimal'});
+      gsPatch(st.id,{weight,reps});
+    } else {
+      const wasFirst = !gymSets.some(s=>s.workout_id===gymSession.id);
+      const set_no = nextSetNo(ex);
+      const r=await rest('POST','gym_sets',{body:{workout_id:gymSession.id, exercise_id:ex.exId, set_no, weight, reps}, prefer:'return=representation'});
+      const ns=Array.isArray(r)?r[0]:r;
+      if(ns){ st.id=ns.id; st.set_no=(ns.set_no!=null?ns.set_no:set_no); gsAdd({id:ns.id, workout_id:gymSession.id, exercise_id:ex.exId, set_no:st.set_no, weight, reps}); }
+      if(wasFirst && !gymSession.tickedRoutine && isTodayDate(gymSession.date)){ gymSession.tickedRoutine=true; completeGymRoutine(gymSession.date); }
+    }
+    maybePR(ex.exId);
+    markSavedStat();
+  }catch(e){ toast('Set not saved — check connection', true); console.error(e); }
+  st._saving=false;
+}
+function maybePR(exId){
+  if(!gymSession || gymSession.prToasted.has(exId)) return;
+  const hasHist=gymSets.some(s=>s.exercise_id===exId && s.workout_id!==gymSession.id);
+  if(!hasHist) return; // first-ever log = baseline, no PR
+  const cur=workoutTop(exId,gymSession.id), hist=historicalTop(exId,gymSession.id);
+  if(cur>0 && cur>hist){ gymSession.prToasted.add(exId); prFeedback(exName(exId),cur); updatePrChip(exId); }
+}
+function prFeedback(name,val){ if(navigator.vibrate) navigator.vibrate([40,50,40]); bigBurst();
+  toast('🏆 New PR — '+name+' '+fmtW(val)+'kg', false, true); }
+function updatePrChip(exId){ const el=document.querySelector('[data-prchip="'+String(exId).replace(/"/g,'')+'"]'); if(el){ const pr=exercisePR(exId); el.textContent=pr?'PR '+fmtW(pr)+'kg':''; } }
+function markSavedStat(){ const el=$('gsavestat'); if(!el) return; const d=new Date();
+  const p=n=>String(n).padStart(2,'0'); el.textContent='Auto-saved ✓ '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
+// live set-save scheduling
+const gsetTimers={};
+function scheduleSetSave(i,j){ const k=i+':'+j; clearTimeout(gsetTimers[k]); gsetTimers[k]=setTimeout(()=>{ delete gsetTimers[k]; persistSet(i,j); }, 700); }
+function flushSetSave(i,j){ const k=i+':'+j; if(gsetTimers[k]){ clearTimeout(gsetTimers[k]); delete gsetTimers[k]; } persistSet(i,j); }
+function flushAllSets(){ Object.keys(gsetTimers).forEach(k=>{ const p=k.split(':'); flushSetSave(+p[0],+p[1]); }); }
+
 function gAddSet(i){ const ex=gymSession.exercises[i]; const last=ex.sets[ex.sets.length-1]; ex.sets.push({weight:last?last.weight:'', reps:''}); startRest(); renderGym(); }
-function gRmSet(i,j){ const ex=gymSession.exercises[i]; ex.sets.splice(j,1); if(!ex.sets.length) ex.sets.push({weight:'',reps:''}); renderGym(); }
-function gRmExercise(i){ gymSession.exercises.splice(i,1); renderGym(); }
-function gAddExercise(id){ gymSession.exercises.push({exId:id, sets:[{weight:'',reps:''}]}); renderGym(); }
-function gCancel(){ if(gymSession && gymSession.exercises.some(e=>e.sets.some(s=>s.weight!==''||s.reps!==''))){ if(!confirm('Discard this workout?')) return; } gymSession=null; stopRest(); renderGym(); }
+async function gRmSet(i,j){ const ex=gymSession.exercises[i]; if(!ex) return; const st=ex.sets[j]; ex.sets.splice(j,1);
+  if(st&&st.id){ try{ await rest('DELETE','gym_sets?id=eq.'+st.id); gsDel(st.id); }catch(e){ toast('Could not remove set', true); } }
+  if(!ex.sets.length) ex.sets.push({weight:'',reps:''}); renderGym(); }
+function gMoveEx(i,dir){ const a=gymSession.exercises; const j=i+dir; if(j<0||j>=a.length) return; const t=a[i]; a[i]=a[j]; a[j]=t; persistExOrder(); renderGym(); }
+function persistExOrder(){ if(!gymSession) return; const order=gymSession.exercises.map(e=>e.exId); gymSession.ex_order=order;
+  const w=gymWorkouts.find(x=>x.id===gymSession.id); if(w) w.ex_order=order;
+  rest('PATCH','gym_workouts?id=eq.'+gymSession.id,{body:{ex_order:order},prefer:'return=minimal'}).then(markSavedStat).catch(()=>toast('Order not saved',true)); }
+function persistExNotes(){ if(!gymSession) return; const notes={}; gymSession.exercises.forEach(e=>{ if(e.note&&e.note.trim()) notes[e.exId]=e.note.trim(); }); gymSession.ex_notes=notes;
+  const w=gymWorkouts.find(x=>x.id===gymSession.id); if(w) w.ex_notes=notes;
+  rest('PATCH','gym_workouts?id=eq.'+gymSession.id,{body:{ex_notes:notes},prefer:'return=minimal'}).then(markSavedStat).catch(()=>toast('Note not saved',true)); }
+function persistMeta(){ if(!gymSession) return;
+  const label=(($('g-label')&&$('g-label').value)||'').trim()||'Workout';
+  const date=($('g-date')&&$('g-date').value)||gymSession.date;
+  const note=(($('g-note')&&$('g-note').value)||'').trim();
+  gymSession.label=label; gymSession.date=date; gymSession.note=note;
+  const w=gymWorkouts.find(x=>x.id===gymSession.id); if(w){ w.label=label; w.workout_date=date; w.note=note||null; }
+  rest('PATCH','gym_workouts?id=eq.'+gymSession.id,{body:{label, workout_date:date, note:note||null},prefer:'return=minimal'}).then(markSavedStat).catch(()=>toast('Details not saved',true)); }
+async function gRmExercise(i){ const ex=gymSession.exercises[i]; if(!ex) return;
+  if(ex.sets.some(s=>s.id) && !confirm('Remove '+exName(ex.exId)+' and its logged sets?')) return;
+  gymSession.exercises.splice(i,1); const wid=gymSession.id;
+  try{ await rest('DELETE','gym_sets?workout_id=eq.'+wid+'&exercise_id=eq.'+ex.exId); gymSets=gymSets.filter(s=>!(s.workout_id===wid&&s.exercise_id===ex.exId)); }catch(e){ toast('Could not remove exercise', true); }
+  persistExOrder(); persistExNotes(); renderGym(); }
+function gAddExercise(id){ if(!gymSession) return;
+  if(gymSession.exercises.some(e=>String(e.exId)===String(id))){ toast('Already in this workout'); return; }
+  gymSession.exercises.push({exId:id, note:'', sets:[{weight:'',reps:''}]}); persistExOrder(); renderGym(); }
 async function completeGymRoutine(ds){
   const g=routines.find(r=>/gym/i.test(r.name||'')); if(!g) return;
   try{ await setLog(g, ds, true, undefined, true); }catch(e){ console.warn('link gym routine failed', e); }
 }
-async function gSave(){
-  if(!gymSession || busy) return;
-  const rows=[];
-  gymSession.exercises.forEach(e=>{ let n=0; e.sets.forEach(st=>{ if(st.weight!==''&&st.reps!==''){ n++; rows.push({exId:e.exId, set_no:n, weight:Number(st.weight), reps:Number(st.reps)}); } }); });
-  if(!rows.length){ toast('Log at least one set first', true); return; }
-  busy=true;
-  const ds=ymd(today); const preLevel=levelInfo(totalXp()).level;
-  const prevPR={}; gymSession.exercises.forEach(e=>{ prevPR[e.exId]=exercisePR(e.exId); });
+async function gFinish(){
+  if(!gymSession || busy) return; busy=true;
+  flushAllSets();
+  const wid=gymSession.id;
+  const preLevel=gymSession.preLevel, preTiers=gymSession.preTiers;
   try{
-    const wk=await rest('POST','gym_workouts',{body:{workout_date:ds, label:gymSession.label||null}, prefer:'return=representation'});
-    const wid=Array.isArray(wk)?wk[0].id:wk.id;
-    await rest('POST','gym_sets',{body:rows.map(r=>({workout_id:wid, exercise_id:r.exId, set_no:r.set_no, weight:r.weight, reps:r.reps})), prefer:'return=minimal'});
-    await completeGymRoutine(ds);
-    const prs=[];
-    gymSession.exercises.forEach(e=>{ const top=Math.max(0,...e.sets.map(s=>Number(s.weight)||0)); if(top>0 && top>(prevPR[e.exId]||0)) prs.push({name:exName(e.exId), w:top}); });
-    stopRest(); gymSession=null; gymTab='progress';
+    const nSets=gymSets.filter(s=>s.workout_id===wid).length;
+    if(nSets===0){
+      await rest('DELETE','gym_workouts?id=eq.'+wid).catch(()=>{});
+      gymWorkouts=gymWorkouts.filter(w=>w.id!==wid);
+      gymSession=null; stopRest(); gymTab='log'; render(); renderGym(); busy=false; return;
+    }
+    await rest('PATCH','gym_workouts?id=eq.'+wid,{body:{finished:true},prefer:'return=minimal'});
+    const w=gymWorkouts.find(x=>x.id===wid); if(w) w.finished=true;
+    stopRest(); gymSession=null; gymTab='history';
     await loadGym(); await load(); render();
-    if(prs.length){ if(navigator.vibrate) navigator.vibrate([40,50,40]); bigBurst();
-      const f=prs[0]; const extra=prs.length>1?` (+${prs.length-1} more)`:'';
-      toast(`🏆 New PR — ${f.name} ${fmtW(f.w)}kg${extra}`, false, true); }
-    else toast('Workout saved 💪');
-    checkLevelUp(preLevel);
-  }catch(e){ toast('Could not save workout — did the SQL run?', true); console.error(e); }
+    toast('Workout saved 💪');
+    if(!checkSetComplete(preTiers)) checkLevelUp(preLevel);
+  }catch(e){ toast('Could not finish — check connection', true); console.error(e); }
+  busy=false;
+}
+async function gDiscard(){
+  if(!gymSession || busy) return;
+  const wid=gymSession.id;
+  const nSets=gymSets.filter(s=>s.workout_id===wid).length;
+  if(nSets>0 && !confirm('Discard this whole workout and its '+nSets+' set'+(nSets>1?'s':'')+'? This cannot be undone.')) return;
+  busy=true; flushAllSets();
+  try{
+    await rest('DELETE','gym_sets?workout_id=eq.'+wid).catch(()=>{});
+    await rest('DELETE','gym_workouts?id=eq.'+wid);
+    gymSets=gymSets.filter(s=>s.workout_id!==wid); gymWorkouts=gymWorkouts.filter(w=>w.id!==wid);
+    gymSession=null; stopRest(); gymTab='log';
+    await load(); render(); renderGym();
+    toast(nSets>0?'Workout discarded':'Session cleared');
+  }catch(e){ toast('Could not discard', true); console.error(e); }
   busy=false;
 }
 async function gDelete(id){
@@ -1055,7 +1258,8 @@ function openExPicker(){
   const groups={}; gymExercises.filter(e=>e.active).forEach(e=>{ (groups[e.muscle||'Other']=groups[e.muscle||'Other']||[]).push(e); });
   let list='';
   Object.keys(groups).forEach(mus=>{ list+=`<div class="pglabel">${escapeHtml(mus)}</div>`;
-    groups[mus].forEach(e=>{ list+=`<button class="pk" data-pick="${e.id}">${escapeHtml(e.name)}<span class="pm">${escapeHtml(e.muscle||'')}</span></button>`; }); });
+    groups[mus].forEach(e=>{ const inS=gymSession && gymSession.exercises.some(x=>String(x.exId)===String(e.id));
+      list+=`<button class="pk" data-pick="${e.id}"${inS?' disabled style="opacity:.4"':''}>${escapeHtml(e.name)}<span class="pm">${inS?'added':escapeHtml(e.muscle||'')}</span></button>`; }); });
   $('detailSheet').innerHTML=`<h2>Add exercise <button class="x" id="closePick">×</button></h2>
     <div class="field"><label>New exercise</label>
       <div style="display:flex;gap:8px"><input type="text" id="newExName" placeholder="e.g. Chest press" style="flex:1;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:11px 12px;font-size:15px;outline:none">
@@ -1083,7 +1287,10 @@ function adjustRest(delta){ restDur=Math.max(15, restDur+delta); if(restT) restL
 function renderRest(){ const v=$('rtimerval'); if(v) v.textContent=fmtTime(restT?restLeft:restDur); const bar=$('rtimer'); if(bar) bar.classList.toggle('run', !!restT); }
 document.addEventListener('input',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
   const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'), f=g.getAttribute('data-gfield');
-  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]) ex.sets[j][f]=g.value; });
+  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]){ ex.sets[j][f]=g.value; scheduleSetSave(i,j); } });
+document.addEventListener('change',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
+  const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'); flushSetSave(i,j); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && gymSession) flushAllSets(); });
 
 // ---- interactions ----
 let busy=false;
