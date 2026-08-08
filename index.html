@@ -187,6 +187,61 @@
   @keyframes lupop{0%{transform:scale(.6);opacity:0}55%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
   .lvlup.show .lucard{animation:lupop .5s cubic-bezier(.2,.8,.3,1.2)}
 
+  /* Gym */
+  .gymhero{display:flex;gap:10px;margin-bottom:12px}
+  .gbtn{flex:1;background:linear-gradient(160deg,#242a44,#191d2c);border:1px solid var(--line);border-radius:16px;padding:15px 12px;text-align:center;cursor:pointer;color:var(--text)}
+  .gbtn:active{transform:scale(.98)}
+  .gbtn .gt{font-weight:800;font-size:15px}
+  .gbtn .gs{font-size:11px;color:var(--muted);margin-top:3px}
+  .gbtn.empty{background:var(--surface);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:22px;width:56px}
+  .gsub{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:16px}
+  .gsub button{flex:1;background:transparent;border:none;color:var(--muted);border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
+  .gsub button.on{background:var(--surface2);color:var(--text)}
+
+  .gsesshead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .gsesshead .gn{font-weight:800;font-size:18px}
+  .gsesshead .gd{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .gex{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin-bottom:10px}
+  .gex .gexh{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .gex .gexn{font-weight:700;font-size:14.5px}
+  .gex .gexpr{margin-left:auto;font-size:11px;color:var(--flame);font-weight:700}
+  .gex .gexrm{background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;padding:0 2px}
+  .gex .gexlast{font-size:11px;color:var(--muted2);margin-bottom:9px}
+  .gset{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .gset .gsi{width:20px;color:var(--muted2);font-size:12px;font-weight:800;text-align:center;flex:0 0 auto}
+  .gcell{flex:1;display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+  .gcell input{width:100%;background:transparent;border:none;color:var(--text);font-size:16px;font-weight:600;outline:none;text-align:center}
+  .gcell .gu{font-size:11px;color:var(--muted);flex:0 0 auto}
+  .gset .grm{background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;width:28px;flex:0 0 auto}
+  .gaddset{width:100%;background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:10px;padding:8px;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:3px}
+  .gaddex{width:100%;background:var(--surface2);border:1px dashed var(--line);color:var(--text);border-radius:12px;padding:12px;font-size:13.5px;font-weight:700;cursor:pointer;margin:2px 0 12px}
+
+  .rtimer{position:sticky;bottom:80px;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:9px;margin:12px 0;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .rtimer.run{border-color:color-mix(in srgb,var(--mind) 50%,var(--line));background:color-mix(in srgb,var(--mind) 10%,var(--surface2))}
+  .rtimer .rt{font-weight:800;font-size:19px;font-variant-numeric:tabular-nums;min-width:50px}
+  .rtimer .rlbl{color:var(--muted);font-size:12px;margin-right:auto}
+  .rtimer button{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:7px 11px;font-size:13px;font-weight:800;cursor:pointer}
+  .gsave{display:flex;gap:10px;margin:14px 0 4px}
+  .gsave button{flex:1;border:none;border-radius:12px;padding:14px;font-size:14.5px;font-weight:800;cursor:pointer}
+
+  .ghist{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px}
+  .ghist .ghd{display:flex;align-items:center;gap:8px}
+  .ghist .ghn{font-weight:700;font-size:14px}
+  .ghist .ghdate{margin-left:auto;color:var(--muted);font-size:12px}
+  .ghist .ghx{background:none;border:none;color:var(--muted2);font-size:15px;cursor:pointer;padding:0 2px}
+  .ghist .ghsets{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .gprog{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:9px}
+  .gprog .gph{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+  .gprog .gpn{font-weight:700;font-size:14px}
+  .gprog .gppr{margin-left:auto;font-size:12.5px;color:var(--flame);font-weight:800}
+  .gchart{width:100%;height:56px;display:block;overflow:visible}
+  .gempty{color:var(--muted2);font-size:13px;text-align:center;padding:26px 10px}
+  .gwarn{background:color-mix(in srgb,var(--danger) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line));border-radius:14px;padding:14px;font-size:13px;color:var(--text);line-height:1.5}
+  .gpick{display:flex;flex-direction:column;gap:7px}
+  .gpick button.pk{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:11px 13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px}
+  .gpick button.pk .pm{margin-left:auto;font-size:11px;color:var(--muted2);font-weight:600}
+  .gpick .pglabel{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 2px 4px}
+
   /* Overlays */
   .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
     display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
@@ -230,8 +285,8 @@
   .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);
     display:flex;gap:4px;background:rgba(26,30,46,.92);backdrop-filter:blur(10px);border:1px solid var(--line);
     border-radius:16px;padding:5px;z-index:40;box-shadow:0 8px 30px rgba(0,0,0,.4)}
-  .navbtn{background:transparent;border:none;color:var(--muted);font-size:13.5px;font-weight:600;
-    padding:9px 18px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .navbtn{background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;
+    padding:9px 13px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
   .navbtn.active{background:var(--surface2);color:var(--text)}
 
   .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(120px);
@@ -266,12 +321,13 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 9</div>
+  <div class="foot">Life Organiser · build 10</div>
 </div>
 
 <nav class="nav">
   <button class="navbtn active" data-view="today">◉ Today</button>
   <button class="navbtn" data-view="history">▦ History</button>
+  <button class="navbtn" data-view="gym">🏋 Gym</button>
   <button class="navbtn" data-view="rewards">✦ Rewards</button>
 </nav>
 
@@ -371,6 +427,38 @@ const $ = (id)=>document.getElementById(id);
 function getLog(rid,ds){ return logs.get(rid)?.get(ds); }
 function isDone(rid,ds){ const l=getLog(rid,ds); return !!(l && l.completed); }
 
+// ---- Gym state ----
+let gymExercises = [];   // library
+let gymWorkouts = [];    // session headers (sorted date desc)
+let gymSets = [];        // all sets
+let gymReady = false;    // false if tables not created yet
+let gymSession = null;   // in-progress workout (in memory until saved)
+let gymTab = 'log';      // 'log' | 'history' | 'progress'
+const GYM_SEED = [
+  {name:'Bulgarian split squat', muscle:'Legs',      tpl:'A'},
+  {name:'Flat DB bench press',   muscle:'Chest',     tpl:'A'},
+  {name:'One-arm DB row',        muscle:'Back',      tpl:'A'},
+  {name:'DB shoulder press',     muscle:'Shoulders', tpl:'A'},
+  {name:'DB biceps curl',        muscle:'Biceps',    tpl:'A'},
+  {name:'Cable triceps pushdown',muscle:'Triceps',   tpl:'A'},
+  {name:'Kneeling rope crunch',  muscle:'Abs',       tpl:'A'},
+  {name:'DB Romanian deadlift',  muscle:'Legs',      tpl:'B'},
+  {name:'Incline DB press',      muscle:'Chest',     tpl:'B'},
+  {name:'Lat pulldown',          muscle:'Back',      tpl:'B'},
+  {name:'DB lateral raise',      muscle:'Shoulders', tpl:'B'},
+  {name:'DB hammer curl',        muscle:'Biceps',    tpl:'B'},
+  {name:'Overhead DB triceps ext',muscle:'Triceps',  tpl:'B'},
+  {name:'Hanging leg raise',     muscle:'Abs',       tpl:'B'},
+  {name:'DB flye',               muscle:'Chest',     extra:true},
+  {name:'DB calf raise',         muscle:'Legs',      extra:true},
+  {name:'Cable pull-through',    muscle:'Legs',      extra:true},
+  {name:'Pull-up',               muscle:'Back',      extra:true},
+  {name:'Cable curl',            muscle:'Biceps',    extra:true},
+  {name:'Leverage squat',        muscle:'Legs',      extra:true},
+  {name:'Goblet squat',          muscle:'Legs',      extra:true},
+  {name:'DB walking lunge',      muscle:'Legs',      extra:true},
+];
+
 let restDays = new Set();
 function isRest(ds){ return restDays.has(ds); }
 async function toggleRest(ds){
@@ -410,8 +498,22 @@ async function load(){
   logs = new Map();
   for(const row of lg){ if(!logs.has(row.routine_id)) logs.set(row.routine_id,new Map()); logs.get(row.routine_id).set(row.log_date,row); }
   try{ const rd = await rest('GET','rest_days?select=day') || []; restDays = new Set(rd.map(x=>x.day)); }catch(e){ restDays = new Set(); }
+  await loadGym();
 }
 async function loadAll(){ return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || []; }
+async function loadGym(){
+  try{
+    gymExercises = await rest('GET','gym_exercises?select=*&order=sort_order.asc') || [];
+    if(!gymExercises.length){ await seedGym(); gymExercises = await rest('GET','gym_exercises?select=*&order=sort_order.asc') || []; }
+    gymWorkouts = await rest('GET','gym_workouts?select=*&order=workout_date.desc,created_at.desc') || [];
+    gymSets = await rest('GET','gym_sets?select=*&order=set_no.asc') || [];
+    gymReady = true;
+  }catch(e){ gymReady=false; gymExercises=[]; gymWorkouts=[]; gymSets=[]; console.warn('Gym tables not ready (run gym-setup.sql):', e.message||e); }
+}
+async function seedGym(){
+  const rows = GYM_SEED.map((e,i)=>({ name:e.name, muscle:e.muscle, in_template:e.tpl||null, is_extra:!!e.extra, sort_order:i, active:true }));
+  await rest('POST','gym_exercises',{ body:rows, prefer:'return=minimal' });
+}
 
 async function setLog(routine, ds, on, value, completed, note){
   if(on){
@@ -461,7 +563,7 @@ function valueDone(routine, num){ if(num===null||num===undefined||num==='') retu
 function catOf(rid){ const r=routines.find(x=>x.id===rid); return r?r.category:null; }
 function xpOfRoutine(r){ return CAT_XP[r.category] || 10; }
 function xpOfLog(rid){ const c=catOf(rid); return c ? (CAT_XP[c]||10) : 10; }
-function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [,l] of m){ if(l.completed) x+=xpOfLog(rid); } } return x + totalQuestXp(); }
+function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [,l] of m){ if(l.completed) x+=xpOfLog(rid); } } return x + totalQuestXp() + gymBonusXp(); }
 function totalXp(){ return activityXp() + setBonusXp(); }
 function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [,l] of m){ if(l.completed) x+=(CAT_XP[cat]||10); } } return x; }
 function levelInfo(xp){ let lvl=1, acc=0, need=100; while(xp >= acc+need){ acc+=need; lvl++; need=100+(lvl-1)*50; } return { level:lvl, into:xp-acc, need, total:xp }; }
@@ -581,7 +683,7 @@ function ringSvg(done,total){
 }
 function renderLevelBar(){
   const lb=$('levelbar');
-  if(view==='rewards'){ lb.style.display='none'; return; }
+  if(view==='rewards'||view==='gym'){ lb.style.display='none'; return; }
   lb.style.display='';
   const info=levelInfo(totalXp());
   const pct=info.need?Math.round(info.into/info.need*100):0;
@@ -595,7 +697,7 @@ function render(){
   $('datebar').style.display = view==='today' ? '' : 'none';
   $('restrow').style.display = view==='today' ? '' : 'none';
   renderLevelBar();
-  if(view==='today') renderToday(); else if(view==='history') renderHistory(); else renderRewards();
+  if(view==='today') renderToday(); else if(view==='history') renderHistory(); else if(view==='gym') renderGym(); else renderRewards();
 }
 function dateLabel(){
   const diff=Math.round((selected-today)/86400000);
@@ -768,6 +870,220 @@ function renderRewards(){
   html+=`</div><div class="rewnote">Tap any badge for details. Clear all 12 to earn a bonus and unlock the next set. Mind &amp; Health habits earn bonus XP — the game rewards showing up where it's hardest.</div>`;
   $('app').innerHTML=html;
 }
+
+// ---- GYM ----
+function exName(id){ const e=gymExercises.find(x=>x.id===id); return e?e.name:'Exercise'; }
+function fmtW(w){ w=Number(w)||0; return Number.isInteger(w)?String(w):w.toFixed(1); }
+function fmtDate(ds){ try{ return parseYmd(ds).toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }catch(e){ return ds; } }
+function fmtTime(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function exercisePR(id){ let m=0; for(const s of gymSets){ if(s.exercise_id===id && s.weight!=null) m=Math.max(m,Number(s.weight)); } return m; }
+function exerciseLastSets(id, excludeWid){
+  for(const w of gymWorkouts){ if(w.id===excludeWid) continue;
+    const ss=gymSets.filter(s=>s.workout_id===w.id && s.exercise_id===id).sort((a,b)=>a.set_no-b.set_no);
+    if(ss.length) return {date:w.workout_date, sets:ss}; }
+  return null;
+}
+function gymChartData(id){
+  const byW=new Map(gymWorkouts.map(w=>[w.id,w])); const top={};
+  for(const s of gymSets){ if(s.exercise_id!==id) continue; const w=byW.get(s.workout_id); if(!w) continue;
+    top[w.workout_date]=Math.max(top[w.workout_date]||0, Number(s.weight)||0); }
+  return Object.keys(top).sort().map(d=>({date:d, top:top[d]}));
+}
+function gymPrEvents(){
+  const byW=new Map(gymWorkouts.map(w=>[w.id,w])); const perEx={};
+  for(const s of gymSets){ if(!s.exercise_id) continue; const w=byW.get(s.workout_id); if(!w) continue;
+    const e=(perEx[s.exercise_id]=perEx[s.exercise_id]||{}); e[w.workout_date]=Math.max(e[w.workout_date]||0, Number(s.weight)||0); }
+  let events=0;
+  for(const id in perEx){ const days=Object.keys(perEx[id]).sort(); let mx=-1; days.forEach((d,i)=>{ const v=perEx[id][d]; if(i===0) mx=v; else if(v>mx){ mx=v; events++; } }); }
+  return events;
+}
+function gymBonusXp(){ return gymReady ? gymPrEvents()*15 : 0; }
+function chartSvg(pts){
+  if(pts.length<2) return `<div class="gempty" style="padding:8px 0">Log 2+ sessions to see the trend.</div>`;
+  const W=300,H=56,pad=8; const ws=pts.map(p=>p.top); const mn=Math.min(...ws), mx=Math.max(...ws); const rng=(mx-mn)||1;
+  const xs=i=> pad + (i/(pts.length-1))*(W-2*pad);
+  const ys=v=> (H-pad) - ((v-mn)/rng)*(H-2*pad);
+  let d=''; pts.forEach((p,i)=>{ d+=(i?'L':'M')+xs(i).toFixed(1)+' '+ys(p.top).toFixed(1)+' '; });
+  const dots=pts.map((p,i)=>`<circle cx="${xs(i).toFixed(1)}" cy="${ys(p.top).toFixed(1)}" r="2.4" fill="var(--fitness)"/>`).join('');
+  return `<svg class="gchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="var(--fitness)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+}
+
+function renderGym(){
+  const dsToday=ymd(today);
+  const daily=routines.filter(r=>!CADENCE[r.cadence].periodic);
+  ringSvg(daily.filter(r=>isDone(r.id,dsToday)).length, daily.length);
+  $('subtitle').textContent='Gym';
+  const app=$('app');
+  if(!gymReady){
+    app.innerHTML=`<div class="gwarn"><b>Gym tracker needs a one-time setup.</b><br>Run <code>gym-setup.sql</code> in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
+    return;
+  }
+  let html=`<div class="gsub">
+      <button data-gtab="log" class="${gymTab==='log'?'on':''}">Log</button>
+      <button data-gtab="history" class="${gymTab==='history'?'on':''}">History</button>
+      <button data-gtab="progress" class="${gymTab==='progress'?'on':''}">Progress</button></div>`;
+  if(gymTab==='log') html+=gymLogHtml();
+  else if(gymTab==='history') html+=gymHistoryHtml();
+  else html+=gymProgressHtml();
+  app.innerHTML=html;
+  bindGym();
+  if(gymSession) renderRest();
+}
+function gymLogHtml(){
+  if(gymSession) return sessionHtml();
+  return `<div class="gymhero">
+      <button class="gbtn" data-start="A"><div class="gt">Full Body A</div><div class="gs">quad + push</div></button>
+      <button class="gbtn" data-start="B"><div class="gt">Full Body B</div><div class="gs">hinge + pull</div></button>
+      <button class="gbtn empty" data-start="empty" aria-label="Empty session">＋</button>
+    </div>
+    <div class="gempty">Pick a template to start, or ＋ for an empty session.${gymWorkouts.length?`<br>Last workout: ${escapeHtml(gymWorkouts[0].label||'Workout')} · ${fmtDate(gymWorkouts[0].workout_date)}.`:''}</div>`;
+}
+function sessionHtml(){
+  const s=gymSession; let ex='';
+  s.exercises.forEach((e,i)=>{
+    const last=exerciseLastSets(e.exId,null); const pr=exercisePR(e.exId);
+    const lastTxt = last ? `Last (${fmtDate(last.date)}): ${last.sets.map(x=>`${fmtW(x.weight)}×${x.reps}`).join(', ')}` : 'No history yet — set the baseline';
+    let sets='';
+    e.sets.forEach((st,j)=>{
+      sets+=`<div class="gset"><div class="gsi">${j+1}</div>
+        <div class="gcell"><input inputmode="decimal" data-gex="${i}" data-gset="${j}" data-gfield="weight" value="${st.weight}" placeholder="0"><span class="gu">kg</span></div>
+        <div class="gcell"><input inputmode="numeric" data-gex="${i}" data-gset="${j}" data-gfield="reps" value="${st.reps}" placeholder="0"><span class="gu">reps</span></div>
+        <button class="grm" data-grm="${i}:${j}" aria-label="Remove set">×</button></div>`;
+    });
+    ex+=`<div class="gex"><div class="gexh"><span class="gexn">${escapeHtml(exName(e.exId))}</span>
+        ${pr?`<span class="gexpr">PR ${fmtW(pr)}kg</span>`:''}
+        <button class="gexrm" data-gexrm="${i}" aria-label="Remove exercise">🗑</button></div>
+      <div class="gexlast">${lastTxt}</div>${sets}
+      <button class="gaddset" data-gaddset="${i}">＋ Add set</button></div>`;
+  });
+  const running=!!restT;
+  return `<div class="gsesshead"><div><div class="gn">${escapeHtml(s.label||'Workout')}</div>
+      <div class="gd">${fmtDate(ymd(today))} · every set logged (kg × reps)</div></div></div>
+    ${ex}
+    <button class="gaddex" data-gaddex="1">＋ Add exercise</button>
+    <div class="rtimer ${running?'run':''}" id="rtimer">
+      <span class="rt" id="rtimerval">${fmtTime(running?restLeft:restDur)}</span><span class="rlbl">Rest</span>
+      <button data-radj="-15">−15</button><button data-radj="15">+15</button>
+      <button data-rtoggle="1">${running?'Skip':'Start'}</button></div>
+    <div class="gsave"><button class="btn-cancel" data-gcancel="1">Cancel</button>
+      <button class="btn-save" data-gsave="1">Finish &amp; save</button></div>`;
+}
+function gymHistoryHtml(){
+  if(!gymWorkouts.length) return `<div class="gempty">No workouts logged yet. Head to the Log tab to start one.</div>`;
+  let h='';
+  for(const w of gymWorkouts.slice(0,40)){
+    const sets=gymSets.filter(s=>s.workout_id===w.id);
+    const byEx=new Map(); for(const s of sets){ const n=exName(s.exercise_id); byEx.set(n,(byEx.get(n)||0)+1); }
+    const summary=[...byEx.entries()].map(([n,c])=>`${escapeHtml(n)} ×${c}`).join(' · ');
+    h+=`<div class="ghist"><div class="ghd"><span class="ghn">${escapeHtml(w.label||'Workout')}</span>
+      <span class="ghdate">${fmtDate(w.workout_date)}</span>
+      <button class="ghx" data-gdel="${w.id}" aria-label="Delete workout">🗑</button></div>
+      <div class="ghsets">${summary||'No sets'}</div></div>`;
+  }
+  return h;
+}
+function gymProgressHtml(){
+  const logged=gymExercises.filter(e=>gymSets.some(s=>s.exercise_id===e.id));
+  if(!logged.length) return `<div class="gempty">Log a workout to see your PRs and progress charts here.</div>`;
+  let h='';
+  for(const e of logged){ const pr=exercisePR(e.id); const pts=gymChartData(e.id);
+    h+=`<div class="gprog"><div class="gph"><span class="gpn">${escapeHtml(e.name)}</span><span class="gppr">PR ${fmtW(pr)}kg</span></div>${chartSvg(pts)}</div>`; }
+  return h;
+}
+function bindGym(){
+  const app=$('app');
+  app.querySelectorAll('[data-gtab]').forEach(b=>b.onclick=()=>{ gymTab=b.getAttribute('data-gtab'); renderGym(); });
+  app.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>startSession(b.getAttribute('data-start')));
+  app.querySelectorAll('[data-gaddset]').forEach(b=>b.onclick=()=>gAddSet(+b.getAttribute('data-gaddset')));
+  app.querySelectorAll('[data-grm]').forEach(b=>b.onclick=()=>{ const p=b.getAttribute('data-grm').split(':'); gRmSet(+p[0],+p[1]); });
+  app.querySelectorAll('[data-gexrm]').forEach(b=>b.onclick=()=>gRmExercise(+b.getAttribute('data-gexrm')));
+  app.querySelectorAll('[data-gaddex]').forEach(b=>b.onclick=()=>openExPicker());
+  app.querySelectorAll('[data-gcancel]').forEach(b=>b.onclick=()=>gCancel());
+  app.querySelectorAll('[data-gsave]').forEach(b=>b.onclick=()=>gSave());
+  app.querySelectorAll('[data-gdel]').forEach(b=>b.onclick=()=>gDelete(b.getAttribute('data-gdel')));
+  app.querySelectorAll('[data-radj]').forEach(b=>b.onclick=()=>adjustRest(+b.getAttribute('data-radj')));
+  app.querySelectorAll('[data-rtoggle]').forEach(b=>b.onclick=()=>restTimerToggle());
+}
+function startSession(kind){
+  let label, exIds;
+  if(kind==='A'||kind==='B'){ label='Full Body '+kind; exIds=gymExercises.filter(e=>e.in_template===kind).sort((a,b)=>a.sort_order-b.sort_order).map(e=>e.id); }
+  else { label='Workout'; exIds=[]; }
+  gymSession={ label, exercises: exIds.map(id=>({exId:id, sets:[{weight:'',reps:''}]})) };
+  gymTab='log'; stopRest(); renderGym();
+}
+function gAddSet(i){ const ex=gymSession.exercises[i]; const last=ex.sets[ex.sets.length-1]; ex.sets.push({weight:last?last.weight:'', reps:''}); startRest(); renderGym(); }
+function gRmSet(i,j){ const ex=gymSession.exercises[i]; ex.sets.splice(j,1); if(!ex.sets.length) ex.sets.push({weight:'',reps:''}); renderGym(); }
+function gRmExercise(i){ gymSession.exercises.splice(i,1); renderGym(); }
+function gAddExercise(id){ gymSession.exercises.push({exId:id, sets:[{weight:'',reps:''}]}); renderGym(); }
+function gCancel(){ if(gymSession && gymSession.exercises.some(e=>e.sets.some(s=>s.weight!==''||s.reps!==''))){ if(!confirm('Discard this workout?')) return; } gymSession=null; stopRest(); renderGym(); }
+async function completeGymRoutine(ds){
+  const g=routines.find(r=>/gym/i.test(r.name||'')); if(!g) return;
+  try{ await setLog(g, ds, true, undefined, true); }catch(e){ console.warn('link gym routine failed', e); }
+}
+async function gSave(){
+  if(!gymSession || busy) return;
+  const rows=[];
+  gymSession.exercises.forEach(e=>{ let n=0; e.sets.forEach(st=>{ if(st.weight!==''&&st.reps!==''){ n++; rows.push({exId:e.exId, set_no:n, weight:Number(st.weight), reps:Number(st.reps)}); } }); });
+  if(!rows.length){ toast('Log at least one set first', true); return; }
+  busy=true;
+  const ds=ymd(today); const preLevel=levelInfo(totalXp()).level;
+  const prevPR={}; gymSession.exercises.forEach(e=>{ prevPR[e.exId]=exercisePR(e.exId); });
+  try{
+    const wk=await rest('POST','gym_workouts',{body:{workout_date:ds, label:gymSession.label||null}, prefer:'return=representation'});
+    const wid=Array.isArray(wk)?wk[0].id:wk.id;
+    await rest('POST','gym_sets',{body:rows.map(r=>({workout_id:wid, exercise_id:r.exId, set_no:r.set_no, weight:r.weight, reps:r.reps})), prefer:'return=minimal'});
+    await completeGymRoutine(ds);
+    const prs=[];
+    gymSession.exercises.forEach(e=>{ const top=Math.max(0,...e.sets.map(s=>Number(s.weight)||0)); if(top>0 && top>(prevPR[e.exId]||0)) prs.push({name:exName(e.exId), w:top}); });
+    stopRest(); gymSession=null; gymTab='progress';
+    await loadGym(); await load(); render();
+    if(prs.length){ if(navigator.vibrate) navigator.vibrate([40,50,40]); bigBurst();
+      const f=prs[0]; const extra=prs.length>1?` (+${prs.length-1} more)`:'';
+      toast(`🏆 New PR — ${f.name} ${fmtW(f.w)}kg${extra}`, false, true); }
+    else toast('Workout saved 💪');
+    checkLevelUp(preLevel);
+  }catch(e){ toast('Could not save workout — did the SQL run?', true); console.error(e); }
+  busy=false;
+}
+async function gDelete(id){
+  if(!confirm('Delete this workout and its sets?')) return;
+  try{ await rest('DELETE','gym_sets?workout_id=eq.'+id); await rest('DELETE','gym_workouts?id=eq.'+id);
+    await loadGym(); await load(); render(); toast('Workout deleted'); }
+  catch(e){ toast('Could not delete', true); console.error(e); }
+}
+function openExPicker(){
+  const groups={}; gymExercises.filter(e=>e.active).forEach(e=>{ (groups[e.muscle||'Other']=groups[e.muscle||'Other']||[]).push(e); });
+  let list='';
+  Object.keys(groups).forEach(mus=>{ list+=`<div class="pglabel">${escapeHtml(mus)}</div>`;
+    groups[mus].forEach(e=>{ list+=`<button class="pk" data-pick="${e.id}">${escapeHtml(e.name)}<span class="pm">${escapeHtml(e.muscle||'')}</span></button>`; }); });
+  $('detailSheet').innerHTML=`<h2>Add exercise <button class="x" id="closePick">×</button></h2>
+    <div class="field"><label>New exercise</label>
+      <div style="display:flex;gap:8px"><input type="text" id="newExName" placeholder="e.g. Chest press" style="flex:1;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:11px 12px;font-size:15px;outline:none">
+      <button class="btn-save" id="newExGo" style="flex:0 0 auto;padding:11px 14px">Add</button></div></div>
+    <div class="gpick">${list}</div>`;
+  $('detail').classList.add('show');
+  $('closePick').onclick=()=>$('detail').classList.remove('show');
+  $('newExGo').onclick=async ()=>{
+    const name=$('newExName').value.trim(); if(!name) return;
+    try{ const r=await rest('POST','gym_exercises',{body:{name, muscle:'Other', is_extra:true, sort_order:gymExercises.length, active:true}, prefer:'return=representation'});
+      const ne=Array.isArray(r)?r[0]:r; if(ne) gymExercises.push(ne);
+      $('detail').classList.remove('show'); if(ne) gAddExercise(ne.id); }
+    catch(e){ toast('Could not add exercise', true); console.error(e); }
+  };
+  $('detailSheet').querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{ gAddExercise(b.getAttribute('data-pick')); $('detail').classList.remove('show'); });
+}
+// rest timer (distinct from rest-DAY toggle)
+let restT=null, restLeft=0, restDur=90;
+function startRest(){ if(restT) clearInterval(restT); restLeft=restDur;
+  restT=setInterval(()=>{ restLeft--; if(restLeft<=0){ clearInterval(restT); restT=null; if(navigator.vibrate) navigator.vibrate([60,40,60]); toast('Rest over — next set 💪'); } renderRest(); }, 1000);
+  renderRest(); }
+function stopRest(){ if(restT){ clearInterval(restT); restT=null; } restLeft=0; }
+function restTimerToggle(){ if(restT){ clearInterval(restT); restT=null; restLeft=0; } else { startRest(); } renderGym(); }
+function adjustRest(delta){ restDur=Math.max(15, restDur+delta); if(restT) restLeft=Math.max(1, restLeft+delta); renderRest(); }
+function renderRest(){ const v=$('rtimerval'); if(v) v.textContent=fmtTime(restT?restLeft:restDur); const bar=$('rtimer'); if(bar) bar.classList.toggle('run', !!restT); }
+document.addEventListener('input',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
+  const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'), f=g.getAttribute('data-gfield');
+  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]) ex.sets[j][f]=g.value; });
 
 // ---- interactions ----
 let busy=false;
