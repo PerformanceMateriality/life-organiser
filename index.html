@@ -236,6 +236,7 @@
   .gprog .gppr{margin-left:auto;font-size:12.5px;color:var(--flame);font-weight:800}
   .gchart{width:100%;height:56px;display:block;overflow:visible}
   .gempty{color:var(--muted2);font-size:13px;text-align:center;padding:26px 10px}
+  .gnote{color:var(--muted2);font-size:11.5px;line-height:1.45;margin:-8px 0 14px;padding:0 2px}
   .gwarn{background:color-mix(in srgb,var(--danger) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line));border-radius:14px;padding:14px;font-size:13px;color:var(--text);line-height:1.5}
   .gpick{display:flex;flex-direction:column;gap:7px}
   .gpick button.pk{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:11px 13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px}
@@ -346,7 +347,7 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 11</div>
+  <div class="foot">Life Organiser · build 12</div>
 </div>
 
 <nav class="nav">
@@ -459,6 +460,7 @@ let gymSets = [];        // all sets
 let gymReady = false;    // false if tables not created yet
 let gymSession = null;   // in-progress workout (in memory until saved)
 let gymTab = 'log';      // 'log' | 'history' | 'progress'
+let gymProgMetric = 'weight'; // Progress tab metric: 'weight' | 'e1rm'
 const GYM_SEED = [
   {name:'Bulgarian split squat', muscle:'Legs',      tpl:'A'},
   {name:'Flat DB bench press',   muscle:'Chest',     tpl:'A'},
@@ -861,6 +863,16 @@ function renderHistory(){
       <span><i style="background:rgba(255,255,255,.06)"></i>Missed</span>
       <span><i style="background:rgba(56,189,248,.30)"></i>Rest</span></div>`;
   if(!routines.length){ $('app').innerHTML = html + '<div class="loading">No routines yet.</div>'; return; }
+  const wi = weighInPoints();
+  if(wi && wi.pts.length){
+    const pts=wi.pts, latest=pts[pts.length-1], first=pts[0];
+    const unit=escapeHtml(wi.r.unit||'kg');
+    const delta = latest.top-first.top;
+    const sub = pts.length>1
+      ? `${fmtW(latest.top)} ${unit} · <span style="color:var(--muted2)">${delta>0?'+':''}${fmtW(delta)} since ${fmtDate(first.date)}</span>`
+      : `${fmtW(latest.top)} ${unit}`;
+    html += `<div class="hcard"><div class="top"><span class="n">⚖️ ${escapeHtml(wi.r.name)}</span><span class="s">${sub}</span></div>${chartSvg(pts,{empty:'Log 2+ weigh-ins to see the trend.'})}</div>`;
+  }
   const days=[]; for(let i=HDAYS-1;i>=0;i--) days.push(ymd(addDays(today,-i)));
   for(const cat of CATEGORIES){
     const items = routines.filter(r=>r.category===cat.key); if(!items.length) continue;
@@ -946,14 +958,33 @@ function gymPrEvents(){
   return events;
 }
 function gymBonusXp(){ return gymReady ? gymPrEvents()*15 : 0; }
-function chartSvg(pts){
-  if(pts.length<2) return `<div class="gempty" style="padding:8px 0">Log 2+ sessions to see the trend.</div>`;
+function chartSvg(pts, opt){
+  opt = opt||{}; const color = opt.color||'var(--fitness)';
+  if(pts.length<2) return `<div class="gempty" style="padding:8px 0">${opt.empty||'Log 2+ sessions to see the trend.'}</div>`;
   const W=300,H=56,pad=8; const ws=pts.map(p=>p.top); const mn=Math.min(...ws), mx=Math.max(...ws); const rng=(mx-mn)||1;
   const xs=i=> pad + (i/(pts.length-1))*(W-2*pad);
   const ys=v=> (H-pad) - ((v-mn)/rng)*(H-2*pad);
   let d=''; pts.forEach((p,i)=>{ d+=(i?'L':'M')+xs(i).toFixed(1)+' '+ys(p.top).toFixed(1)+' '; });
-  const dots=pts.map((p,i)=>`<circle cx="${xs(i).toFixed(1)}" cy="${ys(p.top).toFixed(1)}" r="2.4" fill="var(--fitness)"/>`).join('');
-  return `<svg class="gchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="var(--fitness)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+  const dots = pts.length>40 ? '' : pts.map((p,i)=>`<circle cx="${xs(i).toFixed(1)}" cy="${ys(p.top).toFixed(1)}" r="2.4" fill="${color}"/>`).join('');
+  return `<svg class="gchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+}
+// ---- Estimated 1RM (Epley) ----
+function e1rm(w,reps){ w=Number(w)||0; reps=Number(reps)||0; if(w<=0||reps<=0) return 0; if(reps===1) return w; return w*(1+reps/30); }
+function exerciseE1RM(id){ let m=0; for(const s of gymSets){ if(s.exercise_id===id) m=Math.max(m, e1rm(s.weight,s.reps)); } return m; }
+function gymE1rmChartData(id){
+  const byW=new Map(gymWorkouts.map(w=>[w.id,w])); const top={};
+  for(const s of gymSets){ if(s.exercise_id!==id) continue; const w=byW.get(s.workout_id); if(!w) continue;
+    top[w.workout_date]=Math.max(top[w.workout_date]||0, e1rm(s.weight,s.reps)); }
+  return Object.keys(top).sort().map(d=>({date:d, top:top[d]}));
+}
+// ---- Body-weight trend (from the weigh-in routine's logged values) ----
+function weighInRoutine(){ return routines.find(r=>r.track_value && /weigh/i.test(r.name)) || routines.find(r=>/weigh/i.test(r.name)) || null; }
+function weighInPoints(){
+  const r=weighInRoutine(); if(!r) return null;
+  const m=logs.get(r.id); const pts=[];
+  if(m){ for(const [ds,l] of m){ const v=Number(l.value); if(l.value!=null && l.value!=='' && !isNaN(v)) pts.push({date:ds, top:v}); } }
+  pts.sort((a,b)=> a.date<b.date?-1:1);
+  return {r, pts};
 }
 
 function renderGym(){
@@ -1060,14 +1091,22 @@ function gymHistoryHtml(){
 function gymProgressHtml(){
   const logged=gymExercises.filter(e=>gymSets.some(s=>s.exercise_id===e.id));
   if(!logged.length) return `<div class="gempty">Log a workout to see your PRs and progress charts here.</div>`;
-  let h='';
-  for(const e of logged){ const pr=exercisePR(e.id); const pts=gymChartData(e.id);
-    h+=`<div class="gprog"><div class="gph"><span class="gpn">${escapeHtml(e.name)}</span><span class="gppr">PR ${fmtW(pr)}kg</span></div>${chartSvg(pts)}</div>`; }
+  const e1 = gymProgMetric==='e1rm';
+  let h=`<div class="gsub gmetric">
+      <button data-gmetric="weight" class="${!e1?'on':''}">Top weight</button>
+      <button data-gmetric="e1rm" class="${e1?'on':''}">Est. 1RM</button></div>`;
+  if(e1) h+=`<div class="gnote">Estimated 1-rep max — Epley formula (weight × (1 + reps/30)). Lets you compare a heavy triple against a lighter set of ten.</div>`;
+  for(const e of logged){
+    const val = e1 ? exerciseE1RM(e.id) : exercisePR(e.id);
+    const pts = e1 ? gymE1rmChartData(e.id) : gymChartData(e.id);
+    const lbl = e1 ? 'Best e1RM' : 'PR';
+    h+=`<div class="gprog"><div class="gph"><span class="gpn">${escapeHtml(e.name)}</span><span class="gppr">${lbl} ${fmtW(val)}kg</span></div>${chartSvg(pts)}</div>`; }
   return h;
 }
 function bindGym(){
   const app=$('app');
   app.querySelectorAll('[data-gtab]').forEach(b=>b.onclick=()=>{ gymTab=b.getAttribute('data-gtab'); renderGym(); });
+  app.querySelectorAll('[data-gmetric]').forEach(b=>b.onclick=()=>{ gymProgMetric=b.getAttribute('data-gmetric'); renderGym(); });
   app.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>startSession(b.getAttribute('data-start')));
   app.querySelectorAll('[data-gresume]').forEach(b=>b.onclick=()=>openWorkout(b.getAttribute('data-gresume')));
   app.querySelectorAll('[data-gaddset]').forEach(b=>b.onclick=()=>gAddSet(+b.getAttribute('data-gaddset')));
