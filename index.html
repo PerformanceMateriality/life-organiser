@@ -268,6 +268,99 @@
   .ghist:active{transform:scale(.995)}
   .ghedit{margin-top:6px;font-size:11px;color:var(--muted2)}
 
+  /* ---- Tasks (build 13) ---- */
+  .tkbar{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+  .tkchip{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:7px;
+    background:var(--surface);border:1px solid var(--line);color:var(--muted);
+    border-radius:14px;padding:11px 10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .tkchip .tkdot{width:9px;height:9px;border-radius:50%;background:var(--muted2);flex:0 0 auto;transition:background .2s}
+  .tkchip .tkn{font-size:11.5px;font-weight:700;color:var(--muted2);
+    background:var(--bg2);border-radius:999px;padding:1px 7px;min-width:20px;text-align:center}
+  .tkchip.on{color:var(--text);border-color:color-mix(in srgb,var(--tkc) 45%,var(--line));
+    background:color-mix(in srgb,var(--tkc) 11%,var(--surface))}
+  .tkchip.on .tkdot{background:var(--tkc)}
+  .tkchip.on .tkn{color:var(--tkc)}
+  .tkchip:active{transform:scale(.98)}
+  .tkmode{flex:0 0 auto;display:flex;gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px}
+  .tkmode button{background:transparent;border:none;color:var(--muted);width:38px;height:36px;
+    border-radius:10px;font-size:16px;line-height:1;cursor:pointer}
+  .tkmode button.on{background:var(--surface2);color:var(--text)}
+
+  .tkadd{width:100%;background:var(--surface2);border:1px dashed var(--line);color:var(--text);
+    border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:16px}
+  .tkadd:active{transform:scale(.99)}
+
+  .tkgroup{margin-bottom:20px}
+  .tkgroup h3{display:flex;align-items:center;gap:9px;font-size:12px;text-transform:uppercase;letter-spacing:1px;
+    color:var(--muted);margin:0 4px 9px;font-weight:700}
+  .tkgroup h3 .gc{margin-left:auto;font-size:11.5px;color:var(--muted2);letter-spacing:.4px}
+  .tkgroup.overdue h3{color:var(--danger)}
+
+  .tkitem{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);
+    border-radius:16px;padding:12px 13px;margin-bottom:8px;transition:border-color .2s,opacity .2s}
+  .tkitem.appt{border-left:3px solid var(--work)}
+  .tkitem.todo{border-left:3px solid var(--health)}
+  .tkitem.isdone{opacity:.5}
+  .tkitem.isover{border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
+  .tkbox{flex:0 0 auto;width:28px;height:28px;margin-top:1px;border-radius:9px;border:2px solid var(--muted2);
+    background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:all .15s;color:transparent;font-size:15px;font-weight:900;line-height:1}
+  .tkitem.isdone .tkbox{background:var(--health);border-color:var(--health);color:#0f1220}
+  .tkbox:active{transform:scale(.9)}
+  .tktime{flex:0 0 auto;width:46px;margin-top:1px;text-align:center;font-variant-numeric:tabular-nums}
+  .tktime .th{font-weight:800;font-size:14px;line-height:1.1}
+  .tktime .tm{font-size:10.5px;color:var(--muted2);margin-top:2px}
+  .tktime .allday{font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.3px}
+  .tkmain{flex:1;min-width:0;cursor:pointer}
+  .tktitle{font-weight:600;font-size:15px;line-height:1.25;word-break:break-word}
+  .tkitem.isdone .tktitle{text-decoration:line-through;text-decoration-color:var(--muted2)}
+  .tkmeta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:4px;font-size:12px;color:var(--muted)}
+  .tkmeta .tag{font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted2)}
+  .tkmeta .tag.late{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+  .tkmeta .tag.soon{color:var(--flame);border-color:color-mix(in srgb,var(--flame) 40%,var(--line))}
+  .tknote{font-size:12px;color:var(--muted2);margin-top:5px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+  .tkempty{color:var(--muted2);font-size:13.5px;text-align:center;padding:40px 16px;line-height:1.55}
+  .tkdonehead{width:100%;background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:12px;padding:10px;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:4px}
+
+  /* calendar mode */
+  .tkcal{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:13px 12px;margin-bottom:16px}
+  .tkcalhead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .tkcalhead .cmn{flex:1;text-align:center;font-weight:700;font-size:15px}
+  .tkcalhead button{background:var(--surface2);border:none;color:var(--text);width:34px;height:34px;
+    border-radius:10px;font-size:17px;cursor:pointer;flex:0 0 auto}
+  .tkdow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px}
+  .tkdow span{text-align:center;font-size:10.5px;color:var(--muted2);font-weight:700;letter-spacing:.3px}
+  .tkgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .tkday{position:relative;aspect-ratio:1;border:1px solid transparent;border-radius:10px;background:transparent;
+    color:var(--text);font-size:13px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3px;padding:0;font-family:inherit}
+  .tkday.out{color:var(--muted2);opacity:.4}
+  .tkday.today{border-color:color-mix(in srgb,var(--mind) 55%,transparent);color:var(--mind)}
+  .tkday.sel{background:var(--surface2);border-color:var(--line)}
+  .tkday .dots{display:flex;gap:2px;height:5px;align-items:center}
+  .tkday .dots i{width:5px;height:5px;border-radius:50%;display:block}
+  .tkday.hasover{color:var(--danger)}
+  .tkdaytitle{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);
+    margin:0 4px 10px;font-weight:700;display:flex;align-items:center}
+  .tkdaytitle .dc{margin-left:auto;font-size:11.5px;color:var(--muted2);letter-spacing:.4px}
+  .tktray{margin-top:18px}
+
+  /* today-view agenda strip */
+  .tkstrip{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    padding:11px 13px;margin-bottom:18px;cursor:pointer}
+  .tkstrip:active{transform:scale(.995)}
+  .tkstriph{display:flex;align-items:center;gap:8px;font-size:11.5px;text-transform:uppercase;
+    letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:9px}
+  .tkstriph .go{margin-left:auto;text-transform:none;letter-spacing:.2px;font-size:12px;color:var(--mind);font-weight:700}
+  .tkline{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:4px 0}
+  .tkline .lt{flex:0 0 auto;font-weight:800;font-size:12px;color:var(--work);
+    font-variant-numeric:tabular-nums;min-width:38px}
+  .tkline .lt.todo{color:var(--health)}
+  .tkline .ln{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tkline .lx{flex:0 0 auto;font-size:10.5px;color:var(--danger);font-weight:700}
+  .tkmore{font-size:11.5px;color:var(--muted2);margin-top:6px}
+
   /* Overlays */
   .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
     display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
@@ -290,9 +383,14 @@
 
   .field{margin-bottom:12px}
   .field label{display:block;font-size:12.5px;color:var(--muted);margin:0 2px 6px}
-  .field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number],.field select,.field textarea{
+  .field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number],
+  .field input[type=date],.field input[type=time],.field select,.field textarea{
     width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);
     border-radius:12px;padding:11px 12px;font-size:15px;outline:none;font-family:inherit}
+  /* native date/time pickers follow the dark theme instead of rendering white */
+  .field input[type=date],.field input[type=time]{color-scheme:dark;min-height:45px}
+  .field input[type=date]::-webkit-calendar-picker-indicator,
+  .field input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.75);cursor:pointer}
   .field textarea{resize:vertical}
   .field.rowly{display:flex;gap:10px}
   .field.rowly > div{flex:1}
@@ -309,11 +407,15 @@
   .hidden{display:none!important}
 
   .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);
-    display:flex;gap:4px;background:rgba(26,30,46,.92);backdrop-filter:blur(10px);border:1px solid var(--line);
-    border-radius:16px;padding:5px;z-index:40;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+    display:flex;gap:3px;background:rgba(26,30,46,.92);backdrop-filter:blur(10px);border:1px solid var(--line);
+    border-radius:16px;padding:5px;z-index:40;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:calc(100vw - 16px)}
   .navbtn{background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;
-    padding:9px 13px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+    padding:9px 11px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
   .navbtn.active{background:var(--surface2);color:var(--text)}
+  .navbtn .nlbl{display:inline}
+  /* 5 items don't fit small phones at full size — step down, then to icons only */
+  @media (max-width:430px){ .navbtn{font-size:12px;padding:9px 8px;gap:4px} .nav{gap:2px;padding:4px} }
+  @media (max-width:365px){ .navbtn .nlbl{display:none} .navbtn{font-size:17px;padding:9px 12px} }
 
   .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(120px);
     background:#222741;border:1px solid var(--line);color:var(--text);padding:11px 16px;border-radius:12px;
@@ -347,14 +449,15 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 12</div>
+  <div class="foot">Life Organiser · build 13</div>
 </div>
 
 <nav class="nav">
-  <button class="navbtn active" data-view="today">◉ Today</button>
-  <button class="navbtn" data-view="history">▦ History</button>
-  <button class="navbtn" data-view="gym">🏋 Gym</button>
-  <button class="navbtn" data-view="rewards">✦ Rewards</button>
+  <button class="navbtn active" data-view="today">◉ <span class="nlbl">Today</span></button>
+  <button class="navbtn" data-view="tasks">🗒 <span class="nlbl">Tasks</span></button>
+  <button class="navbtn" data-view="gym">🏋 <span class="nlbl">Gym</span></button>
+  <button class="navbtn" data-view="history">▦ <span class="nlbl">History</span></button>
+  <button class="navbtn" data-view="rewards">✦ <span class="nlbl">Rewards</span></button>
 </nav>
 
 <div class="overlay" id="editor">
@@ -364,6 +467,7 @@
   </div>
 </div>
 <div class="overlay" id="detail"><div class="sheet" id="detailSheet"></div></div>
+<div class="overlay" id="taskEd"><div class="sheet" id="taskEdSheet"></div></div>
 <div class="overlay lvlup" id="levelup"><div class="lucard" id="lucard"></div></div>
 
 <div class="overlay" id="login">
@@ -461,6 +565,25 @@ let gymReady = false;    // false if tables not created yet
 let gymSession = null;   // in-progress workout (in memory until saved)
 let gymTab = 'log';      // 'log' | 'history' | 'progress'
 let gymProgMetric = 'weight'; // Progress tab metric: 'weight' | 'e1rm'
+
+// ---- Tasks state (build 13) ----
+let tasks = [];             // all task rows
+let tasksReady = false;     // false if the tasks table hasn't been created yet
+let tkShowTodos = true;     // filter A
+let tkShowAppts = true;     // filter B
+let tkMode = 'list';        // filter C: 'list' | 'cal'
+let tkCalMonth = null;      // Date on the 1st of the shown month (calendar mode)
+let tkCalSel = null;        // 'YYYY-MM-DD' selected day in calendar mode
+let tkShowDone = false;     // reveal the completed section in list mode
+try{
+  const p = JSON.parse(localStorage.getItem('lo_tkprefs')||'{}');
+  if(typeof p.todos==='boolean') tkShowTodos=p.todos;
+  if(typeof p.appts==='boolean') tkShowAppts=p.appts;
+  if(p.mode==='cal'||p.mode==='list') tkMode=p.mode;
+}catch(e){}
+function tkSavePrefs(){
+  try{ localStorage.setItem('lo_tkprefs', JSON.stringify({todos:tkShowTodos, appts:tkShowAppts, mode:tkMode})); }catch(e){}
+}
 const GYM_SEED = [
   {name:'Bulgarian split squat', muscle:'Legs',      tpl:'A'},
   {name:'Flat DB bench press',   muscle:'Chest',     tpl:'A'},
@@ -518,9 +641,13 @@ async function exportData(){
       ]);
       gym={ gym_exercises:gx||[], gym_workouts:gw||[], gym_sets:gs||[] };
     }catch(e){ console.warn('gym tables not exported (not set up yet)', e.message||e); }
-    const payload={ app:'Life Organiser', version:11, exported_at:new Date().toISOString(),
+    let tk=[];
+    try{ tk = await rest('GET','tasks?select=*&order=created_at.asc') || []; }
+    catch(e){ console.warn('tasks not exported (not set up yet)', e.message||e); }
+    const payload={ app:'Life Organiser', version:13, exported_at:new Date().toISOString(),
       routines:rs||[], routine_logs:lg||[], rest_days:rd||[],
-      gym_exercises:gym.gym_exercises, gym_workouts:gym.gym_workouts, gym_sets:gym.gym_sets };
+      gym_exercises:gym.gym_exercises, gym_workouts:gym.gym_workouts, gym_sets:gym.gym_sets,
+      tasks:tk };
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url; a.download='life-organiser-backup-'+new Date().toISOString().slice(0,10)+'.json';
@@ -536,6 +663,13 @@ async function load(){
   for(const row of lg){ if(!logs.has(row.routine_id)) logs.set(row.routine_id,new Map()); logs.get(row.routine_id).set(row.log_date,row); }
   try{ const rd = await rest('GET','rest_days?select=day') || []; restDays = new Set(rd.map(x=>x.day)); }catch(e){ restDays = new Set(); }
   await loadGym();
+  await loadTasks();
+}
+async function loadTasks(){
+  try{
+    tasks = await rest('GET','tasks?select=*&order=due_date.asc,due_time.asc,sort_order.asc,created_at.asc') || [];
+    tasksReady = true;
+  }catch(e){ tasksReady=false; tasks=[]; console.warn('Tasks table not ready (run tasks-setup.sql):', e.message||e); }
 }
 async function loadAll(){ return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || []; }
 async function loadGym(){
@@ -726,7 +860,7 @@ function ringSvg(done,total){
 }
 function renderLevelBar(){
   const lb=$('levelbar');
-  if(view==='rewards'||view==='gym'){ lb.style.display='none'; return; }
+  if(view==='rewards'||view==='gym'||view==='tasks'){ lb.style.display='none'; return; }
   lb.style.display='';
   const info=levelInfo(totalXp());
   const pct=info.need?Math.round(info.into/info.need*100):0;
@@ -740,7 +874,11 @@ function render(){
   $('datebar').style.display = view==='today' ? '' : 'none';
   $('restrow').style.display = view==='today' ? '' : 'none';
   renderLevelBar();
-  if(view==='today') renderToday(); else if(view==='history') renderHistory(); else if(view==='gym') renderGym(); else renderRewards();
+  if(view==='today') renderToday();
+  else if(view==='history') renderHistory();
+  else if(view==='gym') renderGym();
+  else if(view==='tasks') renderTasks();
+  else renderRewards();
 }
 function dateLabel(){
   const diff=Math.round((selected-today)/86400000);
@@ -759,7 +897,13 @@ function renderToday(){
   const duePeriodic = routines.filter(r=>CADENCE[r.cadence].periodic && periodicStatus(r).due).length;
   $('subtitle').textContent = `${dailyDone}/${daily.length} daily done` + (duePeriodic?` · ${duePeriodic} periodic due`:'');
   const app=$('app'); app.innerHTML='';
-  if(!routines.length){ app.innerHTML='<div class="loading">No routines yet. Tap ⚙︎ Manage to add one.</div>'; return; }
+  // Today's tasks/appointments, as a compact strip — only on today itself.
+  if(ds===ymd(today)){
+    const strip=tkTodayStripHtml();
+    if(strip){ app.insertAdjacentHTML('beforeend', strip);
+      const s=$('tkStrip'); if(s) s.onclick=()=>{ view='tasks'; render(); }; }
+  }
+  if(!routines.length){ app.insertAdjacentHTML('beforeend','<div class="loading">No routines yet. Tap ⚙︎ Manage to add one.</div>'); return; }
   for(const cat of CATEGORIES){
     const items = routines.filter(r=>r.category===cat.key);
     if(!items.length) continue;
@@ -1330,6 +1474,343 @@ document.addEventListener('input',(e)=>{ const g=e.target.closest('[data-gex]');
 document.addEventListener('change',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
   const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'); flushSetSave(i,j); });
 document.addEventListener('visibilitychange',()=>{ if(document.hidden && gymSession) flushAllSets(); });
+
+// ================= TASKS (build 13) =================
+// To-dos and appointments. Deliberately OUTSIDE the game layer:
+// nothing here grants XP, moves a streak, or touches a quest.
+
+const TK_TODO_C = 'var(--health)';
+const TK_APPT_C = 'var(--work)';
+
+function tkIsAppt(t){ return t.kind==='appt'; }
+function tkVisible(t){ return tkIsAppt(t) ? tkShowAppts : tkShowTodos; }
+function tkOpen(){ return tasks.filter(t=>!t.done); }
+// The chip count must match what turning the filter on actually reveals,
+// so past appointments (hidden from the list) don't count.
+function tkCountOpen(kind){ return tasks.filter(t=>!t.done && t.kind===kind && !tkStale(t)).length; }
+
+// Appointments "pass" rather than get ticked: once their moment is gone they're history.
+function tkPast(t){
+  if(!t.due_date) return false;
+  const ds=ymd(today);
+  if(t.due_date < ds) return true;
+  if(t.due_date > ds) return false;
+  if(!t.due_time) return false;
+  const now=new Date();
+  const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  return t.due_time.slice(0,5) < hhmm;
+}
+function tkOverdue(t){
+  if(t.done) return false;
+  if(tkIsAppt(t)) return false;          // an appointment isn't "overdue", it just passed
+  return !!t.due_date && t.due_date < ymd(today);
+}
+// An appointment on a past day is history, not an open item: it drops out of the
+// list entirely and stays visible in calendar mode. To-dos never go stale — an
+// undone to-do from last week is exactly what "Overdue" is for.
+function tkStale(t){ return tkIsAppt(t) && !!t.due_date && t.due_date < ymd(today); }
+function tkFmtTime(s){ return s ? s.slice(0,5) : ''; }
+function tkFmtDay(ds){
+  const diff=Math.round((parseYmd(ds)-today)/86400000);
+  if(diff===0) return 'Today';
+  if(diff===1) return 'Tomorrow';
+  if(diff===-1) return 'Yesterday';
+  return parseYmd(ds).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+}
+function tkSortKey(t){
+  return (t.due_date||'9999-12-31')+' '+(t.due_time?t.due_time.slice(0,5):(tkIsAppt(t)?'00:00':'99:99'));
+}
+function tkSorted(list){ return list.slice().sort((a,b)=>tkSortKey(a).localeCompare(tkSortKey(b))); }
+
+// ---- buckets for list mode ----
+function tkBuckets(){
+  const ds=ymd(today);
+  const endOfWeek=ymd(addDays(today, 7-((today.getDay()+6)%7) - 1)); // this ISO week's Sunday
+  const g={ overdue:[], today:[], tomorrow:[], week:[], later:[], someday:[] };
+  for(const t of tasks){
+    if(t.done || !tkVisible(t) || tkStale(t)) continue;
+    if(!t.due_date){ g.someday.push(t); continue; }
+    if(t.due_date < ds){ g.overdue.push(t); continue; }
+    if(t.due_date === ds){ g.today.push(t); continue; }
+    if(t.due_date === ymd(addDays(today,1))){ g.tomorrow.push(t); continue; }
+    if(t.due_date <= endOfWeek){ g.week.push(t); continue; }
+    g.later.push(t);
+  }
+  for(const k in g) g[k]=tkSorted(g[k]);
+  return g;
+}
+
+// ---- item markup ----
+// hideDate: the surrounding group header already names the day, so repeating it is noise
+function tkItemHtml(t, hideDate){
+  const appt=tkIsAppt(t);
+  const over=tkOverdue(t);
+  const passed=appt && tkPast(t) && !t.done;
+  let lead;
+  if(appt){
+    lead = `<div class="tktime">${t.due_time
+      ? `<div class="th">${tkFmtTime(t.due_time)}</div>${t.end_time?`<div class="tm">${tkFmtTime(t.end_time)}</div>`:''}`
+      : `<div class="allday">ALL<br>DAY</div>`}</div>`;
+  } else {
+    lead = `<button class="tkbox" data-tktoggle="${t.id}" aria-label="${t.done?'Mark not done':'Mark done'}">✓</button>`;
+  }
+  const bits=[];
+  if(t.due_date && !hideDate) bits.push(tkFmtDay(t.due_date));
+  if(!appt && t.due_time) bits.push(tkFmtTime(t.due_time));
+  if(t.location) bits.push('📍 '+escapeHtml(t.location));
+  let tags='';
+  if(over) tags+=`<span class="tag late">overdue</span>`;
+  if(passed) tags+=`<span class="tag">passed</span>`;
+  return `<div class="tkitem ${appt?'appt':'todo'}${t.done?' isdone':''}${over?' isover':''}">
+    ${lead}
+    <div class="tkmain" data-tkedit="${t.id}">
+      <div class="tktitle">${escapeHtml(t.title)}</div>
+      ${(bits.length||tags)?`<div class="tkmeta">${bits.map(b=>`<span>${b}</span>`).join('<span style="opacity:.4">·</span>')}${tags}</div>`:''}
+      ${t.note?`<div class="tknote">${escapeHtml(t.note)}</div>`:''}
+    </div>
+  </div>`;
+}
+function tkGroupHtml(label, list, cls, hideDate){
+  if(!list.length) return '';
+  return `<div class="tkgroup ${cls||''}"><h3>${label}<span class="gc">${list.length}</span></h3>
+    ${list.map(t=>tkItemHtml(t,hideDate)).join('')}</div>`;
+}
+
+// ---- list mode ----
+function tkListHtml(){
+  const g=tkBuckets();
+  const any = Object.values(g).some(a=>a.length);
+  let html='';
+  if(!any){
+    const noFilter = !tkShowTodos && !tkShowAppts;
+    html += `<div class="tkempty">${noFilter
+      ? 'Both filters are off — turn on <b>To-dos</b> or <b>Appointments</b> to see anything.'
+      : 'Nothing on the list.<br>Tap <b>＋ Add</b> to put something here.'}</div>`;
+  } else {
+    html += tkGroupHtml('⚠ Overdue', g.overdue, 'overdue');
+    html += tkGroupHtml('Today',     g.today,    '', true);
+    html += tkGroupHtml('Tomorrow',  g.tomorrow, '', true);
+    html += tkGroupHtml('This week', g.week);
+    html += tkGroupHtml('Later',     g.later);
+    html += tkGroupHtml('Someday',   g.someday,  '', true);
+  }
+  const done=tkSorted(tasks.filter(t=>t.done && tkVisible(t))).reverse();
+  if(done.length){
+    html += `<button class="tkdonehead" id="tkDoneToggle">${tkShowDone?'▾':'▸'} Completed · ${done.length}</button>`;
+    if(tkShowDone) html += `<div class="tkgroup" style="margin-top:10px">${done.slice(0,50).map(t=>tkItemHtml(t,false)).join('')}</div>`;
+  }
+  return html;
+}
+
+// ---- calendar mode ----
+function tkMonthStart(){
+  if(!tkCalMonth) tkCalMonth=new Date(today.getFullYear(), today.getMonth(), 1);
+  return tkCalMonth;
+}
+function tkByDay(){
+  const m=new Map();
+  for(const t of tasks){
+    if(!t.due_date || !tkVisible(t)) continue;
+    if(!m.has(t.due_date)) m.set(t.due_date,[]);
+    m.get(t.due_date).push(t);
+  }
+  return m;
+}
+function tkCalHtml(){
+  const start=tkMonthStart();
+  const byDay=tkByDay();
+  const y=start.getFullYear(), mo=start.getMonth();
+  const first=new Date(y,mo,1);
+  const lead=(first.getDay()+6)%7;                 // Monday-first
+  const gridStart=addDays(first,-lead);
+  const dsToday=ymd(today);
+  const sel=tkCalSel||dsToday;
+  let cells='';
+  for(let i=0;i<42;i++){
+    const d=addDays(gridStart,i), ds=ymd(d);
+    const out = d.getMonth()!==mo;
+    const items=(byDay.get(ds)||[]).filter(t=>!t.done);
+    const hasOver=items.some(tkOverdue);
+    let dots='';
+    if(items.length){
+      const kinds=[...new Set(items.map(t=>t.kind))];
+      dots=kinds.slice(0,2).map(k=>`<i style="background:${k==='appt'?TK_APPT_C:TK_TODO_C}"></i>`).join('');
+      if(items.length>2) dots+=`<i style="background:var(--muted2)"></i>`;
+    }
+    cells+=`<button class="tkday${out?' out':''}${ds===dsToday?' today':''}${ds===sel?' sel':''}${hasOver?' hasover':''}"
+      data-tkday="${ds}"><span>${d.getDate()}</span><span class="dots">${dots}</span></button>`;
+  }
+  const monthName=first.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const dayItems=tkSorted((byDay.get(sel)||[]));
+  const undated=tkSorted(tasks.filter(t=>!t.done && !t.due_date && tkVisible(t)));
+  return `<div class="tkcal">
+      <div class="tkcalhead"><button data-tkmo="-1" aria-label="Previous month">‹</button>
+        <div class="cmn">${monthName}</div>
+        <button data-tkmo="1" aria-label="Next month">›</button></div>
+      <div class="tkdow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      <div class="tkgrid">${cells}</div>
+    </div>
+    <div class="tkdaytitle">${tkFmtDay(sel)}<span class="dc">${dayItems.length||'nothing'}${dayItems.length?' item'+(dayItems.length>1?'s':''):''}</span></div>
+    ${dayItems.length ? dayItems.map(t=>tkItemHtml(t,true)).join('')
+      : `<div class="tkempty" style="padding:26px 12px">Nothing on this day.</div>`}
+    ${undated.length ? `<div class="tktray">${tkGroupHtml('Someday · no date', undated, '', true)}</div>` : ''}`;
+}
+
+// ---- the view ----
+function renderTasks(){
+  const dsToday=ymd(today);
+  const daily=routines.filter(r=>!CADENCE[r.cadence].periodic);
+  ringSvg(daily.filter(r=>isDone(r.id,dsToday)).length, daily.length);
+  const app=$('app');
+  if(!tasksReady){
+    $('subtitle').textContent='Tasks';
+    app.innerHTML=`<div class="gwarn"><b>Tasks needs a one-time setup.</b><br>Run <code>tasks-setup.sql</code> in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
+    return;
+  }
+  const openTodos=tkCountOpen('todo'), openAppts=tkCountOpen('appt');
+  const dueToday=tasks.filter(t=>!t.done && t.due_date===dsToday).length;
+  const over=tasks.filter(tkOverdue).length;
+  $('subtitle').textContent = (dueToday?`${dueToday} today`:'Nothing due today') + (over?` · ${over} overdue`:'');
+  app.innerHTML = `
+    <div class="tkbar">
+      <button class="tkchip ${tkShowTodos?'on':''}" id="tkFa" style="--tkc:${TK_TODO_C}">
+        <span class="tkdot"></span>To-dos<span class="tkn">${openTodos}</span></button>
+      <button class="tkchip ${tkShowAppts?'on':''}" id="tkFb" style="--tkc:${TK_APPT_C}">
+        <span class="tkdot"></span>Appts<span class="tkn">${openAppts}</span></button>
+      <div class="tkmode">
+        <button data-tkmode="list" class="${tkMode==='list'?'on':''}" aria-label="List view">☰</button>
+        <button data-tkmode="cal" class="${tkMode==='cal'?'on':''}" aria-label="Calendar view">▦</button>
+      </div>
+    </div>
+    <button class="tkadd" id="tkAdd">＋ Add a to-do or appointment</button>
+    ${tkMode==='cal' ? tkCalHtml() : tkListHtml()}`;
+  bindTasks();
+}
+function bindTasks(){
+  const app=$('app');
+  const fa=$('tkFa'), fb=$('tkFb'), add=$('tkAdd');
+  if(fa) fa.onclick=()=>{ tkShowTodos=!tkShowTodos; tkSavePrefs(); renderTasks(); };
+  if(fb) fb.onclick=()=>{ tkShowAppts=!tkShowAppts; tkSavePrefs(); renderTasks(); };
+  if(add) add.onclick=()=>openTaskForm(null);
+  const dt=$('tkDoneToggle'); if(dt) dt.onclick=()=>{ tkShowDone=!tkShowDone; renderTasks(); };
+  app.querySelectorAll('[data-tkmode]').forEach(b=>b.onclick=()=>{
+    tkMode=b.getAttribute('data-tkmode'); tkSavePrefs(); renderTasks(); });
+  app.querySelectorAll('[data-tktoggle]').forEach(b=>b.onclick=()=>toggleTask(b.getAttribute('data-tktoggle'), b));
+  app.querySelectorAll('[data-tkedit]').forEach(b=>b.onclick=()=>openTaskForm(tasks.find(t=>t.id===b.getAttribute('data-tkedit'))));
+  app.querySelectorAll('[data-tkmo]').forEach(b=>b.onclick=()=>{
+    const s=tkMonthStart(); tkCalMonth=new Date(s.getFullYear(), s.getMonth()+Number(b.getAttribute('data-tkmo')), 1);
+    renderTasks(); });
+  app.querySelectorAll('[data-tkday]').forEach(b=>b.onclick=()=>{ tkCalSel=b.getAttribute('data-tkday'); renderTasks(); });
+}
+
+// ---- mutations ----
+let tkBusy=false;
+async function toggleTask(id, btn){
+  if(tkBusy) return;
+  const t=tasks.find(x=>x.id===id); if(!t) return;
+  const next=!t.done;
+  tkBusy=true;
+  try{
+    const body={ done:next, done_at: next? new Date().toISOString() : null };
+    await rest('PATCH','tasks?id=eq.'+id,{body,prefer:'return=minimal'});
+    Object.assign(t, body);
+    if(next && btn){ if(navigator.vibrate) navigator.vibrate(16); burst(btn); }
+    renderTasks();
+  }catch(e){ toast('Could not update that task', true); console.error(e); }
+  tkBusy=false;
+}
+function openTaskForm(t){
+  const isNew=!t;
+  const d = t || { title:'', kind:'todo', due_date:'', due_time:'', end_time:'', location:'', note:'' };
+  const defaultDate = tkMode==='cal' && tkCalSel ? tkCalSel : ymd(today);
+  const kind = d.kind || 'todo';
+  $('taskEdSheet').innerHTML = `
+    <h2>${isNew?'Add':'Edit'} <button class="x" id="tkClose">×</button></h2>
+    <div class="tkbar" style="margin-bottom:14px">
+      <button class="tkchip ${kind==='todo'?'on':''}" id="tk-kt" style="--tkc:${TK_TODO_C}"><span class="tkdot"></span>To-do</button>
+      <button class="tkchip ${kind==='appt'?'on':''}" id="tk-ka" style="--tkc:${TK_APPT_C}"><span class="tkdot"></span>Appointment</button>
+    </div>
+    <div class="field"><label>What is it?</label>
+      <input type="text" id="tk-title" value="${escapeHtml(d.title||'')}" placeholder="e.g. Call the garage"></div>
+    <div class="field rowly">
+      <div><label id="tk-dlbl">Date</label>
+        <input type="date" id="tk-date" value="${d.due_date||(isNew&&kind==='appt'?defaultDate:'')}"></div>
+      <div><label>Time</label><input type="time" id="tk-time" value="${d.due_time?d.due_time.slice(0,5):''}"></div>
+    </div>
+    <div id="tk-apptx" class="${kind==='appt'?'':'hidden'}">
+      <div class="field rowly">
+        <div><label>Ends (optional)</label><input type="time" id="tk-end" value="${d.end_time?d.end_time.slice(0,5):''}"></div>
+        <div><label>Where (optional)</label><input type="text" id="tk-loc" value="${escapeHtml(d.location||'')}" placeholder="e.g. Heerlen"></div>
+      </div>
+    </div>
+    <div class="field"><label>Note (optional)</label>
+      <textarea id="tk-note" rows="3" placeholder="Anything worth remembering…">${escapeHtml(d.note||'')}</textarea></div>
+    <div id="tk-hint" style="color:var(--muted2);font-size:11.5px;margin:-4px 2px 4px"></div>
+    <div class="formbtns">${isNew?'':'<button class="btn-del" id="tk-del">Delete</button>'}
+      <button class="btn-cancel" id="tk-cancel">Cancel</button>
+      <button class="btn-save" id="tk-save">Save</button></div>`;
+  $('taskEd').classList.add('show');
+  let k = kind;
+  const paint=()=>{
+    $('tk-kt').classList.toggle('on', k==='todo');
+    $('tk-ka').classList.toggle('on', k==='appt');
+    $('tk-apptx').classList.toggle('hidden', k!=='appt');
+    $('tk-dlbl').textContent = k==='appt' ? 'Date (required)' : 'Date (optional)';
+    $('tk-hint').textContent = k==='appt'
+      ? 'Appointments sit on the calendar and pass on their own — there is nothing to tick.'
+      : 'Leave the date empty to park it under “Someday”.';
+    if(k==='appt' && !$('tk-date').value) $('tk-date').value = defaultDate;
+  };
+  paint();
+  $('tk-kt').onclick=()=>{ k='todo'; paint(); };
+  $('tk-ka').onclick=()=>{ k='appt'; paint(); };
+  const close=()=>$('taskEd').classList.remove('show');
+  $('tkClose').onclick=close; $('tk-cancel').onclick=close;
+  if(!isNew) $('tk-del').onclick=async ()=>{
+    if(!confirm(`Delete "${d.title}"? This cannot be undone.`)) return;
+    try{ await rest('DELETE','tasks?id=eq.'+d.id); tasks=tasks.filter(x=>x.id!==d.id);
+      close(); toast('Deleted'); render(); }
+    catch(e){ toast('Could not delete', true); console.error(e); }
+  };
+  $('tk-save').onclick=async ()=>{
+    const title=$('tk-title').value.trim();
+    if(!title){ toast('Give it a name', true); return; }
+    const date=$('tk-date').value||null;
+    if(k==='appt' && !date){ toast('An appointment needs a date', true); return; }
+    const body={ title, kind:k, due_date:date,
+      due_time: $('tk-time').value||null,
+      end_time: k==='appt' ? ($('tk-end').value||null) : null,
+      location: k==='appt' ? ($('tk-loc').value.trim()||null) : null,
+      note: $('tk-note').value.trim()||null };
+    try{
+      if(isNew){ await rest('POST','tasks',{body,prefer:'return=minimal'}); }
+      else { await rest('PATCH','tasks?id=eq.'+d.id,{body,prefer:'return=minimal'}); }
+      await loadTasks(); close(); toast('Saved');
+      if(k==='appt' && date && tkMode==='cal') tkCalSel=date;
+      render();
+    }catch(e){ toast('Could not save', true); console.error(e); }
+  };
+}
+
+// ---- compact agenda strip on the Today view ----
+function tkTodayStripHtml(){
+  if(!tasksReady) return '';
+  const ds=ymd(today);
+  const items=tkSorted(tasks.filter(t=>!t.done && t.due_date && t.due_date<=ds && !tkStale(t)));
+  if(!items.length) return '';
+  const shown=items.slice(0,3);
+  const lines=shown.map(t=>{
+    const appt=tkIsAppt(t);
+    const lead=appt ? (t.due_time?tkFmtTime(t.due_time):'all-day') : '○';
+    return `<div class="tkline"><span class="lt${appt?'':' todo'}">${lead}</span>
+      <span class="ln">${escapeHtml(t.title)}</span>
+      ${tkOverdue(t)?'<span class="lx">OVERDUE</span>':''}</div>`;
+  }).join('');
+  const extra=items.length-shown.length;
+  return `<div class="tkstrip" id="tkStrip">
+    <div class="tkstriph">🗒 On today<span class="go">Open ›</span></div>
+    ${lines}${extra?`<div class="tkmore">+${extra} more</div>`:''}</div>`;
+}
 
 // ---- interactions ----
 let busy=false;
