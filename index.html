@@ -361,6 +361,51 @@
   .tkline .lx{flex:0 0 auto;font-size:10.5px;color:var(--danger);font-weight:700}
   .tkmore{font-size:11.5px;color:var(--muted2);margin-top:6px}
 
+  /* ---- Reminders (build 14) ---- */
+  .remrow{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);
+    border-radius:14px;padding:11px 13px;margin-bottom:8px}
+  .remrow.off{opacity:.55}
+  .remrow .ric{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--surface2);
+    display:flex;align-items:center;justify-content:center;font-size:17px}
+  .remrow .rmid{flex:1;min-width:0}
+  .remrow .rn{font-weight:600;font-size:14.5px}
+  .remrow .rd{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+  .remrow input[type=time]{background:var(--bg2);border:1px solid var(--line);color:var(--text);
+    border-radius:10px;padding:8px 9px;font-size:14px;font-family:inherit;outline:none;flex:0 0 auto;
+    color-scheme:dark}
+  .remrow .sw{width:44px;height:26px;border-radius:999px;background:var(--surface2);position:relative;
+    transition:background .2s;flex:0 0 auto;cursor:pointer}
+  .remrow .sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+    background:#fff;transition:transform .2s}
+  .remrow.on .sw{background:var(--mind)}
+  .remrow.on .sw::after{transform:translateX(18px)}
+  .remchip{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;
+    border-radius:999px;margin-left:6px;border:1px solid transparent}
+  .remchip.ok{background:color-mix(in srgb,var(--health) 16%,var(--surface2));color:var(--health);
+    border-color:color-mix(in srgb,var(--health) 35%,transparent)}
+  .remchip.warn{background:color-mix(in srgb,var(--flame) 16%,var(--surface2));color:var(--flame);
+    border-color:color-mix(in srgb,var(--flame) 35%,transparent)}
+  .remchip.off{background:var(--surface2);color:var(--muted2)}
+  .rempv{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:6px 0 16px}
+  .rempv .pvh{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:9px}
+  .rempv .pvitem{padding:8px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.45}
+  .rempv .pvitem:first-of-type{border-top:none;padding-top:0}
+  .rempv .pvslot{font-weight:700;font-size:12px;color:var(--text)}
+  .rempv .pvtext{color:var(--muted);margin-top:2px}
+  .rempv .pvquiet{color:var(--muted2);font-style:italic}
+  .remnote{color:var(--muted2);font-size:11.5px;line-height:1.5;margin:0 2px 14px}
+  .remperm{background:color-mix(in srgb,var(--flame) 9%,var(--surface));
+    border:1px solid color-mix(in srgb,var(--flame) 32%,var(--line));border-radius:14px;padding:13px 14px;
+    margin-bottom:14px;font-size:13px;line-height:1.55}
+  .remperm b{color:var(--flame)}
+  .remperm ol{margin:8px 0 0;padding-left:20px}
+  .remperm li{margin-bottom:3px}
+  .rembtn{width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--text);
+    border-radius:12px;padding:12px;font-size:13.5px;font-weight:700;cursor:pointer;margin-bottom:8px}
+  .rembtn:active{transform:scale(.98)}
+  .rembtn:disabled{opacity:.45;cursor:default}
+  .rembtn.primary{background:var(--mind);color:#12101f;border-color:transparent}
+
   /* Overlays */
   .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
     display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
@@ -449,7 +494,7 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 13</div>
+  <div class="foot">Life Organiser · build 14</div>
 </div>
 
 <nav class="nav">
@@ -569,6 +614,26 @@ let gymProgMetric = 'weight'; // Progress tab metric: 'weight' | 'e1rm'
 // ---- Tasks state (build 13) ----
 let tasks = [];             // all task rows
 let tasksReady = false;     // false if the tasks table hasn't been created yet
+
+// ---- Reminders state (build 14) ----
+// The SERVER owns the message text. The client never builds notification copy:
+// it asks the Edge Function what each slot would say, so the preview here and the
+// push that arrives at 07:30 can never drift apart.
+// Public half of the pair generated 2026-09-21; the private half is in .env and in the
+// Edge Function secrets. The build-13 pair was lost with those files and is dead — a
+// subscription made against it can never be decrypted, so it must not come back.
+const VAPID_PUBLIC = 'BCNvESxFziAcFiXWvE2IvzFYJWA1Z1zsenVILY49s-RUlgFBYTtLeYQ0sXlOolUwsfv8h9dBiTA-MnQhXOSC_Bg';
+const FN_REMINDERS = SUPABASE_URL + '/functions/v1/reminders';
+const REM_SLOTS = [
+  { key:'morning', icon:'☀️', name:'Morning nudge',   def:'07:30', desc:'What is still unticked today.' },
+  { key:'cadence', icon:'📌', name:'Due today',       def:'09:00', desc:'Periodic items that are actually due — gym, treadmill, statiegeld, ETF, garden.' },
+  { key:'evening', icon:'🌙', name:'Evening nudge',   def:'20:00', desc:'The ones that tend to slip late.' },
+  { key:'sweep',   icon:'⏳', name:'Still-open sweep',def:'21:30', desc:'A last list of what is still open.' },
+];
+let remSettings = null;     // the single settings row
+let remReady = false;       // false if sql/reminders.sql hasn't been run
+let remSub = null;          // this device's PushSubscription, if any
+let remBusy = false;
 let tkShowTodos = true;     // filter A
 let tkShowAppts = true;     // filter B
 let tkMode = 'list';        // filter C: 'list' | 'cal'
@@ -644,10 +709,19 @@ async function exportData(){
     let tk=[];
     try{ tk = await rest('GET','tasks?select=*&order=created_at.asc') || []; }
     catch(e){ console.warn('tasks not exported (not set up yet)', e.message||e); }
-    const payload={ app:'Life Organiser', version:13, exported_at:new Date().toISOString(),
+    let rem={ reminder_settings:[], reminder_sends:[] };
+    try{
+      const [rst,rsn]=await Promise.all([
+        rest('GET','reminder_settings?select=*'),
+        rest('GET','reminder_sends?select=*&order=send_date.desc')
+      ]);
+      rem={ reminder_settings:rst||[], reminder_sends:rsn||[] };
+    }catch(e){ console.warn('reminder tables not exported (not set up yet)', e.message||e); }
+    const payload={ app:'Life Organiser', version:14, exported_at:new Date().toISOString(),
       routines:rs||[], routine_logs:lg||[], rest_days:rd||[],
       gym_exercises:gym.gym_exercises, gym_workouts:gym.gym_workouts, gym_sets:gym.gym_sets,
-      tasks:tk };
+      tasks:tk,
+      reminder_settings:rem.reminder_settings, reminder_sends:rem.reminder_sends };
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url; a.download='life-organiser-backup-'+new Date().toISOString().slice(0,10)+'.json';
@@ -664,12 +738,113 @@ async function load(){
   try{ const rd = await rest('GET','rest_days?select=day') || []; restDays = new Set(rd.map(x=>x.day)); }catch(e){ restDays = new Set(); }
   await loadGym();
   await loadTasks();
+  await loadReminders();
+  // Ask the browser whether this device is already subscribed, at boot rather than
+  // only when the Reminders screen opens. Without this, remSub is null everywhere else
+  // and the chip on Manage reads "not subscribed" on a device that is — a status
+  // indicator that lies until you go and look at the thing it describes.
+  try{ await refreshSub(); }catch(e){ /* no worker, no push support: chip falls back */ }
 }
 async function loadTasks(){
   try{
     tasks = await rest('GET','tasks?select=*&order=due_date.asc,due_time.asc,sort_order.asc,created_at.asc') || [];
     tasksReady = true;
-  }catch(e){ tasksReady=false; tasks=[]; console.warn('Tasks table not ready (run tasks-setup.sql):', e.message||e); }
+  }catch(e){ tasksReady=false; tasks=[]; console.warn('Tasks table not ready (run sql/tasks.sql):', e.message||e); }
+}
+function remDefaults(){
+  const o={ id:'default', enabled:true, skip_on_rest:true, timezone:'Europe/Amsterdam' };
+  REM_SLOTS.forEach(s=>{ o[s.key+'_on']=true; o[s.key+'_time']=s.def; });
+  return o;
+}
+async function loadReminders(){
+  try{
+    const rows = await rest('GET','reminder_settings?select=*&id=eq.default') || [];
+    remSettings = rows[0] || remDefaults();
+    if(!rows.length){
+      // first run: seed the row so the server has something to read
+      try{ await rest('POST','reminder_settings?on_conflict=id',
+        { body:remDefaults(), prefer:'resolution=merge-duplicates' }); }catch(e){}
+    }
+    remReady = true;
+  }catch(e){
+    remReady=false; remSettings=remDefaults();
+    console.warn('Reminder tables not ready (run sql/reminders.sql):', e.message||e);
+  }
+}
+// ---- push permission / subscription ----
+function isIOS(){ return /iP(hone|ad|od)/.test(navigator.userAgent); }
+function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
+function notifSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function notifPerm(){ return (typeof Notification!=='undefined') ? Notification.permission : 'unsupported'; }
+function urlB64ToU8(s){
+  const pad='='.repeat((4 - s.length % 4) % 4);
+  const b64=(s+pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(b64); const out=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i);
+  return out;
+}
+function b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+async function swReg(){
+  if(!('serviceWorker' in navigator)) return null;
+  try{ return await navigator.serviceWorker.ready; }catch(e){ return null; }
+}
+async function refreshSub(){
+  const reg=await swReg(); if(!reg||!reg.pushManager){ remSub=null; return null; }
+  try{ remSub = await reg.pushManager.getSubscription(); }catch(e){ remSub=null; }
+  return remSub;
+}
+async function saveSub(sub){
+  if(!sub) return;
+  const j=sub.toJSON();
+  const body={ endpoint:sub.endpoint, p256dh:j.keys&&j.keys.p256dh, auth:j.keys&&j.keys.auth,
+    user_agent:navigator.userAgent.slice(0,300), last_seen:new Date().toISOString() };
+  // Without both keys the server cannot encrypt to this device. Swallowing either
+  // failure would leave the screen reading "on" with no endpoint to send to — exactly
+  // the silent non-delivery this build exists to avoid.
+  if(!body.p256dh || !body.auth) throw new Error('This device returned an incomplete push subscription.');
+  await rest('POST','push_subscriptions?on_conflict=endpoint',
+    { body, prefer:'resolution=merge-duplicates' });
+}
+async function enablePush(){
+  if(!notifSupported()) throw new Error('This browser cannot do web push.');
+  if(isIOS() && !isStandalone()) throw new Error('On iPhone, add the app to your Home Screen first.');
+  const perm = await Notification.requestPermission();
+  if(perm!=='granted') throw new Error(perm==='denied'
+    ? 'Notifications are blocked — turn them back on in your device settings.'
+    : 'Permission was not granted.');
+  const reg=await swReg(); if(!reg) throw new Error('The service worker is not running yet — reload and try again.');
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub) sub=await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:urlB64ToU8(VAPID_PUBLIC) });
+  await saveSub(sub);   // only claim this device is subscribed once the row is stored
+  remSub=sub;
+  return sub;
+}
+async function disablePush(){
+  const sub=await refreshSub(); if(!sub) return;
+  const ep=sub.endpoint;
+  try{ await sub.unsubscribe(); }catch(e){}
+  remSub=null;
+  try{ await rest('DELETE','push_subscriptions?endpoint=eq.'+encodeURIComponent(ep)); }catch(e){}
+}
+// ---- talk to the Edge Function ----
+async function remCall(payload){
+  const headers={ 'Content-Type':'application/json', 'apikey':SUPABASE_KEY };
+  if(session&&session.access_token) headers['Authorization']='Bearer '+session.access_token;
+  const res=await fetch(FN_REMINDERS,{ method:'POST', headers, body:JSON.stringify(payload) });
+  const txt=await res.text();
+  if(!res.ok) throw new Error('HTTP '+res.status+' '+txt.slice(0,200));
+  return txt?JSON.parse(txt):null;
+}
+function remStatus(){
+  if(!remReady) return { cls:'warn', label:'setup needed' };
+  if(!remSettings || !remSettings.enabled) return { cls:'off', label:'off' };
+  if(!notifSupported()) return { cls:'off', label:'unsupported' };
+  if(isIOS() && !isStandalone()) return { cls:'warn', label:'add to home screen' };
+  const p=notifPerm();
+  if(p!=='granted') return { cls:'warn', label:'needs permission' };
+  if(!remSub) return { cls:'warn', label:'not subscribed' };
+  const anyOn=REM_SLOTS.some(s=>remSettings[s.key+'_on']);
+  return anyOn ? { cls:'ok', label:'on' } : { cls:'off', label:'no slots on' };
 }
 async function loadAll(){ return await rest('GET','routines?select=*&order=category.asc,sort_order.asc') || []; }
 async function loadGym(){
@@ -685,7 +860,7 @@ async function loadGym(){
       const ids=new Set(empties.map(w=>w.id)); gymWorkouts = gymWorkouts.filter(w=>!ids.has(w.id));
     }
     gymReady = true;
-  }catch(e){ gymReady=false; gymExercises=[]; gymWorkouts=[]; gymSets=[]; console.warn('Gym tables not ready (run gym setup SQL):', e.message||e); }
+  }catch(e){ gymReady=false; gymExercises=[]; gymWorkouts=[]; gymSets=[]; console.warn('Gym tables not ready (run sql/gym.sql):', e.message||e); }
 }
 async function seedGym(){
   const rows = GYM_SEED.map((e,i)=>({ name:e.name, muscle:e.muscle, in_template:e.tpl||null, is_extra:!!e.extra, sort_order:i, active:true }));
@@ -1138,7 +1313,7 @@ function renderGym(){
   $('subtitle').textContent='Gym';
   const app=$('app');
   if(!gymReady){
-    app.innerHTML=`<div class="gwarn"><b>Gym tracker needs a one-time setup.</b><br>Run the gym setup SQL (<code>gym-setup.sql</code> then <code>gym-v2-setup.sql</code>) in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
+    app.innerHTML=`<div class="gwarn"><b>Gym tracker needs a one-time setup.</b><br>Run <code>sql/gym.sql</code> in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
     return;
   }
   let html=`<div class="gsub">
@@ -1664,7 +1839,7 @@ function renderTasks(){
   const app=$('app');
   if(!tasksReady){
     $('subtitle').textContent='Tasks';
-    app.innerHTML=`<div class="gwarn"><b>Tasks needs a one-time setup.</b><br>Run <code>tasks-setup.sql</code> in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
+    app.innerHTML=`<div class="gwarn"><b>Tasks needs a one-time setup.</b><br>Run <code>sql/tasks.sql</code> in your Supabase SQL editor, then refresh with a new <code>?v=</code>. The rest of the app works normally in the meantime.</div>`;
     return;
   }
   const openTodos=tkCountOpen('todo'), openAppts=tkCountOpen('appt');
@@ -1981,15 +2156,180 @@ function renderEditorList(){
     });
     html += `</div>`;
   }
-  html += '<button class="btn-cancel" id="exportBtn" style="width:100%;margin-top:8px">⬇ Export my data (backup)</button>';
+  const rs=remStatus();
+  html += `<button class="btn-cancel" id="remindersBtn" style="width:100%;margin-top:8px">🔔 Reminders<span class="remchip ${rs.cls}">${rs.label}</span></button>`;
+  html += '<button class="btn-cancel" id="exportBtn" style="width:100%;margin-top:6px">⬇ Export my data (backup)</button>';
   html += '<button class="btn-cancel" id="signout" style="width:100%;margin-top:6px">Sign out</button>';
   const body=$('editorBody'); body.innerHTML = html;
   $('addRoutine').onclick = ()=>openForm(null);
+  $('remindersBtn').onclick = openReminders;
   $('exportBtn').onclick = exportData;
   $('signout').onclick = signOut;
   body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openForm(allRoutines.find(r=>r.id===b.getAttribute('data-edit'))));
   body.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>moveRoutine(b.getAttribute('data-id'), b.getAttribute('data-move')));
 }
+// ===== REMINDERS SCREEN (build 14) =====
+async function openReminders(){
+  $('editorTitle').firstChild.textContent = 'Reminders ';
+  $('editorBody').innerHTML = '<div class="loading">Loading…</div>';
+  await refreshSub();
+  renderReminders();
+  loadPreview();
+}
+function renderReminders(){
+  if(!remReady){
+    $('editorBody').innerHTML = `<div class="gwarn"><b>Reminders need a one-time setup.</b><br>
+      Run <code>sql/reminders.sql</code> in your Supabase SQL editor, then reload the app.
+      Everything else works normally in the meantime.</div>
+      <button class="rembtn" id="rem-back" style="margin-top:14px">‹ Back to routines</button>`;
+    $('rem-back').onclick = renderEditorList;
+    return;
+  }
+  const s=remSettings, on=!!s.enabled;
+  let html='';
+
+  // --- permission / platform state ---
+  const perm=notifPerm();
+  if(!notifSupported()){
+    html += `<div class="remperm">This browser can't do web push. Reminders will still save here, but
+      nothing will arrive until you open the app on a device that supports notifications.</div>`;
+  } else if(isIOS() && !isStandalone()){
+    html += `<div class="remperm"><b>Add to Home Screen first.</b> On iPhone, notifications only work
+      from an installed app (iOS 16.4+). In Safari:<ol>
+      <li>Tap the Share button</li><li>Choose <b>Add to Home Screen</b></li>
+      <li>Open the app from your Home Screen and come back here</li></ol></div>`;
+  } else if(perm==='denied'){
+    html += `<div class="remperm"><b>Notifications are blocked.</b> Turn them back on in your device
+      settings — on iPhone that's Settings → Notifications → Life OS — then reopen this screen.</div>`;
+  } else if(perm!=='granted'){
+    html += `<div class="remperm"><b>One tap to allow notifications.</b> Nothing is sent until you do.</div>
+      <button class="rembtn primary" id="rem-allow">Allow notifications on this device</button>`;
+  } else if(!remSub){
+    html += `<div class="remperm">Notifications are allowed, but this device isn't subscribed yet.</div>
+      <button class="rembtn primary" id="rem-allow">Subscribe this device</button>`;
+  }
+
+  // --- master switch ---
+  html += `<div class="remrow ${on?'on':''}" style="margin-bottom:14px">
+      <div class="ric">🔔</div>
+      <div class="rmid"><div class="rn">Reminders</div>
+        <div class="rd">${on?'Sent from the server, so they arrive with the app closed.':'Nothing will be sent.'}</div></div>
+      <div class="sw" data-remmaster="1"></div></div>`;
+
+  // --- slots ---
+  if(on){
+    html += `<div class="glabel" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 2px 8px">When</div>`;
+    for(const slot of REM_SLOTS){
+      const son=!!s[slot.key+'_on'];
+      const t=(s[slot.key+'_time']||slot.def).slice(0,5);
+      html += `<div class="remrow ${son?'on':'off'}">
+        <div class="ric">${slot.icon}</div>
+        <div class="rmid"><div class="rn">${slot.name}</div><div class="rd">${slot.desc}</div></div>
+        <input type="time" value="${t}" data-remtime="${slot.key}" ${son?'':'disabled'}>
+        <div class="sw" data-remslot="${slot.key}"></div></div>`;
+    }
+    const sk=!!s.skip_on_rest;
+    html += `<div class="remrow ${sk?'on':'off'}" style="margin-top:14px">
+        <div class="ric">❄️</div>
+        <div class="rmid"><div class="rn">Quiet on rest days</div>
+          <div class="rd">The evening sweep stays silent on a day you've marked as a rest day.</div></div>
+        <div class="sw" data-remrest="1"></div></div>`;
+    html += `<div class="remnote">A slot only fires if it has something to say — no "well done, nothing to do"
+      messages. One send per slot per day, and only within 2 hours of its time, so opening the app late
+      never replays the morning nudge. Reminders cover routines only; to-dos and appointments live on the Tasks tab.</div>`;
+    html += `<div class="rempv" id="rem-preview"><div class="pvh">Right now it would say…</div>
+      <div class="pvitem"><div class="pvtext">Checking…</div></div></div>`;
+  }
+
+  html += `<button class="rembtn" id="rem-test-local">Show a test notification on this device</button>`;
+  html += `<button class="rembtn" id="rem-test-push">Send a real test push (end-to-end)</button>`;
+  if(remSub) html += `<button class="rembtn" id="rem-unsub">Unsubscribe this device</button>`;
+  html += `<button class="rembtn" id="rem-back" style="margin-top:8px">‹ Back to routines</button>`;
+
+  const body=$('editorBody'); body.innerHTML=html;
+  const allow=$('rem-allow');
+  if(allow) allow.onclick = async ()=>{
+    allow.disabled=true; allow.textContent='Asking…';
+    try{ await enablePush(); toast('Notifications on'); renderReminders(); loadPreview(); }
+    catch(e){ toast(String(e.message||e), true); renderReminders(); }
+  };
+  const master=body.querySelector('[data-remmaster]');
+  if(master) master.onclick = ()=>patchRem({ enabled: !remSettings.enabled });
+  body.querySelectorAll('[data-remslot]').forEach(el=>{
+    const k=el.getAttribute('data-remslot');
+    el.onclick = ()=>patchRem({ [k+'_on']: !remSettings[k+'_on'] });
+  });
+  body.querySelectorAll('[data-remtime]').forEach(el=>{
+    const k=el.getAttribute('data-remtime');
+    el.onchange = ()=>{ if(el.value) patchRem({ [k+'_time']: el.value }); };
+  });
+  const restSw=body.querySelector('[data-remrest]');
+  if(restSw) restSw.onclick = ()=>patchRem({ skip_on_rest: !remSettings.skip_on_rest });
+  $('rem-test-local').onclick = testLocal;
+  $('rem-test-push').onclick = testPush;
+  const un=$('rem-unsub');
+  if(un) un.onclick = async ()=>{ await disablePush(); toast('This device unsubscribed'); renderReminders(); };
+  $('rem-back').onclick = renderEditorList;
+}
+async function patchRem(patch){
+  if(remBusy) return; remBusy=true;
+  const prev={...remSettings};
+  Object.assign(remSettings, patch);
+  renderReminders();
+  try{
+    await rest('PATCH','reminder_settings?id=eq.default',
+      { body:{...patch, updated_at:new Date().toISOString()}, prefer:'return=minimal' });
+    loadPreview();
+  }catch(e){
+    remSettings=prev; renderReminders();
+    toast('Could not save that setting', true); console.error(e);
+  }
+  remBusy=false;
+}
+async function loadPreview(){
+  const box=$('rem-preview'); if(!box) return;
+  try{
+    const r=await remCall({ mode:'preview' });
+    const slots=(r&&r.slots)||[];
+    let h=`<div class="pvh">Right now it would say…</div>`;
+    if(!slots.length) h+=`<div class="pvitem"><div class="pvtext pvquiet">No slots are switched on.</div></div>`;
+    for(const s of slots){
+      const def=REM_SLOTS.find(x=>x.key===s.key);
+      const body = s.text
+        ? `<div class="pvtext">${escapeHtml(s.text)}</div>`
+        : `<div class="pvtext pvquiet">${escapeHtml(s.reason||'Nothing to say — it would stay silent.')}</div>`;
+      h+=`<div class="pvitem"><div class="pvslot">${def?def.icon:''} ${def?def.name:s.key} · ${(s.time||'').slice(0,5)}</div>${body}</div>`;
+    }
+    box.innerHTML=h;
+  }catch(e){
+    box.innerHTML=`<div class="pvh">Right now it would say…</div>
+      <div class="pvitem"><div class="pvtext pvquiet">Can't reach the reminder service yet — deploy the
+      <code>reminders</code> Edge Function and this fills in.</div></div>`;
+  }
+}
+async function testLocal(){
+  try{
+    if(notifPerm()!=='granted'){ toast('Allow notifications first', true); return; }
+    const reg=await swReg();
+    if(reg&&reg.showNotification){
+      await reg.showNotification('Life Organiser', { body:'Test notification — this is what a nudge looks like.',
+        icon:'icon-192.png', badge:'icon-192.png', tag:'lo-test' });
+    } else if(typeof Notification!=='undefined'){
+      new Notification('Life Organiser', { body:'Test notification — this is what a nudge looks like.' });
+    } else { toast('Not supported here', true); return; }
+    toast('Sent — check your notifications');
+  }catch(e){ toast('Could not show it: '+(e.message||e), true); }
+}
+async function testPush(){
+  const b=$('rem-test-push'); if(b){ b.disabled=true; b.textContent='Sending…'; }
+  try{
+    const r=await remCall({ mode:'test' });
+    const n=(r&&r.sent)||0;
+    toast(n?`Pushed to ${n} device${n>1?'s':''}`:'No subscribed devices yet');
+  }catch(e){ toast('Push failed — is the Edge Function deployed?', true); console.error(e); }
+  if(b){ b.disabled=false; b.textContent='Send a real test push (end-to-end)'; }
+}
+
 function openForm(routine){
   const isNew = !routine;
   $('editorTitle').firstChild.textContent = isNew ? 'Add routine ' : 'Edit routine ';
@@ -2089,9 +2429,13 @@ $('l-go').onclick = async ()=>{
 $('l-pass').addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('l-go').click(); });
 loadSession();
 if(session) start(); else showLogin();
+// Push needs a registered worker, so the self-destroying-worker era ends here. sw.js
+// has no fetch handler, so this does not reintroduce the stale-build caching that made
+// the old worker necessary; it sweeps the leftover caches once on activate instead.
+// updateViaCache:'none' stops the browser's HTTP cache serving an old sw.js.
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
-  if(window.caches) caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{});
+  navigator.serviceWorker.register('sw.js?v=14', { updateViaCache:'none' })
+    .catch(e=>console.warn('service worker registration failed', e));
 }
 </script>
 </body>
