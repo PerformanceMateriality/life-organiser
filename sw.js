@@ -1,4 +1,4 @@
-// Life Organiser service worker — build 14.
+// Life Organiser service worker — build 15.
 //
 // Its only job is web push. There is DELIBERATELY NO `fetch` HANDLER: the app must
 // always load fresh from the network. An earlier version cached the app shell and kept
@@ -10,7 +10,7 @@
 // The server owns the message text. This worker renders whatever the Edge Function
 // sends and composes nothing itself.
 
-const SW_VERSION = 'build14';
+const SW_VERSION = 'build15';
 const FALLBACK = {
   title: 'Life Organiser',
   body: 'You have something open today.',

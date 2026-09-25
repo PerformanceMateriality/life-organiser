@@ -494,7 +494,7 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 14</div>
+  <div class="foot">Life Organiser · build 15</div>
 </div>
 
 <nav class="nav">
@@ -747,7 +747,10 @@ async function load(){
 }
 async function loadTasks(){
   try{
-    tasks = await rest('GET','tasks?select=*&order=due_date.asc,due_time.asc,sort_order.asc,created_at.asc') || [];
+    // sort_order is NOT in the order clause: nothing writes it, so it is 0 on every row
+    // and sorting by it only looked like it did something. The column stays for the day
+    // manual reordering exists; tkSorted() is what actually orders the lists.
+    tasks = await rest('GET','tasks?select=*&order=due_date.asc,due_time.asc,created_at.asc') || [];
     tasksReady = true;
   }catch(e){ tasksReady=false; tasks=[]; console.warn('Tasks table not ready (run sql/tasks.sql):', e.message||e); }
 }
@@ -1297,7 +1300,11 @@ function gymE1rmChartData(id){
   return Object.keys(top).sort().map(d=>({date:d, top:top[d]}));
 }
 // ---- Body-weight trend (from the weigh-in routine's logged values) ----
-function weighInRoutine(){ return routines.find(r=>r.track_value && /weigh/i.test(r.name)) || routines.find(r=>/weigh/i.test(r.name)) || null; }
+// `role` is the stable handle (build 15); the name regexes stay as a fallback for a
+// database where routines-role.sql has not run yet, and for a routine created before
+// the editor offered the field. Rename-proof once the role is set.
+function roleRoutine(role){ return routines.find(r=>r.role===role) || null; }
+function weighInRoutine(){ return roleRoutine('weigh') || routines.find(r=>r.track_value && /weigh/i.test(r.name)) || routines.find(r=>/weigh/i.test(r.name)) || null; }
 function weighInPoints(){
   const r=weighInRoutine(); if(!r) return null;
   const m=logs.get(r.id); const pts=[];
@@ -1342,7 +1349,8 @@ function gymLogHtml(){
       <button class="gbtn" data-start="B"><div class="gt">Full Body B</div><div class="gs">hinge + pull</div></button>
       <button class="gbtn empty" data-start="empty" aria-label="Empty session">＋</button>
     </div>
-    <div class="gempty">Pick a template to start, or ＋ for an empty session.${done.length?`<br>Last workout: ${escapeHtml(done[0].label||'Workout')} · ${fmtDate(done[0].workout_date)}.`:''}</div>`;
+    <div class="gempty">Pick a template to start, or ＋ for an empty session.${done.length?`<br>Last workout: ${escapeHtml(done[0].label||'Workout')} · ${fmtDate(done[0].workout_date)}.`:''}</div>
+    <button class="btn-cancel" data-gtpl="1" style="width:100%;margin-top:4px">✎ Edit templates</button>`;
 }
 function noteOpen(e){ return e._noteOpen===true || (e._noteOpen==null && !!(e.note&&e.note.trim())); }
 function sessionHtml(){
@@ -1435,6 +1443,7 @@ function bindGym(){
   app.querySelectorAll('[data-gexntoggle]').forEach(b=>b.onclick=()=>{ const i=+b.getAttribute('data-gexntoggle'); const e=gymSession.exercises[i]; e._noteOpen=!noteOpen(e); renderGym(); });
   app.querySelectorAll('[data-gexnote]').forEach(t=>{ t.onchange=()=>{ const i=+t.getAttribute('data-gexnote'); if(gymSession.exercises[i]){ gymSession.exercises[i].note=t.value; persistExNotes(); } }; });
   app.querySelectorAll('[data-gaddex]').forEach(b=>b.onclick=()=>openExPicker());
+  app.querySelectorAll('[data-gtpl]').forEach(b=>b.onclick=()=>openTemplates());
   app.querySelectorAll('[data-gdiscard]').forEach(b=>b.onclick=()=>gDiscard());
   app.querySelectorAll('[data-gfinish]').forEach(b=>b.onclick=()=>gFinish());
   app.querySelectorAll('[data-gdel]').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); gDelete(b.getAttribute('data-gdel')); });
@@ -1566,7 +1575,7 @@ function gAddExercise(id){ if(!gymSession) return;
   if(gymSession.exercises.some(e=>String(e.exId)===String(id))){ toast('Already in this workout'); return; }
   gymSession.exercises.push({exId:id, note:'', sets:[{weight:'',reps:''}]}); persistExOrder(); renderGym(); }
 async function completeGymRoutine(ds){
-  const g=routines.find(r=>/gym/i.test(r.name||'')); if(!g) return;
+  const g=roleRoutine('gym') || routines.find(r=>/gym/i.test(r.name||'')); if(!g) return;
   try{ await setLog(g, ds, true, undefined, true); }catch(e){ console.warn('link gym routine failed', e); }
 }
 async function gFinish(){
@@ -1634,6 +1643,85 @@ function openExPicker(){
   };
   $('detailSheet').querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{ gAddExercise(b.getAttribute('data-pick')); $('detail').classList.remove('show'); });
 }
+// ---- template editor (build 15) ----
+// Full Body A and B used to be fixed in GYM_SEED, so changing the split meant changing
+// code. This edits gym_exercises.in_template and sort_order directly. Nothing is ever
+// deleted here: taking an exercise out of a template only clears its in_template, so
+// every set ever logged against it survives.
+let tplTab = 'A';
+function tplMembers(tab){
+  return gymExercises.filter(e=>e.in_template===tab && e.active!==false)
+    .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+}
+function openTemplates(){ renderTemplates(); $('detail').classList.add('show'); }
+function renderTemplates(){
+  const members=tplMembers(tplTab);
+  const available=gymExercises.filter(e=>e.in_template!==tplTab && e.active!==false)
+    .sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const rows = members.length
+    ? members.map((e,i)=>`<div class="erow">
+        <div class="ord"><button data-tplmove="${e.id}:up" ${i===0?'disabled style=opacity:.3':''}>▲</button>
+          <button data-tplmove="${e.id}:down" ${i===members.length-1?'disabled style=opacity:.3':''}>▼</button></div>
+        <div class="en"><div class="n">${escapeHtml(e.name)}</div>
+          <div class="c">${escapeHtml(e.muscle||'—')}</div></div>
+        <button class="ib" data-tplrm="${e.id}" aria-label="Remove from template">✕</button></div>`).join('')
+    : `<div class="gempty" style="padding:18px 0">Nothing in this template yet. Add something below.</div>`;
+  const picks = available.map(e=>`<button class="pk" data-tpladd="${e.id}">${escapeHtml(e.name)}<span class="pm">${escapeHtml(e.muscle||'')}${e.in_template?' · in '+e.in_template:''}</span></button>`).join('');
+  $('detailSheet').innerHTML=`<h2>Edit templates <button class="x" id="closeTpl">×</button></h2>
+    <div class="gsub" style="margin-bottom:12px">
+      <button data-tpltab="A" class="${tplTab==='A'?'on':''}">Full Body A</button>
+      <button data-tpltab="B" class="${tplTab==='B'?'on':''}">Full Body B</button>
+    </div>
+    ${rows}
+    <div class="pglabel" style="margin-top:16px">Add to Full Body ${tplTab}</div>
+    <div class="gpick">${picks||'<div class="gempty">Every exercise is already in this template.</div>'}</div>
+    <div style="font-size:12px;color:var(--muted2);margin:12px 2px 0">Removing an exercise here only takes it out of the template — your logged sets and PRs stay.</div>`;
+  $('detail').classList.add('show');
+  $('closeTpl').onclick=()=>{ $('detail').classList.remove('show'); renderGym(); };
+  const sheet=$('detailSheet');
+  sheet.querySelectorAll('[data-tpltab]').forEach(b=>b.onclick=()=>{ tplTab=b.getAttribute('data-tpltab'); renderTemplates(); });
+  sheet.querySelectorAll('[data-tpladd]').forEach(b=>b.onclick=()=>tplAdd(b.getAttribute('data-tpladd')));
+  sheet.querySelectorAll('[data-tplrm]').forEach(b=>b.onclick=()=>tplSet(b.getAttribute('data-tplrm'), null));
+  sheet.querySelectorAll('[data-tplmove]').forEach(b=>b.onclick=()=>{
+    const p=b.getAttribute('data-tplmove').split(':'); tplMove(p[0], p[1]); });
+}
+async function tplPatch(id, body){
+  const e=gymExercises.find(x=>String(x.id)===String(id)); if(!e) return false;
+  const prev={...e};
+  Object.assign(e, body);          // optimistic: the sheet redraws immediately
+  renderTemplates();
+  try{ await rest('PATCH','gym_exercises?id=eq.'+id,{body,prefer:'return=minimal'}); return true; }
+  catch(err){ Object.assign(e, prev); renderTemplates(); toast('Could not save that', true); console.error(err); return false; }
+}
+function tplAdd(id){
+  // Append: a new exercise belongs at the end of the session, not wherever its global
+  // sort_order happens to put it.
+  const last=tplMembers(tplTab).slice(-1)[0];
+  const order=(last?(last.sort_order||0):0)+1;
+  return tplPatch(id, { in_template: tplTab, sort_order: order });
+}
+function tplSet(id, tab){ return tplPatch(id, { in_template: tab }); }
+async function tplMove(id, dir){
+  const members=tplMembers(tplTab);
+  const i=members.findIndex(e=>String(e.id)===String(id));
+  const j=dir==='up'?i-1:i+1;
+  if(i<0||j<0||j>=members.length) return;
+  const a=members[i], b=members[j];
+  // sort_order is global across the library, so swap the two values rather than
+  // renumbering — that keeps the other template's order untouched.
+  const av=a.sort_order||0, bv=b.sort_order||0;
+  const prevA=av, prevB=bv;
+  a.sort_order=bv; b.sort_order=av;
+  renderTemplates();
+  try{
+    await rest('PATCH','gym_exercises?id=eq.'+a.id,{body:{sort_order:bv},prefer:'return=minimal'});
+    await rest('PATCH','gym_exercises?id=eq.'+b.id,{body:{sort_order:av},prefer:'return=minimal'});
+  }catch(e){
+    a.sort_order=prevA; b.sort_order=prevB; renderTemplates();
+    toast('Could not reorder', true); console.error(e);
+  }
+}
+
 // rest timer (distinct from rest-DAY toggle)
 let restT=null, restLeft=0, restDur=90;
 function startRest(){ if(restT) clearInterval(restT); restLeft=restDur;
@@ -1843,8 +1931,10 @@ function renderTasks(){
     return;
   }
   const openTodos=tkCountOpen('todo'), openAppts=tkCountOpen('appt');
-  const dueToday=tasks.filter(t=>!t.done && t.due_date===dsToday).length;
-  const over=tasks.filter(tkOverdue).length;
+  // Count only what the filters are actually showing. Otherwise the header can read
+  // "2 overdue" above an empty list, which is the one place that care was missed.
+  const dueToday=tasks.filter(t=>!t.done && t.due_date===dsToday && tkVisible(t) && !tkStale(t)).length;
+  const over=tasks.filter(t=>tkOverdue(t) && tkVisible(t)).length;
   $('subtitle').textContent = (dueToday?`${dueToday} today`:'Nothing due today') + (over?` · ${over} overdue`:'');
   app.innerHTML = `
     <div class="tkbar">
@@ -1861,8 +1951,24 @@ function renderTasks(){
     ${tkMode==='cal' ? tkCalHtml() : tkListHtml()}`;
   bindTasks();
 }
+// tkPast() is evaluated at render time, so an appointment whose time passes while the
+// tab is open keeps looking upcoming. Re-render on the minute, and when the app comes
+// back to the foreground — which on a phone is the common case, since the screen was
+// off while the time passed.
+let tkTick=null;
+function tkStartTicking(){
+  if(tkTick) clearInterval(tkTick);
+  tkTick=setInterval(()=>{
+    if(view!=='tasks'){ clearInterval(tkTick); tkTick=null; return; }
+    if(document.visibilityState==='visible') renderTasks();
+  }, 60000);
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && view==='tasks' && tasksReady) renderTasks();
+});
 function bindTasks(){
   const app=$('app');
+  tkStartTicking();
   const fa=$('tkFa'), fb=$('tkFb'), add=$('tkAdd');
   if(fa) fa.onclick=()=>{ tkShowTodos=!tkShowTodos; tkSavePrefs(); renderTasks(); };
   if(fb) fb.onclick=()=>{ tkShowAppts=!tkShowAppts; tkSavePrefs(); renderTasks(); };
@@ -2346,6 +2452,13 @@ function openForm(routine){
     <div class="field rowly ${r.track_value?'':'hidden'}" id="f-numwrap">
       <div><label>Unit</label><input type="text" id="f-unit" value="${escapeHtml(r.unit||'')}" placeholder="g, kg, min"></div>
       <div><label>Daily target (optional)</label><input type="number" id="f-target" value="${r.target_value!=null?r.target_value:''}" placeholder="e.g. 150"></div></div>
+    <div class="field"><label>Linked feature (optional)</label>
+      <select id="f-role">
+        <option value=""${!r.role?' selected':''}>Nothing — a plain routine</option>
+        <option value="gym"${r.role==='gym'?' selected':''}>🏋 Gym tracker — ticks when a set is logged</option>
+        <option value="weigh"${r.role==='weigh'?' selected':''}>⚖ Weigh-in — feeds the body-weight trend</option>
+      </select>
+      <div style="font-size:12px;color:var(--muted2);margin:6px 2px 0">Set this and the link survives a rename.</div></div>
     <div class="field"><div class="toggle ${r.active?'on':''}" id="f-active"><div class="sw"></div>
       <div style="font-weight:600;font-size:14px">Active</div></div></div>
     <div class="formbtns">${isNew?'':'<button class="btn-del" id="f-del">Delete</button>'}
@@ -2357,10 +2470,17 @@ function openForm(routine){
   if(!isNew) $('f-del').onclick = ()=>deleteRoutine(r);
   $('f-save').onclick = async ()=>{
     const name=$('f-name').value.trim(); if(!name){ toast('Give it a name', true); return; }
+    const role=$('f-role').value||null;
     const body={ name, category:$('f-cat').value, cadence:$('f-cad').value, track_value:track,
       unit: track?($('f-unit').value.trim()||null):null,
-      target_value: track && $('f-target').value!=='' ? Number($('f-target').value) : null, active };
+      target_value: track && $('f-target').value!=='' ? Number($('f-target').value) : null, active, role };
     try{
+      // A role is unique in the database, so hand it over rather than failing the save:
+      // the person picking it here is stating where the link belongs.
+      if(role){
+        const holder=allRoutines.find(x=>x.role===role && x.id!==r.id);
+        if(holder) await rest('PATCH','routines?id=eq.'+holder.id,{body:{role:null},prefer:'return=minimal'});
+      }
       if(isNew){ body.sort_order = maxSort(body.category)+1; await rest('POST','routines',{body,prefer:'return=minimal'}); }
       else { await rest('PATCH','routines?id=eq.'+r.id,{body,prefer:'return=minimal'}); }
       toast('Saved'); allRoutines = await loadAll(); await load(); render(); renderEditorList();
@@ -2434,7 +2554,7 @@ if(session) start(); else showLogin();
 // the old worker necessary; it sweeps the leftover caches once on activate instead.
 // updateViaCache:'none' stops the browser's HTTP cache serving an old sw.js.
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js?v=14', { updateViaCache:'none' })
+  navigator.serviceWorker.register('sw.js?v=15', { updateViaCache:'none' })
     .catch(e=>console.warn('service worker registration failed', e));
 }
 </script>

@@ -19,6 +19,36 @@ create table if not exists public.routines (
 -- added after the table existed (numeric targets)
 alter table public.routines add column if not exists target_value numeric;
 
+-- Build 15. Two features used to find their routine by regex on the NAME: the gym
+-- tracker auto-ticked whatever matched /gym/i, and the body-weight trend card read
+-- whatever matched /weigh/i. Renaming either routine in the in-app editor silently
+-- killed the feature — no error, nothing to notice. `role` is a stable handle that
+-- survives a rename.
+alter table public.routines add column if not exists role text;
+
+do $$ begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'routines_role_check' and conrelid = 'public.routines'::regclass
+  ) then
+    alter table public.routines add constraint routines_role_check
+      check (role is null or role = any (array['gym'::text, 'weigh'::text]));
+  end if;
+end $$;
+
+-- At most one routine per role, so the lookup can never be ambiguous.
+create unique index if not exists routines_role_key on public.routines (role) where role is not null;
+
+-- Backfill from the names the regexes were matching, so nothing changes behaviour on
+-- the day this runs. Only fills a role that is still unclaimed.
+update public.routines set role = 'gym'
+where role is null and name ~* 'gym'
+  and not exists (select 1 from public.routines where role = 'gym');
+
+update public.routines set role = 'weigh'
+where role is null and track_value and name ~* 'weigh'
+  and not exists (select 1 from public.routines where role = 'weigh');
+
 create table if not exists public.routine_logs (
   id         uuid primary key default gen_random_uuid(),
   routine_id uuid        not null references public.routines(id) on delete cascade,
