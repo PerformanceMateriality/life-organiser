@@ -1365,8 +1365,7 @@ function todaySubtitle(ds){
 }
 
 // ---- Today: grouped tiles ----
-const TODAY_ORDER=['mind','health','fitness','work'];   // hardest habits first
-const CAT_SHORT={ mind:'Mind', health:'Health', fitness:'Fitness', work:'Work' };
+const TODAY_ORDER=CATEGORIES.map(c=>c.key);   // same order and names as before the rebrand
 const FLAME_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS.flame}</svg>`;
 function isGymRoutine(r){ return r.role==='gym' || (!r.role && /gym/i.test(r.name||'')); }
 function tileVal(r,ds){
@@ -1408,17 +1407,17 @@ function renderToday(){
   let html='';
   if(ds===ymd(today)){ const strip=tkTodayStripHtml(); if(strip) html+=strip; }
   if(!routines.length){ $('app').innerHTML=html+'<div class="loading">No routines yet. Tap the gear to add one.</div>'; bindStrip(); return; }
-  for(const key of TODAY_ORDER){
-    const items=routines.filter(r=>r.category===key && !CADENCE[r.cadence].periodic);
-    if(!items.length) continue;
+  // Grouped as before the rebrand: each category holds its daily tiles and, under them,
+  // its own periodic routines (gym and treadmill under Fitness, ETF and garden under Work…).
+  for(const cat of CATEGORIES){
+    const key=cat.key, all=routines.filter(r=>r.category===key);
+    if(!all.length) continue;
+    const items=all.filter(r=>!CADENCE[r.cadence].periodic), per=all.filter(r=>CADENCE[r.cadence].periodic);
     const d=items.filter(r=>isDone(r.id,ds)).length, mind=key==='mind';
-    html+=`<section class="cat"><h2><span class="dot" style="background:${RAWCOLOR[key]}"></span><span class="cl">${CAT_SHORT[key]}</span>${CAT_XP[key]} xp each<span class="cnt" data-cnt="${key}">${d}/${items.length}</span></h2>
-      <div class="tgrid${mind?' mind':''}"${mind?` style="--n:${Math.min(items.length,2)}"`:''}>${items.map(r=>tileHtml(r,ds)).join('')}</div></section>`;
-  }
-  const per=routines.filter(r=>CADENCE[r.cadence].periodic);
-  if(per.length){
-    html+=`<section class="cat"><h2><span class="dot" style="background:var(--muted2)"></span><span class="cl">Periodic</span><span class="cnt" data-cnt="periodic">${periodicDueCount(ds)} due</span></h2>
-      <div class="pgrid">${per.map(r=>pcardHtml(r,ds)).join('')}</div></section>`;
+    const cnt=items.length?`<span class="cnt" data-cnt="${key}">${d}/${items.length}</span>`:'';
+    const tiles=items.length?`<div class="tgrid${mind?' mind':''}"${mind?` style="--n:${Math.min(items.length,2)}"`:''}>${items.map(r=>tileHtml(r,ds)).join('')}</div>`:'';
+    const cards=per.length?`<div class="pgrid"${items.length?' style="margin-top:8px"':''}>${per.map(r=>pcardHtml(r,ds)).join('')}</div>`:'';
+    html+=`<section class="cat"><h2><span class="dot" style="background:${RAWCOLOR[key]}"></span><span class="cl">${cat.label}</span>${cnt}</h2>${tiles}${cards}</section>`;
   }
   $('app').innerHTML=html;
   bindStrip();
@@ -1432,7 +1431,6 @@ function syncTodayChrome(ds, wasPerfect){
   ringSvg(ds); todaySubtitle(ds); renderLevelBar();
   for(const key of TODAY_ORDER){ const e=document.querySelector(`[data-cnt="${key}"]`); if(!e) continue;
     const items=routines.filter(r=>r.category===key && !CADENCE[r.cadence].periodic); e.textContent=`${items.filter(r=>isDone(r.id,ds)).length}/${items.length}`; }
-  const pe=document.querySelector('[data-cnt="periodic"]'); if(pe) pe.textContent=`${periodicDueCount(ds)} due`;
   if(wasPerfect===false && isPerfect(ds)) celebratePerfect();
 }
 function celebratePerfect(){
