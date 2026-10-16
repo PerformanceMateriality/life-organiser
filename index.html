@@ -104,6 +104,11 @@
   .tgrid.mind .lay .s .vw{font-size:60px}
   .lay .s svg{width:13px;height:13px;color:var(--flame);margin-bottom:5px;fill:currentColor;stroke:none}
   .lay .s .start{font-size:12px;color:var(--muted);margin-bottom:3px}
+  /* build 17: set by fitStreaks() only where the number would touch the name */
+  .lay.fit1 .s .vw{font-size:26px}
+  .lay.fit2 .s .vw{font-size:19px}
+  .lay.fit2 .s svg{width:11px;height:11px;margin-bottom:3px}
+  .lay.fit3 .n{-webkit-line-clamp:1}
   .lay .nf{position:absolute;top:13px;right:13px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
   .fill{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 78%,#fff) 0%,var(--c) 58%);color:var(--onc);
     clip-path:circle(0px at 50% 50%);opacity:0;pointer-events:none}
@@ -709,7 +714,7 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 16</div>
+  <div class="foot">Life Organiser · build 17</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1420,8 +1425,19 @@ function renderToday(){
     html+=`<section class="cat"><h2><span class="dot" style="background:${RAWCOLOR[key]}"></span><span class="cl">${cat.label}</span>${cnt}</h2>${tiles}${cards}</section>`;
   }
   $('app').innerHTML=html;
-  bindStrip();
+  bindStrip(); fitStreaks();
 }
+// The streak number sits bottom-right, out of the text flow, so a name that wraps to a
+// second line could run underneath it. Measured rather than guessed: on any tile where
+// the text actually touches the number, step the number down a size (twice if needed).
+function streakHits(l){ const s=l.querySelector('.s'); if(!s) return false; const B=s.getBoundingClientRect(), r=document.createRange();
+  return [...l.querySelectorAll('.n,.tv')].some(e=>{ r.selectNodeContents(e);
+    return [...r.getClientRects()].some(A=>A.right>B.left+1 && B.right>A.left+1 && A.bottom>B.top+1 && B.bottom>A.top+1); }); }
+// Last resort, only on the narrowest phones: the name goes to one line as well.
+function fitStreaks(root){ (root||document).querySelectorAll('.t .lay').forEach(l=>{ l.classList.remove('fit1','fit2','fit3');
+  for(const c of ['fit1','fit2','fit3']){ if(!streakHits(l)) break; l.classList.add(c); } }); }
+addEventListener('resize', ()=>{ if(view==='today') fitStreaks(); });
+if(document.fonts) document.fonts.ready.then(()=>{ if(view==='today') fitStreaks(); });
 function periodicDueCount(ds){ return routines.filter(r=>CADENCE[r.cadence].periodic && !isDone(r.id,ds) && periodicStatus(r).due).length; }
 function bindStrip(){ const s=$('tkStrip'); if(s) s.onclick=()=>{ view='tasks'; render(); }; }
 // Refresh everything around the tiles without rebuilding them, so an animation in
@@ -1458,6 +1474,7 @@ function paintRoutine(el,r,ds,o={}){
   el.querySelectorAll('.lay').forEach(l=>{ const s=l.querySelector('.s'); if(s) s.outerHTML=streakHtml(n);
     const tv=l.querySelector('.tv'); if(tv) tv.innerHTML=tileVal(r,ds);
     const nf=l.querySelector('.nf'); const log=getLog(r.id,ds); if(nf && !(log&&log.note)) nf.remove(); });
+  fitStreaks(el);
   if(n!==oldN && n && !RM) el.querySelectorAll('.v').forEach(v=>v.animate(
     [{transform:`translateY(${n>oldN?60:-60}%)`,opacity:0},{transform:'none',opacity:1}],{duration:260,easing:'cubic-bezier(.16,1,.3,1)'}));
   if(!fill) return;
@@ -1979,33 +1996,54 @@ function openWorkout(wid){
   gymTab='log'; stopRest(); renderGym();
 }
 function nextSetNo(ex){ let m=0; ex.sets.forEach(s=>{ if(s.set_no) m=Math.max(m,s.set_no); }); return m+1; }
-async function persistSet(i,j){
-  if(!gymSession) return;
-  const ex=gymSession.exercises[i]; if(!ex) return; const st=ex.sets[j]; if(!st||st._saving) return;
+// Set saves (build 17). Up to build 16 a save that was still in flight made the next
+// one return early, timers were keyed by position (so removing or moving an exercise
+// pointed them at the wrong set), a failed save was never retried, and Finish didn't
+// wait for any of it. On a weak gym signal that quietly lost sets while the screen
+// still showed them. Now each set has its own queue, so saves run one after another
+// and the last thing typed always gets sent; a set stays _dirty until a save of its
+// current values has landed, and dirty sets are retried on reconnect, on return to
+// the app, and on Finish — which refuses to close the workout while any remain.
+function persistSet(ex,st){
+  if(!gymSession||!ex||!st) return Promise.resolve(true);
+  const wid=gymSession.id;
+  st._q=(st._q||Promise.resolve(true)).then(()=>saveSetOnce(wid,ex,st));
+  return st._q;
+}
+async function saveSetOnce(wid,ex,st){
+  if(!gymSession || gymSession.id!==wid || !gymSession.exercises.includes(ex) || !ex.sets.includes(st)) return true; // removed meanwhile
+  const want={weight:st.weight, reps:st.reps};
+  const clean=()=>{ if(st.weight===want.weight && st.reps===want.reps) st._dirty=false; };
   const reps=parseInt(st.reps,10);
   const weight=(st.weight===''||st.weight==null)?0:Number(st.weight);
   if(!(reps>0) || isNaN(weight)){
-    if(st.id){ st._saving=true; try{ await rest('DELETE','gym_sets?id=eq.'+st.id); gsDel(st.id); }catch(e){} st.id=null; st._saving=false; }
-    return;
+    if(st.id){ try{ await rest('DELETE','gym_sets?id=eq.'+st.id); gsDel(st.id); st.id=null; }
+      catch(e){ st._dirty=true; console.error(e); return false; } }
+    clean(); return true;
   }
-  st._saving=true;
   try{
     if(st.id){
       await rest('PATCH','gym_sets?id=eq.'+st.id,{body:{weight,reps},prefer:'return=minimal'});
       gsPatch(st.id,{weight,reps});
     } else {
-      const wasFirst = !gymSets.some(s=>s.workout_id===gymSession.id);
-      const set_no = nextSetNo(ex);
-      const r=await rest('POST','gym_sets',{body:{workout_id:gymSession.id, exercise_id:ex.exId, set_no, weight, reps}, prefer:'return=representation'});
+      const wasFirst = !gymSets.some(s=>s.workout_id===wid);
+      const set_no = Math.max(nextSetNo(ex), ex.sets.indexOf(st)+1);
+      const r=await rest('POST','gym_sets',{body:{workout_id:wid, exercise_id:ex.exId, set_no, weight, reps}, prefer:'return=representation'});
       const ns=Array.isArray(r)?r[0]:r;
-      if(ns){ st.id=ns.id; st.set_no=(ns.set_no!=null?ns.set_no:set_no); gsAdd({id:ns.id, workout_id:gymSession.id, exercise_id:ex.exId, set_no:st.set_no, weight, reps}); }
+      if(ns){ st.id=ns.id; st.set_no=(ns.set_no!=null?ns.set_no:set_no); gsAdd({id:ns.id, workout_id:wid, exercise_id:ex.exId, set_no:st.set_no, weight, reps}); }
       if(wasFirst && !gymSession.tickedRoutine && isTodayDate(gymSession.date)){ gymSession.tickedRoutine=true; completeGymRoutine(gymSession.date); }
     }
+    clean();
     maybePR(ex.exId);
     markSavedStat();
-  }catch(e){ toast('Set not saved — check connection', true); console.error(e); }
-  st._saving=false;
+    return true;
+  }catch(e){ st._dirty=true; saveFailToast(); console.error(e); return false; }
 }
+// One toast per burst of failures, not one per set.
+let saveFailAt=0;
+function saveFailToast(){ if(Date.now()-saveFailAt<4000) return; saveFailAt=Date.now(); toast('Not saved yet — will retry when you’re back online', true); }
+function unsavedCount(){ if(!gymSession) return 0; let n=gymSession._orderDirty||gymSession._notesDirty?1:0;
+  gymSession.exercises.forEach(ex=>ex.sets.forEach(st=>{ if(st._dirty||st._t) n++; })); return n; }
 function maybePR(exId){
   if(!gymSession || gymSession.prToasted.has(exId)) return;
   const hasHist=gymSets.some(s=>s.exercise_id===exId && s.workout_id!==gymSession.id);
@@ -2019,22 +2057,52 @@ function updatePrChip(exId){ const el=document.querySelector('[data-prchip="'+St
 function markSavedStat(){ const el=$('gsavestat'); if(!el) return; const d=new Date();
   const p=n=>String(n).padStart(2,'0'); el.textContent='Auto-saved '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
 // live set-save scheduling
-const gsetTimers={};
-function scheduleSetSave(i,j){ const k=i+':'+j; clearTimeout(gsetTimers[k]); gsetTimers[k]=setTimeout(()=>{ delete gsetTimers[k]; persistSet(i,j); }, 700); }
-function flushSetSave(i,j){ const k=i+':'+j; if(gsetTimers[k]){ clearTimeout(gsetTimers[k]); delete gsetTimers[k]; } persistSet(i,j); }
-function flushAllSets(){ Object.keys(gsetTimers).forEach(k=>{ const p=k.split(':'); flushSetSave(+p[0],+p[1]); }); }
+// The timer lives on the set object itself, so moving or removing an exercise can't
+// point a pending save at a different set.
+function scheduleSetSave(ex,st){ st._dirty=true; clearTimeout(st._t); st._t=setTimeout(()=>{ st._t=null; persistSet(ex,st); }, 700); }
+function flushSetSave(ex,st){ if(st._t){ clearTimeout(st._t); st._t=null; } return persistSet(ex,st); }
+// Sends everything that isn't saved yet and waits for it. Resolves true only when
+// every set, the order and the notes are on the server.
+async function flushAllSets(){
+  if(!gymSession) return true;
+  const s=gymSession, jobs=[];
+  s.exercises.forEach(ex=>ex.sets.forEach(st=>{ if(st._t||st._dirty) jobs.push(flushSetSave(ex,st)); else if(st._q) jobs.push(st._q); }));
+  if(s._orderDirty) jobs.push(persistExOrder()); else if(s._metaQ) jobs.push(s._metaQ);
+  if(s._notesDirty) jobs.push(persistExNotes());
+  await Promise.all(jobs);
+  if(s._metaQ) await s._metaQ;
+  return unsavedCount()===0;
+}
+function retryUnsaved(){ if(gymSession && unsavedCount()) flushAllSets(); }
+window.addEventListener('online', retryUnsaved);
+// Wait for anything already queued on these sets, so a POST still in flight can't
+// land after the DELETE that was meant to remove it.
+async function settleSets(sets){ sets.forEach(st=>{ if(st._t){ clearTimeout(st._t); st._t=null; } st._dirty=false; });
+  await Promise.all(sets.map(st=>st._q).filter(Boolean)); }
 
 function gAddSet(i){ const ex=gymSession.exercises[i]; const last=ex.sets[ex.sets.length-1]; ex.sets.push({weight:last?last.weight:'', reps:''}); startRest(); renderGym(); }
 async function gRmSet(i,j){ const ex=gymSession.exercises[i]; if(!ex) return; const st=ex.sets[j]; ex.sets.splice(j,1);
-  if(st&&st.id){ try{ await rest('DELETE','gym_sets?id=eq.'+st.id); gsDel(st.id); }catch(e){ toast('Could not remove set', true); } }
-  if(!ex.sets.length) ex.sets.push({weight:'',reps:''}); renderGym(); }
+  if(!ex.sets.length) ex.sets.push({weight:'',reps:''}); renderGym();
+  if(!st) return; await settleSets([st]);
+  if(st.id){ try{ await rest('DELETE','gym_sets?id=eq.'+st.id); gsDel(st.id); }catch(e){ toast('Could not remove set', true); } } }
 function gMoveEx(i,dir){ const a=gymSession.exercises; const j=i+dir; if(j<0||j>=a.length) return; const t=a[i]; a[i]=a[j]; a[j]=t; persistExOrder(); renderGym(); }
-function persistExOrder(){ if(!gymSession) return; const order=gymSession.exercises.map(e=>e.exId); gymSession.ex_order=order;
-  const w=gymWorkouts.find(x=>x.id===gymSession.id); if(w) w.ex_order=order;
-  rest('PATCH','gym_workouts?id=eq.'+gymSession.id,{body:{ex_order:order},prefer:'return=minimal'}).then(markSavedStat).catch(()=>toast('Order not saved',true)); }
-function persistExNotes(){ if(!gymSession) return; const notes={}; gymSession.exercises.forEach(e=>{ if(e.note&&e.note.trim()) notes[e.exId]=e.note.trim(); }); gymSession.ex_notes=notes;
-  const w=gymWorkouts.find(x=>x.id===gymSession.id); if(w) w.ex_notes=notes;
-  rest('PATCH','gym_workouts?id=eq.'+gymSession.id,{body:{ex_notes:notes},prefer:'return=minimal'}).then(markSavedStat).catch(()=>toast('Note not saved',true)); }
+// Order and notes share one queue per workout, so two quick moves can't arrive out of
+// order and leave the older one on the server. A failure is remembered and retried:
+// an exercise with no sets yet exists only in ex_order, so losing that write loses it.
+function queueMeta(field, value){ const s=gymSession, wid=s.id;
+  const w=gymWorkouts.find(x=>x.id===wid); if(w) w[field]=value;
+  const flag = field==='ex_order' ? '_orderDirty' : '_notesDirty';
+  s[flag]=true;
+  s._metaQ=(s._metaQ||Promise.resolve()).then(async()=>{
+    if(s[field]!==value) return;  // a newer value is queued behind this one
+    try{ await rest('PATCH','gym_workouts?id=eq.'+wid,{body:{[field]:value},prefer:'return=minimal'}); s[flag]=false; markSavedStat(); }
+    catch(e){ saveFailToast(); console.error(e); }
+  });
+  return s._metaQ; }
+function persistExOrder(){ if(!gymSession) return Promise.resolve(); const order=gymSession.exercises.map(e=>e.exId); gymSession.ex_order=order;
+  return queueMeta('ex_order', order); }
+function persistExNotes(){ if(!gymSession) return Promise.resolve(); const notes={}; gymSession.exercises.forEach(e=>{ if(e.note&&e.note.trim()) notes[e.exId]=e.note.trim(); }); gymSession.ex_notes=notes;
+  return queueMeta('ex_notes', notes); }
 function persistMeta(){ if(!gymSession) return;
   const label=(($('g-label')&&$('g-label').value)||'').trim()||'Workout';
   const date=($('g-date')&&$('g-date').value)||gymSession.date;
@@ -2043,8 +2111,9 @@ function persistMeta(){ if(!gymSession) return;
   const w=gymWorkouts.find(x=>x.id===gymSession.id); if(w){ w.label=label; w.workout_date=date; w.note=note||null; }
   rest('PATCH','gym_workouts?id=eq.'+gymSession.id,{body:{label, workout_date:date, note:note||null},prefer:'return=minimal'}).then(markSavedStat).catch(()=>toast('Details not saved',true)); }
 async function gRmExercise(i){ const ex=gymSession.exercises[i]; if(!ex) return;
-  if(ex.sets.some(s=>s.id) && !confirm('Remove '+exName(ex.exId)+' and its logged sets?')) return;
+  if(ex.sets.some(s=>s.id||String(s.reps||'').trim()) && !confirm('Remove '+exName(ex.exId)+' and its logged sets?')) return;
   gymSession.exercises.splice(i,1); const wid=gymSession.id;
+  await settleSets(ex.sets);
   try{ await rest('DELETE','gym_sets?workout_id=eq.'+wid+'&exercise_id=eq.'+ex.exId); gymSets=gymSets.filter(s=>!(s.workout_id===wid&&s.exercise_id===ex.exId)); }catch(e){ toast('Could not remove exercise', true); }
   persistExOrder(); persistExNotes(); renderGym(); }
 function gAddExercise(id){ if(!gymSession) return;
@@ -2056,9 +2125,15 @@ async function completeGymRoutine(ds){
 }
 async function gFinish(){
   if(!gymSession || busy) return; busy=true;
-  flushAllSets();
   const wid=gymSession.id;
   const preLevel=gymSession.preLevel, preTiers=gymSession.preTiers;
+  // Everything typed must be on the server before the workout closes; otherwise the
+  // screen is the only copy, and it's gone the moment the session is cleared.
+  if(!(await flushAllSets())){
+    const n=unsavedCount();
+    toast(n+' change'+(n>1?'s':'')+' not saved yet — check your connection and tap again', true);
+    busy=false; return;
+  }
   try{
     const nSets=gymSets.filter(s=>s.workout_id===wid).length;
     if(nSets===0){
@@ -2078,9 +2153,10 @@ async function gFinish(){
 async function gDiscard(){
   if(!gymSession || busy) return;
   const wid=gymSession.id;
-  const nSets=gymSets.filter(s=>s.workout_id===wid).length;
+  const all=gymSession.exercises.flatMap(ex=>ex.sets);
+  const nSets=Math.max(gymSets.filter(s=>s.workout_id===wid).length, all.filter(s=>s.id||String(s.reps||'').trim()).length);
   if(nSets>0 && !confirm('Discard this whole workout and its '+nSets+' set'+(nSets>1?'s':'')+'? This cannot be undone.')) return;
-  busy=true; flushAllSets();
+  busy=true; await settleSets(all);
   try{
     await rest('DELETE','gym_sets?workout_id=eq.'+wid).catch(()=>{});
     await rest('DELETE','gym_workouts?id=eq.'+wid);
@@ -2223,10 +2299,13 @@ function renderRest(rebar){ const v=$('rtimerval'); if(v) v.textContent=fmtTime(
   restAnim.currentTime=total-rem; }
 document.addEventListener('input',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
   const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'), f=g.getAttribute('data-gfield');
-  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]){ ex.sets[j][f]=g.value; scheduleSetSave(i,j); } });
+  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]){ ex.sets[j][f]=g.value; scheduleSetSave(ex,ex.sets[j]); } });
 document.addEventListener('change',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
-  const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'); flushSetSave(i,j); });
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && gymSession) flushAllSets(); });
+  const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset');
+  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]) flushSetSave(ex,ex.sets[j]); });
+// Hidden: send what's pending before iOS suspends the app. Visible again: retry
+// anything that failed while it was away.
+document.addEventListener('visibilitychange',()=>{ if(!gymSession) return; if(document.hidden) flushAllSets(); else retryUnsaved(); });
 
 // ================= TASKS (build 13) =================
 // To-dos and appointments. Deliberately OUTSIDE the game layer:
