@@ -85,12 +85,10 @@
   .cat h2 .cl{color:var(--text);font-weight:500}
   .cat h2 .cnt{margin-left:auto;font-variant-numeric:tabular-nums}
   .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .tgrid.mind{grid-template-columns:repeat(var(--n,1),1fr)}
   .t{aspect-ratio:1;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);position:relative;overflow:hidden;
     display:block;width:100%;padding:0;cursor:pointer;color:var(--text);text-align:left;font:inherit;
     transition:transform .12s var(--ease),border-color .3s,box-shadow .3s}
   .t:active{transform:scale(.97)}
-  .tgrid.mind .t{aspect-ratio:auto;height:104px}
   .lay{position:absolute;inset:0;padding:11px;display:flex;flex-direction:column;gap:6px}
   .lay .i{color:var(--c)}
   .lay .n{font-size:12.5px;line-height:1.2;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto}
@@ -101,14 +99,18 @@
   .lay.hv .s .vw{font-size:26px}
   .lay .s .v{display:block;font-weight:300;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1.1}
   .lay .s.k3 .vw{font-size:27px}
-  .tgrid.mind .lay .s .vw{font-size:60px}
   .lay .s svg{width:13px;height:13px;color:var(--flame);margin-bottom:5px;fill:currentColor;stroke:none}
   .lay .s .start{font-size:12px;color:var(--muted);margin-bottom:3px}
-  /* build 17: set by fitStreaks() only where the number would touch the name */
-  .lay.fit1 .s .vw{font-size:26px}
-  .lay.fit2 .s .vw{font-size:19px}
-  .lay.fit2 .s svg{width:11px;height:11px;margin-bottom:3px}
-  .lay.fit3 .n{-webkit-line-clamp:1}
+  /* build 17: set by fitStreaks() only where the number would touch the name.
+     Build 18: prefixed with .tgrid, because build 17's bare .lay.fitN lost to the
+     5-class .tgrid.mind rule, so the wide Mind tiles never shrank. (That wide Mind
+     row is gone too: every tile is the same size since build 18.)
+     fit4 is the guarantee: name and value end in an ellipsis before the number. */
+  .tgrid .lay.fit1 .s .vw{font-size:26px}
+  .tgrid .lay.fit2 .s .vw{font-size:19px}
+  .tgrid .lay.fit2 .s svg{width:11px;height:11px;margin-bottom:3px}
+  .tgrid .lay.fit3 .n{-webkit-line-clamp:1}
+  .tgrid .lay.fit4 .n, .tgrid .lay.fit4 .tv{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:var(--room)}
   .lay .nf{position:absolute;top:13px;right:13px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
   .fill{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 78%,#fff) 0%,var(--c) 58%);color:var(--onc);
     clip-path:circle(0px at 50% 50%);opacity:0;pointer-events:none}
@@ -714,7 +716,7 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 17</div>
+  <div class="foot">Life Organiser · build 18</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -798,7 +800,14 @@ const CATEGORIES = [
 ];
 const RAWCOLOR = { health:'#34d399', fitness:'#fb923c', mind:'#a78bfa', work:'#38bdf8' };
 const TRACK = { health:'Vitality', fitness:'Strength', mind:'Focus', work:'Order' };
+// Build 18 (Martijn, 2026-10-18): every routine is worth the same — 15 XP, any category.
+// The old asymmetry (Mind 20 … Work 10) only fitted a single Meditate routine; with
+// more routines per category it rewarded the category, not the habit. XP is derived
+// from logs, so a plain change would rewrite history and move his level. Instead the
+// rate goes by the log's date: days before XP_FLAT_FROM keep the old rates.
 const CAT_XP = { mind:20, health:15, fitness:10, work:10 };
+const XP_FLAT = 15, XP_FLAT_FROM = '2026-10-18';
+function xpRate(cat, ds){ return ds >= XP_FLAT_FROM ? XP_FLAT : (CAT_XP[cat]||10); }
 const CADENCE = {
   daily:           { label:'Daily',           periodic:false },
   every_other_day: { label:'Every other day', periodic:true, interval:2 },
@@ -1195,11 +1204,11 @@ function valueDone(routine, num){ if(num===null||num===undefined||num==='') retu
 
 // ===== GAMIFICATION =====
 function catOf(rid){ const r=routines.find(x=>x.id===rid); return r?r.category:null; }
-function xpOfRoutine(r){ return CAT_XP[r.category] || 10; }
-function xpOfLog(rid){ const c=catOf(rid); return c ? (CAT_XP[c]||10) : 10; }
-function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [,l] of m){ if(l.completed) x+=xpOfLog(rid); } } return x + totalQuestXp() + gymBonusXp(); }
+function xpOfRoutine(r, ds){ return xpRate(r.category, ds); }
+function xpOfLog(rid, ds){ return xpRate(catOf(rid), ds); }
+function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [ds,l] of m){ if(l.completed) x+=xpOfLog(rid, ds); } } return x + totalQuestXp() + gymBonusXp(); }
 function totalXp(){ return activityXp() + setBonusXp(); }
-function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [,l] of m){ if(l.completed) x+=(CAT_XP[cat]||10); } } return x; }
+function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [ds,l] of m){ if(l.completed) x+=xpRate(cat, ds); } } return x; }
 function levelInfo(xp){ let lvl=1, acc=0, need=100; while(xp >= acc+need){ acc+=need; lvl++; need=100+(lvl-1)*50; } return { level:lvl, into:xp-acc, need, total:xp }; }
 function totalCheckoffs(){ let c=0; for(const [,m] of logs) for(const [,l] of m) if(l.completed) c++; return c; }
 function completedDates(rid){ const m=logs.get(rid); if(!m) return []; const a=[]; for(const [ds,l] of m) if(l.completed) a.push(ds); a.sort(); return a; }
@@ -1279,10 +1288,10 @@ function dailyRoutines(){ return routines.filter(r=>!CADENCE[r.cadence].periodic
 const QUEST_POOL = [
   { id:'momentum3', icon:'⚡', name:'Momentum',         desc:'Complete any 3 habits',       xp:10, applies:()=>routines.length>=3,                                  progress:(ds)=>({have:countCompletedOn(ds), need:3}) },
   { id:'momentum5', icon:'🔋', name:'On a roll',         desc:'Complete any 5 habits',       xp:15, applies:()=>routines.length>=5,                                  progress:(ds)=>({have:countCompletedOn(ds), need:5}) },
-  { id:'mind1',     icon:'🧘', name:'Mind over matter',  desc:'Complete a Mind habit',       xp:20, applies:()=>routines.some(r=>r.category==='mind'),               progress:(ds)=>({have:countCatCompletedOn('mind',ds), need:1}) },
+  { id:'mind1',     icon:'🧘', name:'Mind over matter',  desc:'Complete a Mind habit',       xp:20, xpFlat:15, applies:()=>routines.some(r=>r.category==='mind'),               progress:(ds)=>({have:countCatCompletedOn('mind',ds), need:1}) },
   { id:'health2',   icon:'💊', name:'Fuel up',           desc:'Complete 2 Health habits',    xp:15, applies:()=>routines.filter(r=>r.category==='health').length>=2, progress:(ds)=>({have:countCatCompletedOn('health',ds), need:2}) },
   { id:'health3',   icon:'🥗', name:'Well fed',          desc:'Complete 3 Health habits',    xp:20, applies:()=>routines.filter(r=>r.category==='health').length>=3, progress:(ds)=>({have:countCatCompletedOn('health',ds), need:3}) },
-  { id:'fit1',      icon:'🏃', name:'Get moving',        desc:'Complete a Fitness habit',    xp:10, applies:()=>routines.some(r=>r.category==='fitness'),            progress:(ds)=>({have:countCatCompletedOn('fitness',ds), need:1}) },
+  { id:'fit1',      icon:'🏃', name:'Get moving',        desc:'Complete a Fitness habit',    xp:10, xpFlat:15, applies:()=>routines.some(r=>r.category==='fitness'),            progress:(ds)=>({have:countCatCompletedOn('fitness',ds), need:1}) },
   { id:'target1',   icon:'🎯', name:'On target',         desc:'Hit a numeric target',        xp:15, applies:()=>routines.some(r=>r.track_value && r.target_value!=null), progress:(ds)=>({have:countTargetsHitOn(ds), need:1}) },
   { id:'balance3',  icon:'⚖️', name:'Balanced',          desc:'Habits across 3 areas',       xp:15, applies:()=>new Set(routines.map(r=>r.category)).size>=3,        progress:(ds)=>({have:countAreasOn(ds), need:3}) },
   { id:'flawless',  icon:'✨', name:'Flawless day',      desc:'Complete all daily habits',   xp:25, applies:()=>dailyRoutines().length>0,                            progress:(ds)=>{ const d=dailyRoutines(); return {have:d.filter(r=>isDone(r.id,ds)).length, need:d.length}; } },
@@ -1297,7 +1306,8 @@ function questsForDate(ds){
 function activeQuests(){ return questsForDate(ymd(today)); }
 function questDone(q,ds){ const p=q.progress(ds); return p.have>=p.need; }
 function completedQuestIds(ds){ const s=new Set(); for(const q of questsForDate(ds)) if(questDone(q,ds)) s.add(q.id); return s; }
-function questXpForDay(ds){ let x=0; for(const q of questsForDate(ds)) if(questDone(q,ds)) x+=q.xp; return x; }
+function questXp(q, ds){ return q.xpFlat!=null && ds >= XP_FLAT_FROM ? q.xpFlat : q.xp; }
+function questXpForDay(ds){ let x=0; for(const q of questsForDate(ds)) if(questDone(q,ds)) x+=questXp(q,ds); return x; }
 function totalQuestXp(){
   const dates=new Set(); for(const [,m] of logs) for(const [ds,l] of m) if(l.completed) dates.add(ds);
   let x=0; for(const ds of dates) x+=questXpForDay(ds); return x;
@@ -1358,7 +1368,7 @@ function dateLabel(){
   $('dateLbl').textContent=`${wd} ${selected.getDate()}`;
   $('nextDay').disabled = ymd(selected)>=ymd(today);
 }
-function dayXp(ds){ return routines.reduce((a,r)=>a+(isDone(r.id,ds)?xpOfRoutine(r):0),0); }
+function dayXp(ds){ return routines.reduce((a,r)=>a+(isDone(r.id,ds)?xpOfRoutine(r,ds):0),0); }
 function todaySubtitle(ds){
   const d=parseYmd(ds), diff=Math.round((d-today)/86400000);
   const word = diff===0 ? '' : diff===-1 ? 'yesterday · ' : '';
@@ -1418,9 +1428,9 @@ function renderToday(){
     const key=cat.key, all=routines.filter(r=>r.category===key);
     if(!all.length) continue;
     const items=all.filter(r=>!CADENCE[r.cadence].periodic), per=all.filter(r=>CADENCE[r.cadence].periodic);
-    const d=items.filter(r=>isDone(r.id,ds)).length, mind=key==='mind';
+    const d=items.filter(r=>isDone(r.id,ds)).length;
     const cnt=items.length?`<span class="cnt" data-cnt="${key}">${d}/${items.length}</span>`:'';
-    const tiles=items.length?`<div class="tgrid${mind?' mind':''}"${mind?` style="--n:${Math.min(items.length,2)}"`:''}>${items.map(r=>tileHtml(r,ds)).join('')}</div>`:'';
+    const tiles=items.length?`<div class="tgrid">${items.map(r=>tileHtml(r,ds)).join('')}</div>`:'';
     const cards=per.length?`<div class="pgrid"${items.length?' style="margin-top:8px"':''}>${per.map(r=>pcardHtml(r,ds)).join('')}</div>`:'';
     html+=`<section class="cat"><h2><span class="dot" style="background:${RAWCOLOR[key]}"></span><span class="cl">${cat.label}</span>${cnt}</h2>${tiles}${cards}</section>`;
   }
@@ -1433,11 +1443,19 @@ function renderToday(){
 function streakHits(l){ const s=l.querySelector('.s'); if(!s) return false; const B=s.getBoundingClientRect(), r=document.createRange();
   return [...l.querySelectorAll('.n,.tv')].some(e=>{ r.selectNodeContents(e);
     return [...r.getClientRects()].some(A=>A.right>B.left+1 && B.right>A.left+1 && A.bottom>B.top+1 && B.bottom>A.top+1); }); }
-// Last resort, only on the narrowest phones: the name goes to one line as well.
-function fitStreaks(root){ (root||document).querySelectorAll('.t .lay').forEach(l=>{ l.classList.remove('fit1','fit2','fit3');
-  for(const c of ['fit1','fit2','fit3']){ if(!streakHits(l)) break; l.classList.add(c); } }); }
+// fit3: the name goes to one line. fit4, the guarantee: name and value are cut with an
+// ellipsis where the number begins, so whatever the name, phone or font, they can't touch.
+function fitStreaks(root){ (root||document).querySelectorAll('.t .lay').forEach(l=>{ l.classList.remove('fit1','fit2','fit3','fit4'); l.style.removeProperty('--room');
+  for(const c of ['fit1','fit2','fit3']){ if(!streakHits(l)) return; l.classList.add(c); }
+  if(!streakHits(l)) return;
+  const s=l.querySelector('.s'), n=l.querySelector('.n'); if(!s||!n) return;
+  l.style.setProperty('--room', Math.max(0, s.getBoundingClientRect().left - n.getBoundingClientRect().left - 6)+'px');
+  l.classList.add('fit4'); }); }
 addEventListener('resize', ()=>{ if(view==='today') fitStreaks(); });
-if(document.fonts) document.fonts.ready.then(()=>{ if(view==='today') fitStreaks(); });
+// fonts.ready can resolve before Archivo has even started loading, so also refit each
+// time a font finishes — the text gets wider when it swaps in.
+if(document.fonts){ document.fonts.ready.then(()=>{ if(view==='today') fitStreaks(); });
+  document.fonts.addEventListener('loadingdone', ()=>{ if(view==='today') fitStreaks(); }); }
 function periodicDueCount(ds){ return routines.filter(r=>CADENCE[r.cadence].periodic && !isDone(r.id,ds) && periodicStatus(r).due).length; }
 function bindStrip(){ const s=$('tkStrip'); if(s) s.onclick=()=>{ view='tasks'; render(); }; }
 // Refresh everything around the tiles without rebuilding them, so an animation in
@@ -1497,7 +1515,7 @@ async function tickRoutine(r,ds,el,pt){
   pending.add(r.id);
   paintRoutine(el,r,ds,{flood:true,pt});
   haptic(); if(navigator.vibrate) navigator.vibrate(12);
-  if(el && el.isConnected) floatXp(el, xpOfRoutine(r), pt);
+  if(el && el.isConnected) floatXp(el, xpOfRoutine(r,ds), pt);
   syncTodayChrome(ds, wasPerfect);
   try{
     await setLog(r, ds, true, undefined, true);
@@ -1583,7 +1601,7 @@ async function saveValue(r, ds, raw){
   const el=findRoutineEl(r.id,ds);
   // Let the sheet get out of the way first, so the flood is actually seen.
   setTimeout(()=>{ paintRoutine(el,r,ds,{flood:done&&!wasDone, unflood:!done&&wasDone});
-    if(done&&!wasDone && el && el.isConnected) floatXp(el, xpOfRoutine(r)); syncTodayChrome(ds, wasPerfect); }, RM?0:200);
+    if(done&&!wasDone && el && el.isConnected) floatXp(el, xpOfRoutine(r,ds)); syncTodayChrome(ds, wasPerfect); }, RM?0:200);
   if(done&&!wasDone){ haptic(); if(navigator.vibrate) navigator.vibrate(12); }
   try{
     if(v===''){ if(prev&&prev.note) await setLog(r,ds,true,null,false); else await setLog(r,ds,false); }
@@ -1624,7 +1642,7 @@ function questsHtml(ds){
         <div class="qd">${q.desc} · ${Math.min(p.have,p.need)}/${p.need}</div>
         <div class="qbar"><i style="--p:${pct/100}"></i></div>
       </div>
-      <div class="qxp">+${q.xp}</div>
+      <div class="qxp">+${questXp(q,ds)}</div>
     </div>`;
   }
   return `<div class="quests"><div class="qhead">Daily quests
@@ -1733,7 +1751,7 @@ function renderRewards(){
     const gotMark = b.got ? '<div class="bgot">✓</div>' : '';
     html+=`<div class="badge2 ${b.got?'got':''}" data-badge="${i}" role="button" tabindex="0" aria-label="${b.name}, ${b.got?'earned':Math.min(b.cur,b.goal)+' of '+b.goal}">${gotMark}<div class="bi">${b.goal}<small>${BADGE_WORD[b.stat]||''}</small></div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div>${prog}</div>`;
   });
-  html+=`</div><div class="rewnote">Tap any badge for details. Clear all 12 to earn a bonus and unlock the next set. Mind &amp; Health habits earn bonus XP — the game rewards showing up where it's hardest.</div>`;
+  html+=`</div><div class="rewnote">Tap any badge for details. Clear all 12 to earn a bonus and unlock the next set. Every habit is worth 15 XP.</div>`;
   $('app').innerHTML=html;
 }
 
@@ -2015,8 +2033,9 @@ async function saveSetOnce(wid,ex,st){
   const want={weight:st.weight, reps:st.reps};
   const clean=()=>{ if(st.weight===want.weight && st.reps===want.reps) st._dirty=false; };
   const reps=parseInt(st.reps,10);
-  const weight=(st.weight===''||st.weight==null)?0:Number(st.weight);
-  if(!(reps>0) || isNaN(weight)){
+  const weight=parseWeight(st.weight);
+  if(isNaN(weight)){ st._dirty=true; badWeightToast(st.weight); return false; }  // never delete over a typo
+  if(!(reps>0)){
     if(st.id){ try{ await rest('DELETE','gym_sets?id=eq.'+st.id); gsDel(st.id); st.id=null; }
       catch(e){ st._dirty=true; console.error(e); return false; } }
     clean(); return true;
@@ -2039,6 +2058,13 @@ async function saveSetOnce(wid,ex,st){
     return true;
   }catch(e){ st._dirty=true; saveFailToast(); console.error(e); return false; }
 }
+// Build 18: a Dutch iPhone keyboard types "22,5". Up to build 17 that was NaN, which the
+// save treated like an empty set — silently dropped, or an already-saved set deleted —
+// and Finish still said "Workout saved". Accept the comma; anything else unreadable is
+// left alone and stays unsaved, so Finish refuses rather than losing it.
+function parseWeight(v){ const t=String(v==null?'':v).trim().replace(',','.'); return t===''?0:Number(t); }
+let badWeightAt=0;
+function badWeightToast(v){ if(Date.now()-badWeightAt<4000) return; badWeightAt=Date.now(); toast('“'+v+'” isn’t a weight — not saved', true); }
 // One toast per burst of failures, not one per set.
 let saveFailAt=0;
 function saveFailToast(){ if(Date.now()-saveFailAt<4000) return; saveFailAt=Date.now(); toast('Not saved yet — will retry when you’re back online', true); }
@@ -2131,7 +2157,9 @@ async function gFinish(){
   // screen is the only copy, and it's gone the moment the session is cleared.
   if(!(await flushAllSets())){
     const n=unsavedCount();
-    toast(n+' change'+(n>1?'s':'')+' not saved yet — check your connection and tap again', true);
+    const bad=gymSession.exercises.some(ex=>ex.sets.some(st=>isNaN(parseWeight(st.weight))));
+    toast(bad ? 'A weight isn’t a number — fix it and tap again'
+      : n+' change'+(n>1?'s':'')+' not saved yet — check your connection and tap again', true);
     busy=false; return;
   }
   try{
@@ -2671,7 +2699,7 @@ function checkQuests(preIds, ds){
   const q=fresh[fresh.length-1];
   if(navigator.vibrate) navigator.vibrate([12,30,12]);
   const extra = fresh.length>1 ? ` (+${fresh.length-1} more)` : '';
-  toast(`Quest complete · ${q.name} · +${q.xp} XP${extra}`, false, true);
+  toast(`Quest complete · ${q.name} · +${questXp(q,ds)} XP${extra}`, false, true);
 }
 function showLevelUp(level, prevLevel){
   const rank=rankTitle(level), prevRank=rankTitle(prevLevel);
@@ -2980,7 +3008,7 @@ function openForm(routine){
   const catOpts = CATEGORIES.map(c=>`<option value="${c.key}" ${r.category===c.key?'selected':''}>${c.label}</option>`).join('');
   const cadOpts = Object.entries(CADENCE).map(([k,v])=>`<option value="${k}" ${r.cadence===k?'selected':''}>${v.label}</option>`).join('');
   $('editorBody').innerHTML = `
-    <div class="field"><label>Name</label><input type="text" id="f-name" value="${escapeHtml(r.name)}" placeholder="e.g. Vitamin D"></div>
+    <div class="field"><label>Name</label><input type="text" id="f-name" maxlength="24" value="${escapeHtml(r.name)}" placeholder="e.g. Vitamin D"></div>
     <div class="field rowly"><div><label>Category</label><select id="f-cat">${catOpts}</select></div>
       <div><label>Cadence</label><select id="f-cad">${cadOpts}</select></div></div>
     <div class="field"><div class="toggle ${r.track_value?'on':''}" id="f-track"><div class="sw"></div>
@@ -3010,7 +3038,7 @@ function openForm(routine){
     const role=$('f-role').value||null;
     const body={ name, category:$('f-cat').value, cadence:$('f-cad').value, track_value:track,
       unit: track?($('f-unit').value.trim()||null):null,
-      target_value: track && $('f-target').value!=='' ? Number($('f-target').value) : null, active, role };
+      target_value: track && $('f-target').value!=='' ? Number($('f-target').value.trim().replace(',','.')) : null, active, role };
     try{
       // A role is unique in the database, so hand it over rather than failing the save:
       // the person picking it here is stating where the link belongs.
