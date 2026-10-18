@@ -498,6 +498,11 @@
   @media (max-width:430px){ .navbtn{font-size:12px;padding:9px 8px;gap:4px} .nav{gap:2px;padding:4px} }
   @media (max-width:365px){ .navbtn .nlbl{display:none} .navbtn{font-size:17px;padding:9px 12px} }
 
+  .daybar{position:fixed;left:50%;transform:translateX(-50%);z-index:40;padding:5px 12px;border-radius:999px;
+    background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);color:var(--muted);
+    font-size:11.5px;white-space:nowrap;pointer-events:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .daybar[hidden]{display:none}
+  .daybar b{color:var(--text);font-weight:500}
   .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(120px);
     background:#222741;border:1px solid var(--line);color:var(--text);padding:11px 16px;border-radius:12px;
     font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s;z-index:80;max-width:90%;text-align:center}
@@ -716,7 +721,8 @@
   <div class="restrow" id="restrow"></div>
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
-  <div class="foot">Life Organiser · build 18</div>
+  <div class="daybar" id="dayBar" hidden></div>
+  <div class="foot">Life Organiser · build 19</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -780,6 +786,24 @@ async function refreshSession(){
   }catch(e){ return false; }
 }
 function signOut(){ clearSession(); location.reload(); }
+// Roll the game day over at 02:00 even if the app stayed open, and show the late-night bar.
+function paintDayBar(){ const el=$('dayBar'); if(!el) return;
+  const late = ymd(calToday())!==ymd(today);
+  if(!late){ el.hidden=true; return; }
+  const nav=document.querySelector('.nav'); el.style.bottom=((nav?nav.offsetHeight:64)+8)+'px';
+  el.innerHTML='Still <b>'+today.toLocaleDateString('en-GB',{weekday:'short',day:'numeric'}).toLowerCase()+'</b> · new day at 02:00';
+  el.hidden=false; }
+function checkDayRollover(){
+  const t=gameToday();
+  if(ymd(t)!==ymd(today)){
+    const onToday = ymd(selected)===ymd(today);
+    today=t; if(onToday) selected=new Date(today);
+    if(session && routines.length) try{ render(); }catch(e){ console.error(e); }
+  }
+  paintDayBar();
+}
+setInterval(checkDayRollover, 30000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkDayRollover(); });
 
 async function rest(method, path, opts, _retry){
   opts = opts || {};
@@ -822,7 +846,14 @@ function rankTitle(l){ for(const [min,name] of RANKS) if(l>=min) return name; re
 const ymd = (d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const parseYmd = (s)=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
 const addDays = (d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
-const today = new Date(); today.setHours(0,0,0,0);
+// Build 19 (Martijn): the day counts until 02:00, so a late tick still lands on the day
+// it belongs to. `today` is that game day — routines, streaks, quests, rest days and the
+// gym all use it. Tasks stay on the real calendar (calToday): an appointment at 10:00 on
+// Sunday is "today" from midnight. Between 00:00 and 02:00 a thin bar says so.
+const DAY_ENDS_H = 2;
+function gameToday(){ const d=new Date(Date.now()-DAY_ENDS_H*3600000); d.setHours(0,0,0,0); return d; }
+function calToday(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+let today = gameToday();
 let selected = new Date(today);
 let view = 'today';
 
@@ -1206,7 +1237,7 @@ function valueDone(routine, num){ if(num===null||num===undefined||num==='') retu
 function catOf(rid){ const r=routines.find(x=>x.id===rid); return r?r.category:null; }
 function xpOfRoutine(r, ds){ return xpRate(r.category, ds); }
 function xpOfLog(rid, ds){ return xpRate(catOf(rid), ds); }
-function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [ds,l] of m){ if(l.completed) x+=xpOfLog(rid, ds); } } return x + totalQuestXp() + gymBonusXp(); }
+function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [ds,l] of m){ if(l.completed) x+=xpOfLog(rid, ds); } } return x + totalQuestXp() + gymBonusXp() + gymBadgeXp() + gymWeekXp(); }
 function totalXp(){ return activityXp() + setBonusXp(); }
 function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [ds,l] of m){ if(l.completed) x+=xpRate(cat, ds); } } return x; }
 function levelInfo(xp){ let lvl=1, acc=0, need=100; while(xp >= acc+need){ acc+=need; lvl++; need=100+(lvl-1)*50; } return { level:lvl, into:xp-acc, need, total:xp }; }
@@ -1752,6 +1783,7 @@ function renderRewards(){
     html+=`<div class="badge2 ${b.got?'got':''}" data-badge="${i}" role="button" tabindex="0" aria-label="${b.name}, ${b.got?'earned':Math.min(b.cur,b.goal)+' of '+b.goal}">${gotMark}<div class="bi">${b.goal}<small>${BADGE_WORD[b.stat]||''}</small></div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div>${prog}</div>`;
   });
   html+=`</div><div class="rewnote">Tap any badge for details. Clear all 12 to earn a bonus and unlock the next set. Every habit is worth 15 XP.</div>`;
+  if(gymReady) html+=gymBadgesHtml();
   $('app').innerHTML=html;
 }
 
@@ -1789,6 +1821,57 @@ function gymPrEvents(){
   return events;
 }
 function gymBonusXp(){ return gymReady ? gymPrEvents()*15 : 0; }
+// ---- Gym milestones (build 19). Derived from gym data like everything else. ----
+// A workout counts once it has a logged set. Volume is weight × reps over every set.
+function gymCounted(){ const has=new Set(gymSets.map(s=>s.workout_id)); return gymWorkouts.filter(w=>has.has(w.id)); }
+function gymStats(){ let vol=0; for(const s of gymSets) vol+=(Number(s.weight)||0)*(Number(s.reps)||0);
+  return { workouts:gymCounted().length, prs:gymPrEvents(), tonnes:Math.floor(vol/100)/10 }; }
+const GYM_BADGE_XP = 50;
+const GYM_BADGES = [
+  {stat:'workouts', goal:10,  name:'Regular',        d:'Log 10 workouts'},
+  {stat:'workouts', goal:25,  name:'Committed',      d:'Log 25 workouts'},
+  {stat:'workouts', goal:50,  name:'Iron Habit',     d:'Log 50 workouts'},
+  {stat:'workouts', goal:100, name:'Hundred Club',   d:'Log 100 workouts'},
+  {stat:'prs',      goal:5,   name:'New Ground',     d:'Set 5 PRs'},
+  {stat:'prs',      goal:25,  name:'Record Breaker', d:'Set 25 PRs'},
+  {stat:'prs',      goal:50,  name:'Limitless',      d:'Set 50 PRs'},
+  {stat:'tonnes',   goal:10,  name:'Ten Tonnes',     d:'Lift 10 tonnes in total'},
+  {stat:'tonnes',   goal:50,  name:'Fifty Tonnes',   d:'Lift 50 tonnes in total'},
+  {stat:'tonnes',   goal:100, name:'Hundred Tonnes', d:'Lift 100 tonnes in total'},
+];
+const GYM_WORD = { workouts:'workouts', prs:'PRs', tonnes:'tonnes' };
+function gymBadges(){ const st=gymStats(); return GYM_BADGES.map(b=>({...b, cur:st[b.stat], got:st[b.stat]>=b.goal})); }
+function gymBadgeXp(){ return gymReady ? gymBadges().filter(b=>b.got).length*GYM_BADGE_XP : 0; }
+// Weekly quest: train on 3 different days in a Monday–Sunday week. Pays from the first
+// full week after it was added, so nothing earlier is paid out retroactively.
+const GYM_WEEK_GOAL = 3, GYM_WEEK_XP = 50, GYM_WEEK_FROM = '2026-10-19';
+function gymWeekDays(ref){ const wk=weekKey(ref); return new Set(gymCounted().filter(w=>weekKey(parseYmd(w.workout_date))===wk).map(w=>w.workout_date)).size; }
+function gymWeekXp(){ if(!gymReady) return 0; const weeks={};
+  for(const w of gymCounted()){ if(w.workout_date<GYM_WEEK_FROM) continue; const k=weekKey(parseYmd(w.workout_date)); (weeks[k]=weeks[k]||new Set()).add(w.workout_date); }
+  let x=0; for(const k in weeks) if(weeks[k].size>=GYM_WEEK_GOAL) x+=GYM_WEEK_XP; return x; }
+function gymMilestones(){ return { badges:new Set(gymBadges().filter(b=>b.got).map(b=>b.name)), week:gymWeekDays(today)>=GYM_WEEK_GOAL }; }
+function gymWeekHtml(){
+  const n=Math.min(gymWeekDays(today),GYM_WEEK_GOAL), live=ymd(today)>=GYM_WEEK_FROM, done=live && n>=GYM_WEEK_GOAL;
+  return `<div class="quest${done?' done':''}" style="margin-bottom:12px">
+      <div class="qic">${ic(done?'check':'dumbbell')}</div>
+      <div class="qmid"><div class="qn">Three a week</div>
+        <div class="qd">Train on 3 days this week · ${n}/${GYM_WEEK_GOAL}${live?'':' · counts from Monday'}</div>
+        <div class="qbar"><i style="--p:${n/GYM_WEEK_GOAL}"></i></div></div>
+      <div class="qxp">+${GYM_WEEK_XP}</div></div>`; }
+function gymBadgesHtml(){
+  const bl=gymBadges(), got=bl.filter(b=>b.got).length;
+  let h=`<h2 class="rewh">Gym <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">${got}/${bl.length} earned · +${GYM_BADGE_XP} XP each</span></h2>${gymWeekHtml()}<div class="badges">`;
+  for(const b of bl){ const pct=Math.max(0,Math.min(1,b.cur/b.goal));
+    const prog = b.got ? '' : `<div class="bprog"><i style="--p:${pct}"></i></div><div class="bcount">${fmtW(Math.min(b.cur,b.goal))} / ${b.goal}</div>`;
+    h+=`<div class="badge2 ${b.got?'got':''}" aria-label="${b.name}, ${b.got?'earned':fmtW(Math.min(b.cur,b.goal))+' of '+b.goal}">${b.got?'<div class="bgot">✓</div>':''}<div class="bi">${b.goal}<small>${GYM_WORD[b.stat]}</small></div><div class="bn">${b.name}</div><div class="bd">${b.d}</div>${prog}</div>`; }
+  return h+'</div>'; }
+function announceGymMilestones(pre){ if(!pre) return false;
+  const now=gymMilestones(), fresh=[...now.badges].filter(n=>!pre.badges.has(n));
+  const msgs=fresh.map(n=>'Gym badge · '+n+' · +'+GYM_BADGE_XP+' XP');
+  if(now.week && !pre.week && ymd(today)>=GYM_WEEK_FROM) msgs.push('Three a week done · +'+GYM_WEEK_XP+' XP');
+  if(!msgs.length) return false;
+  if(navigator.vibrate) navigator.vibrate([12,30,12]); bigBurst();
+  toast(msgs.join('  ·  '), false, true); return true; }
 function chartSvg(pts, opt){
   opt = opt||{}; const color = opt.color||'var(--fitness)';
   if(pts.length<2) return `<div class="gempty" style="padding:8px 0">${opt.empty||'Log 2+ sessions to see the trend.'}</div>`;
@@ -1855,7 +1938,7 @@ function gymLogHtml(){
   const done=gymWorkouts.filter(w=>w.finished!==false);
   // The template not done last is next up; it gets the orange.
   const next = done.length && /\bA\b/.test(done[0].label||'') ? 'B' : 'A';
-  return resume+`<div class="gymhero">
+  return resume+gymWeekHtml()+`<div class="gymhero">
       <button class="gbtn${next==='A'?' next':''}" data-start="A"><span class="L">a</span><span><div class="gt">Full Body A</div><div class="gs">quad + push${next==='A'?' · next up':''}</div></span></button>
       <button class="gbtn${next==='B'?' next':''}" data-start="B"><span class="L">b</span><span><div class="gt">Full Body B</div><div class="gs">hinge + pull${next==='B'?' · next up':''}</div></span></button>
     </div>
@@ -1979,7 +2062,7 @@ async function startSession(kind){
     gymSession={ id:w.id, label, date:ds, note:'', ex_order:exIds.slice(), ex_notes:{},
       exercises: exIds.map(id=>({exId:id, note:'', sets:[{weight:'',reps:''}]})),
       finished:false, tickedRoutine:false,
-      preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), prToasted:new Set() };
+      preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() };
     gymTab='log'; stopRest(); renderGym();
   }catch(e){ toast('Could not start workout — did the SQL run?', true); console.error(e); }
   busy=false;
@@ -2010,7 +2093,7 @@ function openWorkout(wid){
     exercises: buildExercisesFromWorkout(w),
     finished: w.finished!==false,
     tickedRoutine: gymSets.some(s=>s.workout_id===w.id),
-    preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), prToasted:new Set() };
+    preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() };
   gymTab='log'; stopRest(); renderGym();
 }
 function nextSetNo(ex){ let m=0; ex.sets.forEach(s=>{ if(s.set_no) m=Math.max(m,s.set_no); }); return m+1; }
@@ -2025,7 +2108,7 @@ function nextSetNo(ex){ let m=0; ex.sets.forEach(s=>{ if(s.set_no) m=Math.max(m,
 function persistSet(ex,st){
   if(!gymSession||!ex||!st) return Promise.resolve(true);
   const wid=gymSession.id;
-  st._q=(st._q||Promise.resolve(true)).then(()=>saveSetOnce(wid,ex,st));
+  st._q=(st._q||Promise.resolve(true)).then(()=>saveSetOnce(wid,ex,st)).then(ok=>{ saveGymDraft(); return ok; });
   return st._q;
 }
 async function saveSetOnce(wid,ex,st){
@@ -2065,6 +2148,48 @@ async function saveSetOnce(wid,ex,st){
 function parseWeight(v){ const t=String(v==null?'':v).trim().replace(',','.'); return t===''?0:Number(t); }
 let badWeightAt=0;
 function badWeightToast(v){ if(Date.now()-badWeightAt<4000) return; badWeightAt=Date.now(); toast('“'+v+'” isn’t a weight — not saved', true); }
+// Build 19: a copy of any set not yet on the server is kept on the phone (localStorage),
+// so if iOS closes the app mid-workout nothing typed is lost. It's written on every
+// keystroke and after every save, cleared once nothing is pending, and restored at the
+// next launch (re-creating the workout if the empty-workout sweep removed it).
+const GYM_DRAFT_KEY = 'lo_gym_draft';
+function saveGymDraft(){ try{ const s=gymSession; if(!s) return;
+  const ex=s.exercises.map(e=>({exId:e.exId, sets:e.sets.map(st=>({id:st.id||null, weight:st.weight, reps:st.reps, dirty:!!(st._dirty||st._t)}))}));
+  if(!ex.some(e=>e.sets.some(x=>x.dirty))){ localStorage.removeItem(GYM_DRAFT_KEY); return; }
+  localStorage.setItem(GYM_DRAFT_KEY, JSON.stringify({wid:s.id, label:s.label, date:s.date, at:Date.now(), ex})); }catch(e){} }
+function clearGymDraft(){ try{ localStorage.removeItem(GYM_DRAFT_KEY); }catch(e){} }
+async function restoreGymDraft(){
+  let d=null; try{ d=JSON.parse(localStorage.getItem(GYM_DRAFT_KEY)||'null'); }catch(e){}
+  if(!d || !gymReady || gymSession) return;
+  if(!Array.isArray(d.ex) || !d.ex.some(e=>e.sets.some(x=>x.dirty))){ clearGymDraft(); return; }
+  let w=gymWorkouts.find(x=>x.id===d.wid);
+  if(!w){
+    try{ const r=await rest('POST','gym_workouts',{body:{workout_date:d.date, label:d.label||'Workout', finished:false, ex_order:d.ex.map(e=>e.exId), ex_notes:{}}, prefer:'return=representation'});
+      w=Array.isArray(r)?r[0]:r; if(!w) return; gymWorkouts.unshift(w); }
+    catch(e){ console.error(e); return; }   // keep the draft; try again next launch
+  }
+  gymSession={ id:w.id, label:w.label||'Workout', date:w.workout_date, note:w.note||'',
+    ex_order:Array.isArray(w.ex_order)?w.ex_order.slice():null, ex_notes:(w.ex_notes&&typeof w.ex_notes==='object')?w.ex_notes:{},
+    exercises: buildExercisesFromWorkout(w), finished: w.finished!==false,
+    tickedRoutine: gymSets.some(s=>s.workout_id===w.id),
+    preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() };
+  let n=0, added=false;
+  for(const de of d.ex){
+    if(!gymExercises.some(x=>x.id===de.exId)) continue;
+    let ex=gymSession.exercises.find(e=>e.exId===de.exId);
+    if(!ex){ ex={exId:de.exId, note:'', sets:[]}; gymSession.exercises.push(ex); added=true; }
+    de.sets.forEach((x,i)=>{ if(!x.dirty) return;
+      let st = x.id ? ex.sets.find(q=>q.id===x.id) : null;
+      if(!st && !x.id){ const slot=ex.sets[i]; st = (slot && !slot.id && !String(slot.reps||'').trim()) ? slot : null; if(!st){ st={weight:'',reps:''}; ex.sets.push(st); } }
+      if(!st) return;   // that saved set was deleted since; don't bring it back
+      st.weight=x.weight; st.reps=x.reps; st._dirty=true; n++; });
+  }
+  if(!n){ gymSession=null; clearGymDraft(); return; }
+  if(added) persistExOrder();
+  toast('Restored '+n+' unsaved set'+(n>1?'s':'')+' from your last workout');
+  retryUnsaved();
+  if(view==='gym'){ gymTab='log'; renderGym(); }
+}
 // One toast per burst of failures, not one per set.
 let saveFailAt=0;
 function saveFailToast(){ if(Date.now()-saveFailAt<4000) return; saveFailAt=Date.now(); toast('Not saved yet — will retry when you’re back online', true); }
@@ -2152,7 +2277,7 @@ async function completeGymRoutine(ds){
 async function gFinish(){
   if(!gymSession || busy) return; busy=true;
   const wid=gymSession.id;
-  const preLevel=gymSession.preLevel, preTiers=gymSession.preTiers;
+  const preLevel=gymSession.preLevel, preTiers=gymSession.preTiers, preGym=gymSession.preGym;
   // Everything typed must be on the server before the workout closes; otherwise the
   // screen is the only copy, and it's gone the moment the session is cleared.
   if(!(await flushAllSets())){
@@ -2173,8 +2298,9 @@ async function gFinish(){
     const w=gymWorkouts.find(x=>x.id===wid); if(w) w.finished=true;
     stopRest(); gymSession=null; gymTab='history';
     await loadGym(); await load(); render();
-    toast('Workout saved');
-    if(!checkSetComplete(preTiers)) checkLevelUp(preLevel);
+    toast('Workout saved'); clearGymDraft();
+    const gymNews=announceGymMilestones(preGym);
+    setTimeout(()=>{ if(!checkSetComplete(preTiers)) checkLevelUp(preLevel); }, gymNews?2600:0);
   }catch(e){ toast('Could not finish — check connection', true); console.error(e); }
   busy=false;
 }
@@ -2189,7 +2315,7 @@ async function gDiscard(){
     await rest('DELETE','gym_sets?workout_id=eq.'+wid).catch(()=>{});
     await rest('DELETE','gym_workouts?id=eq.'+wid);
     gymSets=gymSets.filter(s=>s.workout_id!==wid); gymWorkouts=gymWorkouts.filter(w=>w.id!==wid);
-    gymSession=null; stopRest(); gymTab='log';
+    gymSession=null; stopRest(); gymTab='log'; clearGymDraft();
     await load(); render(); renderGym();
     toast(nSets>0?'Workout discarded':'Session cleared');
   }catch(e){ toast('Could not discard', true); console.error(e); }
@@ -2327,7 +2453,7 @@ function renderRest(rebar){ const v=$('rtimerval'); if(v) v.textContent=fmtTime(
   restAnim.currentTime=total-rem; }
 document.addEventListener('input',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
   const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'), f=g.getAttribute('data-gfield');
-  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]){ ex.sets[j][f]=g.value; scheduleSetSave(ex,ex.sets[j]); } });
+  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]){ ex.sets[j][f]=g.value; scheduleSetSave(ex,ex.sets[j]); saveGymDraft(); } });
 document.addEventListener('change',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
   const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset');
   const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]) flushSetSave(ex,ex.sets[j]); });
@@ -2352,7 +2478,7 @@ function tkCountOpen(kind){ return tasks.filter(t=>!t.done && t.kind===kind && !
 // Appointments "pass" rather than get ticked: once their moment is gone they're history.
 function tkPast(t){
   if(!t.due_date) return false;
-  const ds=ymd(today);
+  const ds=ymd(calToday());
   if(t.due_date < ds) return true;
   if(t.due_date > ds) return false;
   if(!t.due_time) return false;
@@ -2363,15 +2489,15 @@ function tkPast(t){
 function tkOverdue(t){
   if(t.done) return false;
   if(tkIsAppt(t)) return false;          // an appointment isn't "overdue", it just passed
-  return !!t.due_date && t.due_date < ymd(today);
+  return !!t.due_date && t.due_date < ymd(calToday());
 }
 // An appointment on a past day is history, not an open item: it drops out of the
 // list entirely and stays visible in calendar mode. To-dos never go stale — an
 // undone to-do from last week is exactly what "Overdue" is for.
-function tkStale(t){ return tkIsAppt(t) && !!t.due_date && t.due_date < ymd(today); }
+function tkStale(t){ return tkIsAppt(t) && !!t.due_date && t.due_date < ymd(calToday()); }
 function tkFmtTime(s){ return s ? s.slice(0,5) : ''; }
 function tkFmtDay(ds){
-  const diff=Math.round((parseYmd(ds)-today)/86400000);
+  const diff=Math.round((parseYmd(ds)-calToday())/86400000);
   if(diff===0) return 'Today';
   if(diff===1) return 'Tomorrow';
   if(diff===-1) return 'Yesterday';
@@ -2384,15 +2510,15 @@ function tkSorted(list){ return list.slice().sort((a,b)=>tkSortKey(a).localeComp
 
 // ---- buckets for list mode ----
 function tkBuckets(){
-  const ds=ymd(today);
-  const endOfWeek=ymd(addDays(today, 7-((today.getDay()+6)%7) - 1)); // this ISO week's Sunday
+  const ds=ymd(calToday());
+  const endOfWeek=ymd(addDays(calToday(), 7-((calToday().getDay()+6)%7) - 1)); // this ISO week's Sunday
   const g={ overdue:[], today:[], tomorrow:[], week:[], later:[], someday:[] };
   for(const t of tasks){
     if(t.done || !tkVisible(t) || tkStale(t)) continue;
     if(!t.due_date){ g.someday.push(t); continue; }
     if(t.due_date < ds){ g.overdue.push(t); continue; }
     if(t.due_date === ds){ g.today.push(t); continue; }
-    if(t.due_date === ymd(addDays(today,1))){ g.tomorrow.push(t); continue; }
+    if(t.due_date === ymd(addDays(calToday(),1))){ g.tomorrow.push(t); continue; }
     if(t.due_date <= endOfWeek){ g.week.push(t); continue; }
     g.later.push(t);
   }
@@ -2464,7 +2590,7 @@ function tkListHtml(){
 
 // ---- calendar mode ----
 function tkMonthStart(){
-  if(!tkCalMonth) tkCalMonth=new Date(today.getFullYear(), today.getMonth(), 1);
+  if(!tkCalMonth) tkCalMonth=new Date(calToday().getFullYear(), today.getMonth(), 1);
   return tkCalMonth;
 }
 function tkByDay(){
@@ -2483,7 +2609,7 @@ function tkCalHtml(){
   const first=new Date(y,mo,1);
   const lead=(first.getDay()+6)%7;                 // Monday-first
   const gridStart=addDays(first,-lead);
-  const dsToday=ymd(today);
+  const dsToday=ymd(calToday());
   const sel=tkCalSel||dsToday;
   let cells='';
   for(let i=0;i<42;i++){
@@ -2518,7 +2644,7 @@ function tkCalHtml(){
 
 // ---- the view ----
 function renderTasks(){
-  const dsToday=ymd(today);
+  const dsToday=ymd(calToday());
   const daily=routines.filter(r=>!CADENCE[r.cadence].periodic);
   ringSvg(dsToday);
   const app=$('app');
@@ -2597,10 +2723,39 @@ async function toggleTask(id, btn){
   }catch(e){ toast('Could not update that task', true); console.error(e); }
   tkBusy=false;
 }
+// Build 19: "Add to Calendar" hands the iPhone a one-event .ics, which opens its own
+// "Add event" screen. Nothing goes to a server — the file is made here, on the phone.
+// Times are "floating" (no time zone), so 10:00 stays 10:00 wherever the phone is.
+function icsEscape(t){ return String(t||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/([,;])/g,'\\$1'); }
+function icsFor(a){
+  const dt=(ds,hm)=>ds.replace(/-/g,'')+(hm?'T'+hm.slice(0,5).replace(':','')+'00':'');
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Life Organiser//EN','BEGIN:VEVENT',
+    'UID:lo-'+Date.now()+'-'+Math.random().toString(36).slice(2)+'@life-organiser',
+    'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z'];
+  if(a.due_time){
+    const start=a.due_time.slice(0,5);
+    let end=a.end_time && a.end_time.slice(0,5)>start ? a.end_time.slice(0,5) : null;
+    if(!end){ const [h,m]=start.split(':').map(Number); const t=Math.min(h*60+m+60, 23*60+59); end=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }
+    lines.push('DTSTART:'+dt(a.due_date,start), 'DTEND:'+dt(a.due_date,end)); }
+  else lines.push('DTSTART;VALUE=DATE:'+dt(a.due_date), 'DTEND;VALUE=DATE:'+dt(ymd(addDays(parseYmd(a.due_date),1))));
+  lines.push('SUMMARY:'+icsEscape(a.title));
+  if(a.location) lines.push('LOCATION:'+icsEscape(a.location));
+  if(a.note) lines.push('DESCRIPTION:'+icsEscape(a.note));
+  lines.push('END:VEVENT','END:VCALENDAR');
+  return lines.join('\r\n')+'\r\n'; }
+function addToCalendar(a){
+  if(!a.title || !a.due_date){ toast('Give it a title and a date first', true); return; }
+  const ics=icsFor(a);
+  // iPhone: opening the calendar file shows the system "Add event" screen.
+  // Desktop: download it; opening the file adds it to Outlook / Calendar.
+  if(/iPhone|iPad|iPod/.test(navigator.userAgent)){ location.href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics); return; }
+  const url=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  const el=document.createElement('a'); el.href=url; el.download=(a.title.replace(/[^\w -]+/g,'').trim()||'appointment')+'.ics';
+  document.body.appendChild(el); el.click(); el.remove(); setTimeout(()=>URL.revokeObjectURL(url), 2000); }
 function openTaskForm(t){
   const isNew=!t;
   const d = t || { title:'', kind:'todo', due_date:'', due_time:'', end_time:'', location:'', note:'' };
-  const defaultDate = tkMode==='cal' && tkCalSel ? tkCalSel : ymd(today);
+  const defaultDate = tkMode==='cal' && tkCalSel ? tkCalSel : ymd(calToday());
   const kind = d.kind || 'todo';
   $('taskEdSheet').innerHTML = `
     <h2>${isNew?'Add':'Edit'} <button class="x" id="tkClose" aria-label="Close">${ic('x')}</button></h2>
@@ -2620,6 +2775,7 @@ function openTaskForm(t){
         <div><label>Ends (optional)</label><input type="time" id="tk-end" value="${d.end_time?d.end_time.slice(0,5):''}"></div>
         <div><label>Where (optional)</label><input type="text" id="tk-loc" value="${escapeHtml(d.location||'')}" placeholder="e.g. Heerlen"></div>
       </div>
+      <button class="btn-cancel" id="tk-ics" type="button" style="width:100%;margin:2px 0 12px;display:flex;align-items:center;justify-content:center;gap:8px">${ic('cal')} Add to Calendar</button>
     </div>
     <div class="field"><label>Note (optional)</label>
       <textarea id="tk-note" rows="3" placeholder="Anything worth remembering…">${escapeHtml(d.note||'')}</textarea></div>
@@ -2628,6 +2784,8 @@ function openTaskForm(t){
       <button class="btn-cancel" id="tk-cancel">Cancel</button>
       <button class="btn-save" id="tk-save">Save</button></div>`;
   $('taskEd').classList.add('show');
+  $('tk-ics').onclick=()=>addToCalendar({ title:$('tk-title').value.trim(), due_date:$('tk-date').value, due_time:$('tk-time').value,
+    end_time:$('tk-end').value, location:$('tk-loc').value.trim(), note:$('tk-note').value.trim() });
   let k = kind;
   const paint=()=>{
     $('tk-kt').classList.toggle('on', k==='todo');
@@ -2673,7 +2831,7 @@ function openTaskForm(t){
 // ---- compact agenda strip on the Today view ----
 function tkTodayStripHtml(){
   if(!tasksReady) return '';
-  const ds=ymd(today);
+  const ds=ymd(calToday());
   const items=tkSorted(tasks.filter(t=>!t.done && t.due_date && t.due_date<=ds && !tkStale(t)));
   if(!items.length) return '';
   const shown=items.slice(0,3);
@@ -3108,7 +3266,7 @@ function toast(msg,err,level,undo){
 function showLogin(){ $('login').classList.add('show'); }
 async function start(){
   $('login').classList.remove('show');
-  try{ await load(); render(); }
+  try{ await load(); render(); paintDayBar(); restoreGymDraft(); }
   catch(e){ console.error(e);
     if(String(e).includes('HTTP 401') || String(e).includes('JWT')){ clearSession(); showLogin(); }
     else { $('app').innerHTML=`<div class="loading">Couldn't connect.<br>Check your internet and refresh.</div>`; toast('Connection failed',true); } }
