@@ -175,7 +175,7 @@
   .qhead .qsum b{color:var(--flame)}
   .quest{display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--line)}
   .quest:first-of-type{border-top:none;padding-top:2px}
-  .quest .qic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s}
+  .quest .qic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;transition:box-shadow .3s}
   .quest.done .qic{background:color-mix(in srgb,var(--flame) 22%,var(--surface2));box-shadow:0 0 0 1px color-mix(in srgb,var(--flame) 45%,transparent)}
   .quest .qmid{flex:1;min-width:0}
   .quest .qn{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
@@ -192,7 +192,7 @@
 
   /* Badge progress on tiles */
   .badge2{cursor:pointer;position:relative}
-  .badge2:active{transform:scale(.97)}
+  .badge2[data-badge]:active{transform:scale(.97)}
   .badge2 .bprog{height:4px;border-radius:4px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:8px}
   .badge2 .bprog > i{display:block;height:100%;border-radius:4px;background:var(--muted)}
   .badge2.got .bprog{display:none}
@@ -639,6 +639,44 @@
   .quest .qbar{height:3px}
   .quest .qbar > i,.quest.done .qbar > i{background:var(--text)}
   .quest.done .qxp{color:var(--text)}
+  /* ===== build 20: Rewards earn their colour, like a done tile =====
+     Every quest and badge carries its area as --c: a category hue, amber for streaks, or
+     "all" — a lavender|mint two-tone (soft 16% seam, no muddy middle) for things that count every area. Not yet earned:
+     dark, icon in full hue. Earned today: floods like a done tile. Earned before: settles
+     to a quiet tint, so the page doesn't turn into a wall of colour and the next goal
+     stays findable. Quests reset daily, so a done quest is always "today". */
+  .all{--c:var(--mind);--cfill:linear-gradient(135deg,color-mix(in srgb,var(--mind) 80%,#fff) 0%,var(--mind) 42%,var(--health) 58%,color-mix(in srgb,var(--health) 85%,#fff) 100%);
+    --cbar:linear-gradient(90deg,var(--mind) 0%,var(--mind) 40%,var(--health) 60%,var(--health) 100%)}
+  .quest .qic{position:relative;color:var(--c,var(--muted))}
+  .quest .qbar > i,.quest.done .qbar > i{background:var(--cbar,var(--c,var(--text)))}
+  .quest.done .qic{background:var(--cfill,linear-gradient(160deg,color-mix(in srgb,var(--c) 78%,#fff) 0%,var(--c) 58%));color:var(--onc);box-shadow:0 8px 18px -12px var(--c)}
+  .quest.done .qxp{color:var(--c)}
+  .quest.all.done .qxp{color:var(--text)}
+  .quest .qchk{position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--onc);color:var(--c);
+    display:none;place-items:center;box-shadow:0 0 0 2px var(--surface)}
+  .quest .qchk svg{width:10px;height:10px;stroke-width:3}
+  .quest.done .qic:not(.pre) .qchk{display:grid}
+  .quest.done .qic.pre{background:var(--surface2);color:var(--c);box-shadow:none}
+  .qfl{position:absolute;inset:0;border-radius:inherit;display:grid;place-items:center;color:var(--onc);
+    background:var(--cfill,linear-gradient(160deg,color-mix(in srgb,var(--c) 78%,#fff) 0%,var(--c) 58%));clip-path:circle(0px at 50% 50%)}
+  .qfl svg{width:18px;height:18px}
+  .badge2{--bfill:linear-gradient(160deg,color-mix(in srgb,var(--c) 78%,#fff) 0%,var(--c) 58%);cursor:default}
+  .badge2[data-badge]{cursor:pointer;transition:transform .12s var(--ease)}
+  .badge2 .bico{position:absolute;top:9px;right:9px;color:var(--c);line-height:0}
+  .badge2 .bico svg{width:16px;height:16px}
+  .badge2 .bi.k3{font-size:25px}
+  .badge2 .bprog > i{background:var(--cbar,var(--c))}
+  .badge2.next{border-color:color-mix(in srgb,var(--c) 55%,transparent)}
+  .badge2.next .bprog{height:4px}
+  .badge2.got{background:color-mix(in srgb,var(--c) 13%,var(--surface));border-color:color-mix(in srgb,var(--c) 34%,transparent);color:var(--text);box-shadow:none}
+  .badge2.all.got{background:linear-gradient(135deg,color-mix(in srgb,var(--mind) 13%,var(--surface)),color-mix(in srgb,var(--health) 13%,var(--surface)))}
+  .badge2.got .bi{color:var(--c)}
+  .badge2.got .bi small{color:var(--muted)}
+  .badge2.got.fresh,.bflood{background:var(--cfill,var(--bfill));color:var(--onc);border-color:transparent;box-shadow:0 10px 24px -14px var(--c)}
+  .badge2.got.fresh .bi,.bflood .bi,.badge2.got.fresh .bico,.bflood .bico{color:var(--onc)}
+  .badge2.got.fresh .bi small,.bflood .bi small{color:color-mix(in srgb,var(--onc) 80%,transparent)}
+  .bflood{position:absolute;inset:-1px;border-radius:inherit;padding:10px;display:flex;flex-direction:column;justify-content:space-between;
+    text-align:left;clip-path:circle(0px at 50% 50%)}
   .qhead .qsum b{color:var(--text)}
   .setnote{background:var(--surface);border-color:var(--line)}
   .setnote b{color:var(--text)}
@@ -722,7 +760,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 19</div>
+  <div class="foot">Life Organiser · build 20</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -882,6 +920,9 @@ const ICONS={
   bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>', star:'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',
   target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6"/>',
   layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  tally:'<path d="M6.5 5v14M10.5 5v14M14.5 5v14M18.5 5v14"/><path d="M4 16.5l17-8"/>',
+  trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5.2a3 3 0 0 0 3 4.2M16 6h2.8a3 3 0 0 1-3 4.2"/><path d="M12 13v4M8.5 20.2h7M10 17h4v3.2h-4z"/>',
+  plate:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.1"/>',
   flame:'<path d="M12 2.5c1.2 3.8 5.5 5.6 5.5 10.7a5.5 5.5 0 0 1-11 0c0-2.8 1.5-4.5 2.8-5.6.2 1.7 1.1 2.8 2.2 3.3.6-3.2-1.1-6 .5-8.4z"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', plus:'<path d="M12 5v14M5 12h14"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>',
   left:'<path d="M14.5 6l-6 6 6 6"/>', right:'<path d="M9.5 6l6 6-6 6"/>', arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
@@ -1657,7 +1698,64 @@ document.addEventListener('pointerdown',(e)=>{
 document.addEventListener('pointermove',(e)=>{ if(lpXY && Math.hypot(e.clientX-lpXY[0],e.clientY-lpXY[1])>10) clearTimeout(lpT); });
 document.addEventListener('contextmenu',(e)=>{ if(e.target.closest('[data-tile],[data-ptile]')) e.preventDefault(); });
 
-const QICON={ momentum3:'bolt', momentum5:'layers', mind1:'lotus', health2:'pill', health3:'egg', fit1:'dumbbell', target1:'target', balance3:'grid', flawless:'star' };
+const QICON={ momentum3:'layers', momentum5:'layers', mind1:'lotus', health2:'pill', health3:'egg', fit1:'dumbbell', target1:'target', balance3:'grid', flawless:'sun' };
+const QUEST_LOOK={ momentum3:'all', momentum5:'all', balance3:'all', flawless:'all', mind1:'var(--mind)',
+  health2:'var(--health)', health3:'var(--health)', fit1:'var(--fitness)', target1:'var(--flame)' };
+const STAT_LOOK={ total:{c:'all',i:'tally'}, longest:{c:'var(--flame)',i:'flame'}, pdays:{c:'all',i:'sun'},
+  mind:{c:'var(--mind)',i:'lotus'}, health:{c:'var(--health)',i:'pill'}, fitness:{c:'var(--fitness)',i:'bolt'}, lvl:{c:'all',i:'trend'},
+  workouts:{c:'var(--fitness)',i:'dumbbell'}, prs:{c:'var(--fitness)',i:'trophy'}, tonnes:{c:'var(--fitness)',i:'plate'} };
+function lookOf(c){ return c==='all' ? {cls:' all', st:''} : {cls:'', st:` style="--c:${c}"`}; }
+
+// ---- Rewards memory (build 20): when each item was first seen earned, and whether its
+// flood has played. Only on this device (localStorage); everything else stays derived.
+// First run ever: everything already earned counts as old and nothing animates.
+const RW_KEY='lo_rw_seen';
+let rwStore=null, rwObserver=null;
+function rwSync(earnedIds){
+  const ds=ymd(today); let old=null; try{ old=JSON.parse(localStorage.getItem(RW_KEY)||'null'); }catch(e){}
+  const seed=!old||!old.first; old=old||{first:{},played:{}};
+  const first={}, played={};
+  for(const id of earnedIds){ first[id]=old.first[id]||(seed?'seed':ds); if(seed||(old.played&&old.played[id])) played[id]=1; }
+  rwStore={first,played}; try{ localStorage.setItem(RW_KEY, JSON.stringify(rwStore)); }catch(e){} }
+const rwFresh=(id)=>!!rwStore && rwStore.first[id]===ymd(today);
+const rwPending=(id)=>!!rwStore && rwStore.first[id]!=null && !rwStore.played[id];
+function rwPlayed(id){ if(!rwStore) return; rwStore.played[id]=1; try{ localStorage.setItem(RW_KEY, JSON.stringify(rwStore)); }catch(e){} }
+// The flood plays once, when the item is actually on screen: same clip-path, curve and
+// length as ticking a tile on Today. Up to 4 at a time, 60ms apart; reduced motion fades.
+function rwArm(){
+  if(rwObserver){ rwObserver.disconnect(); rwObserver=null; }
+  const els=[...document.querySelectorAll('[data-rwanim]')]; if(!els.length) return;
+  if(!('IntersectionObserver' in window)){ els.forEach(rwFinish); return; }
+  let queue=[], t=null;
+  rwObserver=new IntersectionObserver((es)=>{
+    for(const e of es){ if(e.isIntersecting){ rwObserver.unobserve(e.target); queue.push(e.target); } }
+    clearTimeout(t); t=setTimeout(()=>{ queue.splice(0).forEach((el,k)=>{ if(k<4) setTimeout(()=>rwPlay(el), k*60); else rwFinish(el); }); }, 120);
+  }, {threshold:.6});
+  els.forEach((el)=>rwObserver.observe(el)); }
+function rwPlay(el){
+  const layer=el.querySelector('.bflood,.qfl'); if(!layer||!el.isConnected){ rwFinish(el); return; }
+  const r=layer.getBoundingClientRect(), rad=Math.hypot(r.width/2,r.height/2)+2;
+  let a;
+  if(RM){ layer.style.clipPath='none'; a=layer.animate([{opacity:0},{opacity:1}],{duration:150,fill:'forwards'}); }
+  else a=layer.animate([{clipPath:'circle(0px at 50% 50%)'},{clipPath:`circle(${rad}px at 50% 50%)`}],
+    {duration:el.classList.contains('quest')?300:420,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
+  a.finished.then(()=>rwFinish(el), ()=>rwFinish(el)); }
+function rwFinish(el){
+  el.removeAttribute('data-rwanim');
+  el.querySelectorAll('.bflood,.qfl').forEach((n)=>n.remove());
+  if(el.classList.contains('badge2')){ el.classList.add('got','fresh'); el.querySelectorAll('.bprog').forEach((n)=>n.remove()); }
+  else { const q=el.querySelector('.qic'); if(q) q.classList.remove('pre'); }
+  rwPlayed(el.getAttribute('data-rw')); }
+// One badge: unearned (dark, icon in hue, progress), earned before (tint), earned today
+// (flood) — or, if its flood hasn't played yet, unearned look with the flood layer on top.
+function badgeHtml(b, id, look, word, attrs, isNext){
+  const lk=lookOf(look.c), pct=Math.max(0,Math.min(1,b.goal?b.cur/b.goal:0));
+  const anim=b.got && rwPending(id);
+  const inner=(earned)=>`<span class="bico">${ic(look.i)}</span><div class="bi${b.goal>=100?' k3':''}">${b.goal}<small>${word}</small></div><div class="bn">${b.name}</div>${earned?'':`<div class="bprog"><i style="--p:${pct}"></i></div>`}`;
+  const cls='badge2'+(b.got&&!anim?' got':'')+(b.got&&!anim&&rwFresh(id)?' fresh':'')+(isNext?' next':'')+lk.cls;
+  return `<div class="${cls}"${lk.st} data-rw="${id}"${anim?' data-rwanim="1"':''} ${attrs}>${inner(b.got&&!anim)}${anim?`<div class="bflood" aria-hidden="true">${inner(true)}</div>`:''}</div>`; }
+// The next goal in a grid: the unearned badge closest to done.
+function nextGoal(bl){ let best=-1, bp=-1; bl.forEach((b,i)=>{ if(b.got) return; const p=b.goal?b.cur/b.goal:0; if(p>bp){ bp=p; best=i; } }); return best; }
 function questsHtml(ds){
   const qs=questsForDate(ds); if(!qs.length) return '';
   const doneCount=qs.filter(q=>questDone(q,ds)).length;
@@ -1666,8 +1764,9 @@ function questsHtml(ds){
   for(const q of qs){
     const p=q.progress(ds); const done=p.have>=p.need;
     const pct=Math.max(0,Math.min(1, p.need? p.have/p.need : 0))*100;
-    rows+=`<div class="quest${done?' done':''}">
-      <div class="qic">${ic(done?'check':(QICON[q.id]||'bolt'))}</div>
+    const look=lookOf(QUEST_LOOK[q.id]||'all'), icon=QICON[q.id]||'layers', rid='q:'+ds+':'+q.id, anim=done&&rwPending(rid);
+    rows+=`<div class="quest${done?' done':''}${look.cls}"${look.st} data-rw="${rid}"${anim?' data-rwanim="1"':''}>
+      <div class="qic${anim?' pre':''}">${ic(icon)}<span class="qchk">${ic('check')}</span>${anim?`<span class="qfl" aria-hidden="true">${ic(icon)}</span>`:''}</div>
       <div class="qmid">
         <div class="qn">${q.name}</div>
         <div class="qd">${q.desc} · ${Math.min(p.have,p.need)}/${p.need}</div>
@@ -1754,6 +1853,11 @@ function renderHistory(){
 const BADGE_WORD={ total:'ticks', longest:'days', pdays:'perfect', mind:'mind', health:'health', fitness:'fitness', lvl:'level' };
 function renderRewards(){
   const dsToday = ymd(today);
+  { const ids=[]; const t=activeTier();
+    tierBadges(t).forEach((b,i)=>{ if(b.got) ids.push('b:'+t+':'+i); });
+    if(gymReady) gymBadges().forEach((b)=>{ if(b.got) ids.push('g:'+b.name); });
+    questsForDate(dsToday).forEach((q)=>{ if(questDone(q,dsToday)) ids.push('q:'+dsToday+':'+q.id); });
+    rwSync(ids); }
   const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
   ringSvg(dsToday);
   $('subtitle').textContent = 'Your progress';
@@ -1776,15 +1880,15 @@ function renderRewards(){
   if(doneSets>0){ html+=`<div class="setnote"><div><b>${doneSets} badge set${doneSets>1?'s':''} complete</b> · +${setBonusXp()} bonus XP earned — a fresh set is unlocked.</div></div>`; }
   const setLabel = tier>1 ? `Badge Set ${roman(tier)}` : 'Badges';
   html+=`<h2 class="rewh">${setLabel} <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">${gotN}/${bl.length} earned</span></h2><div class="badges">`;
+  const nextI=nextGoal(bl);
   bl.forEach((b,i)=>{
-    const pct=Math.max(0,Math.min(1,b.goal? b.cur/b.goal:0))*100;
-    const prog = b.got ? '' : `<div class="bprog"><i style="--p:${pct/100}"></i></div><div class="bcount">${Math.min(b.cur,b.goal)} / ${b.goal}</div>`;
-    const gotMark = b.got ? '<div class="bgot">✓</div>' : '';
-    html+=`<div class="badge2 ${b.got?'got':''}" data-badge="${i}" role="button" tabindex="0" aria-label="${b.name}, ${b.got?'earned':Math.min(b.cur,b.goal)+' of '+b.goal}">${gotMark}<div class="bi">${b.goal}<small>${BADGE_WORD[b.stat]||''}</small></div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div>${prog}</div>`;
+    html+=badgeHtml(b, 'b:'+tier+':'+i, STAT_LOOK[b.stat]||{c:'all',i:'target'}, BADGE_WORD[b.stat]||'',
+      `data-badge="${i}" role="button" tabindex="0" aria-label="${b.name}, ${b.got?'earned':Math.min(b.cur,b.goal)+' of '+b.goal}"`, i===nextI);
   });
   html+=`</div><div class="rewnote">Tap any badge for details. Clear all 12 to earn a bonus and unlock the next set. Every habit is worth 15 XP.</div>`;
   if(gymReady) html+=gymBadgesHtml();
   $('app').innerHTML=html;
+  requestAnimationFrame(rwArm);
 }
 
 // ---- GYM ----
@@ -1852,8 +1956,8 @@ function gymWeekXp(){ if(!gymReady) return 0; const weeks={};
 function gymMilestones(){ return { badges:new Set(gymBadges().filter(b=>b.got).map(b=>b.name)), week:gymWeekDays(today)>=GYM_WEEK_GOAL }; }
 function gymWeekHtml(){
   const n=Math.min(gymWeekDays(today),GYM_WEEK_GOAL), live=ymd(today)>=GYM_WEEK_FROM, done=live && n>=GYM_WEEK_GOAL;
-  return `<div class="quest${done?' done':''}" style="margin-bottom:12px">
-      <div class="qic">${ic(done?'check':'dumbbell')}</div>
+  return `<div class="quest${done?' done':''}" style="margin-bottom:12px;--c:var(--fitness)">
+      <div class="qic">${ic('dumbbell')}<span class="qchk">${ic('check')}</span></div>
       <div class="qmid"><div class="qn">Three a week</div>
         <div class="qd">Train on 3 days this week · ${n}/${GYM_WEEK_GOAL}${live?'':' · counts from Monday'}</div>
         <div class="qbar"><i style="--p:${n/GYM_WEEK_GOAL}"></i></div></div>
@@ -1861,9 +1965,9 @@ function gymWeekHtml(){
 function gymBadgesHtml(){
   const bl=gymBadges(), got=bl.filter(b=>b.got).length;
   let h=`<h2 class="rewh">Gym <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">${got}/${bl.length} earned · +${GYM_BADGE_XP} XP each</span></h2>${gymWeekHtml()}<div class="badges">`;
-  for(const b of bl){ const pct=Math.max(0,Math.min(1,b.cur/b.goal));
-    const prog = b.got ? '' : `<div class="bprog"><i style="--p:${pct}"></i></div><div class="bcount">${fmtW(Math.min(b.cur,b.goal))} / ${b.goal}</div>`;
-    h+=`<div class="badge2 ${b.got?'got':''}" aria-label="${b.name}, ${b.got?'earned':fmtW(Math.min(b.cur,b.goal))+' of '+b.goal}">${b.got?'<div class="bgot">✓</div>':''}<div class="bi">${b.goal}<small>${GYM_WORD[b.stat]}</small></div><div class="bn">${b.name}</div><div class="bd">${b.d}</div>${prog}</div>`; }
+  const nextI=nextGoal(bl);
+  bl.forEach((b,i)=>{ h+=badgeHtml(b, 'g:'+b.name, STAT_LOOK[b.stat], GYM_WORD[b.stat],
+    `aria-label="${b.name}, ${b.got?'earned':fmtW(Math.min(b.cur,b.goal))+' of '+b.goal}"`, i===nextI); });
   return h+'</div>'; }
 function announceGymMilestones(pre){ if(!pre) return false;
   const now=gymMilestones(), fresh=[...now.badges].filter(n=>!pre.badges.has(n));
