@@ -1,4 +1,4 @@
-// Life Organiser service worker — build 22.
+// Life Organiser service worker — build 23.
 //
 // Two jobs: web push, and (since build 21) opening the app without a connection.
 //
@@ -14,7 +14,7 @@
 // The server owns the message text. This worker renders whatever the Edge Function
 // sends and composes nothing itself.
 
-const SW_VERSION = 'build22';
+const SW_VERSION = 'build23';
 const FALLBACK = {
   title: 'Life Organiser',
   body: 'You have something open today.',

@@ -790,7 +790,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 22</div>
+  <div class="foot">Life Organiser · build 23</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -2990,11 +2990,14 @@ async function toggleTask(id, btn){
 }
 // Add to Calendar: the app builds an .ics file on the phone and hands it over. Nothing
 // goes to a server. Times are "floating" (no time zone), so 10:00 stays 10:00.
-// Build 19 navigated to a data:text/calendar URL; iOS blocks top-level data: navigation,
-// which in the home-screen app showed only a flicker (Martijn, 2026-10-19). Build 22
-// hands the file to the system share sheet (Web Share with a file), falling back to
-// opening a blob URL, and on desktop to a download. To-dos can go too: without a time
-// they become all-day events.
+// Build 19 navigated to a data:text/calendar URL — iOS blocks that (a flicker). Build 22
+// used the share sheet — iOS lists no Calendar target there. What works (tested by
+// Martijn on his iPhone, 2026-10-19): Safari opening a calendar file from a real web
+// address shows "Add to Calendar". So build 23 uploads the .ics to a PRIVATE storage
+// bucket in his own Supabase (sql/calendar.sql), always to <user id>/latest.ics so it's
+// overwritten each time, and opens a signed link that expires after two minutes.
+// If the bucket isn't set up yet, or there's no connection, it falls back to the share
+// sheet. Desktop downloads the file. To-dos without a time become all-day events.
 function icsEscape(t){ return String(t||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/([,;])/g,'\\$1'); }
 function icsFor(list){
   const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Life Organiser//EN'];
@@ -3021,10 +3024,31 @@ function addToCalendar(a){
   if(!a.title || !a.due_date){ toast('Give it a title and a date first', true); return; }
   return shareIcs([a], a.title);
 }
+function jwtSub(t){ try{ return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub||null; }catch(e){ return null; } }
+// Upload the .ics and return a two-minute signed link to it, or null if that isn't possible.
+async function icsSignedUrl(ics){
+  const uid = session && session.access_token && jwtSub(session.access_token); if(!uid || !navigator.onLine) return null;
+  const path=uid+'/latest.ics', base=SUPABASE_URL+'/storage/v1/object';
+  const call=async (retry)=>{
+    const h={ apikey:SUPABASE_KEY, Authorization:'Bearer '+session.access_token };
+    const up=await fetch(base+'/ics/'+path, { method:'POST', headers:{...h, 'Content-Type':'text/calendar', 'x-upsert':'true', 'cache-control':'no-store'}, body:ics });
+    if(up.status===401 && !retry && await refreshSession()) return call(true);
+    if(!up.ok) throw new Error('upload '+up.status+' '+(await up.text().catch(()=>'')));
+    const sg=await fetch(base+'/sign/ics/'+path, { method:'POST', headers:{...h, 'Content-Type':'application/json'}, body:JSON.stringify({expiresIn:120}) });
+    if(!sg.ok) throw new Error('sign '+sg.status);
+    const j=await sg.json(); const rel=j.signedURL||j.signedUrl; if(!rel) throw new Error('no signed url');
+    return SUPABASE_URL+'/storage/v1'+(rel.startsWith('/')?rel:'/'+rel);
+  };
+  try{ return await call(false); }catch(e){ console.warn('calendar link failed', e); return null; }
+}
 async function shareIcs(list, name){
   const ics=icsFor(list), fname=(String(name).replace(/[^\w -]+/g,'').trim()||'calendar')+'.ics';
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
   if(ios){
+    toast('Opening Calendar…');
+    const url=await icsSignedUrl(ics);
+    if(url){ location.href=url; return; }
+    toast(navigator.onLine ? 'Calendar link not set up yet — using the share sheet' : 'Offline — using the share sheet', true);
     try{ const file=new File([ics], fname, {type:'text/calendar'});
       if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; } }
     catch(e){ if(e && e.name==='AbortError') return; console.warn('share failed', e); }
