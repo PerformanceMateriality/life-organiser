@@ -1,16 +1,20 @@
-// Life Organiser service worker — build 20.
+// Life Organiser service worker — build 21.
 //
-// Its only job is web push. There is DELIBERATELY NO `fetch` HANDLER: the app must
-// always load fresh from the network. An earlier version cached the app shell and kept
-// serving stale builds during development, which is why it was replaced by a
-// self-destroying worker. This one comes back only because push requires a worker —
-// offline caching returns later as its own feature, with a write queue, not as a
-// side effect of notifications.
+// Two jobs: web push, and (since build 21) opening the app without a connection.
+//
+// Offline is NETWORK-FIRST, never cache-first. An early version served the app shell from
+// cache and kept showing stale builds, so here the network always wins when it answers:
+// with signal you get the newest build and live data, exactly as before. Only when the
+// network fails (or takes over 6 s and a saved copy exists) does the last good copy step in.
+//   lo-shell  the app's own files (index.html, font, icons, manifest), keyed without ?v=
+//   lo-data   Supabase REST GETs, one copy per table — the last answer that came back
+// Writes never pass through here: the page queues them in its own outbox (index.html).
+// Signing out deletes lo-data.
 //
 // The server owns the message text. This worker renders whatever the Edge Function
 // sends and composes nothing itself.
 
-const SW_VERSION = 'build20';
+const SW_VERSION = 'build21';
 const FALLBACK = {
   title: 'Life Organiser',
   body: 'You have something open today.',
@@ -21,19 +25,58 @@ self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
+const SHELL = 'lo-shell';
+const DATA = 'lo-data';
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      // Clear anything the pre-build-11 caching worker left behind. Nothing is cached
-      // from here on, so this is a one-time sweep rather than cache management.
+      // Clear anything that isn't ours (the pre-build-11 caching worker's leftovers).
       if (self.caches) {
         const keys = await caches.keys();
-        await Promise.all(keys.map((k) => caches.delete(k)));
+        await Promise.all(keys.filter((k) => k !== SHELL && k !== DATA).map((k) => caches.delete(k)));
       }
       await self.clients.claim();
     })(),
   );
 });
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin === self.location.origin) {
+    // The worker's own file is fetched by the browser's update check; leave it alone.
+    if (url.pathname.endsWith('/sw.js')) return;
+    event.respondWith(networkFirst(req, SHELL, url.origin + url.pathname));
+  } else if (/\.supabase\.co$/.test(url.hostname) && url.pathname.startsWith('/rest/v1/')) {
+    event.respondWith(networkFirst(req, DATA, req.url));
+  }
+});
+
+async function networkFirst(req, cacheName, key) {
+  const cache = await caches.open(cacheName);
+  const path = new URL(key).pathname;
+  // Any earlier copy of the same file / table, whatever its query string.
+  const saved = (await cache.match(key)) || (await cache.match(key, { ignoreSearch: true }));
+  const fromNet = fetch(req).then(async (res) => {
+    if (res && res.ok) {
+      const copy = res.clone();
+      // One copy per path: drop older query variants (e.g. yesterday's "since" date).
+      for (const old of await cache.keys()) if (new URL(old.url).pathname === path && old.url !== key) await cache.delete(old);
+      await cache.put(key, copy);
+    }
+    return res;
+  });
+  try {
+    if (!saved) return await fromNet;
+    // A copy exists: give the network 6 s, then fall back so a weak gym signal can't hang the app.
+    return await Promise.race([fromNet, new Promise((_, rej) => setTimeout(() => rej(new Error('slow')), 6000))]);
+  } catch (e) {
+    if (saved) return saved;
+    return new Response('offline', { status: 503, statusText: 'offline' });
+  }
+}
 
 self.addEventListener('push', (event) => {
   let payload = {};

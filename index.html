@@ -389,6 +389,12 @@
   .tkstriph{display:flex;align-items:center;gap:8px;font-size:11.5px;text-transform:uppercase;
     letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:9px}
   .tkstriph .go{margin-left:auto;text-transform:none;letter-spacing:.2px;font-size:12px;color:var(--mind);font-weight:600}
+  .tkstriph .tkempty{margin-left:auto;text-transform:none;letter-spacing:0;font-size:12px;color:var(--muted2);font-weight:400}
+  .tkstriph .tkadd{flex:0 0 auto;width:30px;height:30px;margin:-5px -4px -5px 6px;border:0;border-radius:10px;background:var(--surface2);color:var(--text);
+    display:grid;place-items:center;cursor:pointer;transition:transform .12s var(--ease)}
+  .tkstriph .tkadd:active{transform:scale(.94)}
+  .tkstriph .tkadd svg{width:16px;height:16px}
+  .tkstrip.empty{cursor:default}
   .tkline{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:4px 0}
   .tkline .lt{flex:0 0 auto;font-weight:600;font-size:12px;color:var(--work);
     font-variant-numeric:tabular-nums;min-width:38px}
@@ -712,6 +718,13 @@
   .gexord button svg{width:12px;height:12px}
   .gexnbtn svg,.gex .gexrm svg,.ghist .ghx svg{width:17px;height:17px}
   .gcell input{font-size:20px;font-weight:300}
+  /* build 21: last time's numbers sit in each empty field as the target to beat */
+  .gcell input::placeholder{color:var(--muted2);opacity:1}
+  .gset.ghost .gcell input::placeholder{color:color-mix(in srgb,var(--muted) 50%,transparent)}
+  .gset .gsi{transition:color .2s,background-color .2s}
+  .gset .gcopy{height:22px;padding:0;border:1px dashed color-mix(in srgb,var(--muted) 55%,transparent);border-radius:999px;background:none;color:var(--muted);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+  .gset .gcopy:active{background:var(--surface2)}
+  .gset.beat .gsi{color:var(--onc);background:var(--flame);border-radius:999px}
   .gdetails input{font-size:16px}
   .rtimer{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom));overflow:hidden;border-radius:16px;padding:10px 12px;gap:8px;box-shadow:0 14px 30px -14px rgba(0,0,0,.8)}
   .rtimer.run{border-color:var(--line);background:var(--surface2)}
@@ -760,7 +773,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 20</div>
+  <div class="foot">Life Organiser · build 21</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -823,14 +836,20 @@ async function refreshSession(){
     const data=await res.json(); saveSession({access_token:data.access_token, refresh_token:data.refresh_token}); return true;
   }catch(e){ return false; }
 }
-function signOut(){ clearSession(); location.reload(); }
+function signOut(){ clearSession(); try{ localStorage.removeItem(OUTBOX_KEY); localStorage.removeItem('lo_gym_draft'); }catch(e){}
+  Promise.resolve(self.caches && caches.delete('lo-data')).catch(()=>{}).finally(()=>location.reload()); }
 // Roll the game day over at 02:00 even if the app stayed open, and show the late-night bar.
 function paintDayBar(){ const el=$('dayBar'); if(!el) return;
-  const late = ymd(calToday())!==ymd(today);
-  if(!late){ el.hidden=true; return; }
+  const late = ymd(calToday())!==ymd(today), off = !navigator.onLine, pend = outbox().length;
+  if(!late && !off && !pend){ el.hidden=true; return; }
   const nav=document.querySelector('.nav'); el.style.bottom=((nav?nav.offsetHeight:64)+8)+'px';
-  el.innerHTML='Still <b>'+today.toLocaleDateString('en-GB',{weekday:'short',day:'numeric'}).toLowerCase()+'</b> · new day at 02:00';
+  const n = pend+' change'+(pend>1?'s':'');
+  el.innerHTML = off ? '<b>Offline</b> · '+(pend? n+' waiting to sync' : 'showing your last synced data')
+    : pend ? 'Syncing '+n+'…'
+    : 'Still <b>'+today.toLocaleDateString('en-GB',{weekday:'short',day:'numeric'}).toLowerCase()+'</b> · new day at 02:00';
   el.hidden=false; }
+addEventListener('offline', ()=>paintDayBar());
+addEventListener('online', ()=>{ paintDayBar(); flushOutbox(); });
 function checkDayRollover(){
   const t=gameToday();
   if(ymd(t)!==ymd(today)){
@@ -840,16 +859,70 @@ function checkDayRollover(){
   }
   paintDayBar();
 }
-setInterval(checkDayRollover, 30000);
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkDayRollover(); });
+setInterval(()=>{ checkDayRollover(); if(navigator.onLine && outbox().length) flushOutbox(); }, 30000);  // also retries a waiting outbox: weak signal never fires "online"
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ checkDayRollover(); if(navigator.onLine && outbox().length) flushOutbox(); } });
 
+// ---- Offline (build 21) ----
+// Reads: the service worker answers GETs from its last good copy when there's no network.
+// Writes: ticks, values, rest days and gym workout headers that can't reach Supabase go
+// into an outbox on the phone (localStorage) and are replayed in order once back online.
+// Each of them is idempotent (upsert on a natural key, PATCH/DELETE by key, or a POST
+// with a client-made id), so a replay that half-landed before is harmless. While the
+// outbox holds anything, new writes queue behind it, so an offline tick followed by an
+// online untick can never land in the wrong order. Gym sets keep their own retry and the
+// on-phone draft (builds 17/19). Tasks are queued too: a new task gets a client-made id.
+const OUTBOX_KEY='lo_outbox';
+function outbox(){ try{ return JSON.parse(localStorage.getItem(OUTBOX_KEY)||'[]'); }catch(e){ return []; } }
+function outboxSave(a){ try{ if(a.length) localStorage.setItem(OUTBOX_KEY, JSON.stringify(a)); else localStorage.removeItem(OUTBOX_KEY); }catch(e){} try{ paintDayBar(); }catch(e){} }
+function queueable(method, path){
+  if(method==='GET') return false;
+  if(/^(routine_logs|rest_days|tasks)\b/.test(path)) return true;
+  return /^gym_workouts\b/.test(path) && (method==='PATCH' || method==='POST');
+}
+let flushing=null;
+function flushOutbox(){
+  if(flushing) return flushing;
+  flushing=(async()=>{ let dropped=0;
+    for(;;){ const q=outbox(); if(!q.length) break; const it=q[0];
+      try{ await rest(it.method, it.path, {...it.opts, _replay:true}); }
+      catch(e){ if(e instanceof TypeError) break;            // still offline: keep it, try later
+        console.error('outbox: dropped', it, e); dropped++; }   // the server refused it: don't block the rest
+      const now=outbox(); now.shift(); outboxSave(now); }
+    if(dropped) toast(dropped+' offline change'+(dropped>1?'s':'')+' could not be saved', true);
+    return outbox().length===0; })().finally(()=>{ flushing=null; });
+  return flushing; }
+// Re-apply queued writes to freshly loaded (possibly cached) data, so an offline tick
+// doesn't vanish from the screen when the app restarts before it has synced.
+function applyOutboxLocally(){
+  for(const it of outbox()){ const b=(it.opts&&it.opts.body)||{}, p=new URLSearchParams(it.path.split('?')[1]||'');
+    const eq=(k)=>(p.get(k)||'').replace(/^eq\./,'');
+    if(it.path.startsWith('routine_logs')){
+      if(it.method==='POST') localSet(b.routine_id, b.log_date, {...(getLog(b.routine_id,b.log_date)||{}), ...b});
+      else if(it.method==='DELETE') logs.get(eq('routine_id'))?.delete(eq('log_date')); }
+    else if(it.path.startsWith('rest_days')){ if(it.method==='POST') restDays.add(b.day); else if(it.method==='DELETE') restDays.delete(eq('day')); }
+    else if(it.path.startsWith('tasks')){
+      if(it.method==='POST'){ if(b.id && !tasks.some(t=>t.id===b.id)) tasks.push({done:false, done_at:null, sort_order:0, created_at:new Date().toISOString(), ...b}); }
+      else if(it.method==='PATCH'){ const t=tasks.find(x=>x.id===eq('id')); if(t) Object.assign(t,b); }
+      else if(it.method==='DELETE') tasks=tasks.filter(x=>x.id!==eq('id')); }
+    else if(it.path.startsWith('gym_workouts')){
+      if(it.method==='POST' && b.id && !gymWorkouts.some(w=>w.id===b.id)) gymWorkouts.unshift({...b});
+      else if(it.method==='PATCH'){ const w=gymWorkouts.find(x=>x.id===eq('id')); if(w) Object.assign(w,b); } } } }
 async function rest(method, path, opts, _retry){
   opts = opts || {};
+  if(queueable(method,path) && !opts._replay){
+    const item={method, path, opts:{body:opts.body, prefer:opts.prefer}};
+    if(outbox().length){ const q=outbox(); q.push(item); outboxSave(q); if(navigator.onLine) flushOutbox(); return null; }
+    try{ return await restSend(method, path, opts, _retry); }
+    catch(e){ if(!(e instanceof TypeError)) throw e; const q=outbox(); q.push(item); outboxSave(q); return null; }
+  }
+  return restSend(method, path, opts, _retry);
+}
+async function restSend(method, path, opts, _retry){
   const headers = { 'apikey': SUPABASE_KEY, 'Content-Type':'application/json' };
   if(session && session.access_token) headers['Authorization'] = 'Bearer '+session.access_token;
   if(opts.prefer) headers['Prefer'] = opts.prefer;
   const res = await fetch(REST + path, { method, headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
-  if(res.status===401 && session && !_retry){ const ok=await refreshSession(); if(ok) return rest(method,path,opts,true); }
+  if(res.status===401 && session && !_retry){ const ok=await refreshSession(); if(ok) return restSend(method,path,opts,true); }
   if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+' '+t); }
   const txt = await res.text(); return txt ? JSON.parse(txt) : null;
 }
@@ -1112,7 +1185,11 @@ async function loadTasks(){
     // manual reordering exists; tkSorted() is what actually orders the lists.
     tasks = await rest('GET','tasks?select=*&order=due_date.asc,due_time.asc,created_at.asc') || [];
     tasksReady = true;
-  }catch(e){ tasksReady=false; tasks=[]; console.warn('Tasks table not ready (run sql/tasks.sql):', e.message||e); }
+  }catch(e){
+    // A failed REload (e.g. offline with no saved copy) keeps the list already on screen;
+    // only a first load that fails means the table isn't there.
+    if(tasksReady){ console.warn('Tasks reload failed, keeping what is loaded:', e.message||e); return; }
+    tasksReady=false; tasks=[]; console.warn('Tasks table not ready (run sql/tasks.sql):', e.message||e); }
 }
 function remDefaults(){
   const o={ id:'default', enabled:true, skip_on_rest:true, timezone:'Europe/Amsterdam' };
@@ -1529,7 +1606,8 @@ addEventListener('resize', ()=>{ if(view==='today') fitStreaks(); });
 if(document.fonts){ document.fonts.ready.then(()=>{ if(view==='today') fitStreaks(); });
   document.fonts.addEventListener('loadingdone', ()=>{ if(view==='today') fitStreaks(); }); }
 function periodicDueCount(ds){ return routines.filter(r=>CADENCE[r.cadence].periodic && !isDone(r.id,ds) && periodicStatus(r).due).length; }
-function bindStrip(){ const s=$('tkStrip'); if(s) s.onclick=()=>{ view='tasks'; render(); }; }
+function bindStrip(){ const s=$('tkStrip'); if(s) s.onclick=()=>{ view='tasks'; render(); };
+  const a=$('tkQuickAdd'); if(a) a.onclick=(e)=>{ e.stopPropagation(); openTaskForm(null, {date:ymd(calToday())}); }; }
 // Refresh everything around the tiles without rebuilding them, so an animation in
 // flight is never cut off by a re-render.
 function syncTodayChrome(ds, wasPerfect){
@@ -1904,6 +1982,14 @@ function gsDel(id){ const i=gymSets.findIndex(x=>x.id===id); if(i>=0) gymSets.sp
 function exercisePR(id){ let m=0; for(const s of gymSets){ if(s.exercise_id===id && s.weight!=null) m=Math.max(m,Number(s.weight)); } return m; }
 function historicalTop(exId,exclWid){ let m=0; for(const s of gymSets){ if(s.exercise_id!==exId||s.workout_id===exclWid) continue; if(s.weight!=null) m=Math.max(m,Number(s.weight)); } return m; }
 function workoutTop(exId,wid){ let m=0; for(const s of gymSets){ if(s.exercise_id===exId&&s.workout_id===wid&&s.weight!=null) m=Math.max(m,Number(s.weight)); } return m; }
+// Build 21 — progressive overload. Each set row shows the same set from the last session
+// as a greyed placeholder; a new exercise starts with as many (empty) rows as last time;
+// beating a set (more weight, or the same weight for more reps) lights its number amber.
+// Empty rows are never saved, so the extra rows cost nothing.
+function freshSets(exId, excludeWid){ const l=exerciseLastSets(exId, excludeWid); const n=l?Math.min(l.sets.length,8):1;
+  return Array.from({length:Math.max(1,n)}, ()=>({weight:'',reps:''})); }
+function beatsTarget(st, g){ if(!g) return false; const r=parseInt(st.reps,10), w=parseWeight(st.weight), gw=Number(g.weight)||0, gr=Number(g.reps)||0;
+  if(!(r>0) || isNaN(w)) return false; return w>gw || (w===gw && r>gr); }
 function exerciseLastSets(id, excludeWid){
   for(const w of gymWorkouts){ if(w.id===excludeWid) continue;
     const ss=gymSets.filter(s=>s.workout_id===w.id && s.exercise_id===id).sort((a,b)=>a.set_no-b.set_no);
@@ -2059,9 +2145,14 @@ function sessionHtml(){
     const lastTxt = last ? `Last (${fmtDate(last.date)}): ${last.sets.map(x=>`${fmtW(x.weight)}×${x.reps}`).join(', ')}` : 'No history yet — set the baseline';
     let sets='';
     e.sets.forEach((st,j)=>{
-      sets+=`<div class="gset"><div class="gsi">${j+1}</div>
-        <div class="gcell"><input inputmode="decimal" data-gex="${i}" data-gset="${j}" data-gfield="weight" value="${st.weight}" placeholder="0"><span class="gu">kg</span></div>
-        <div class="gcell"><input inputmode="numeric" data-gex="${i}" data-gset="${j}" data-gfield="reps" value="${st.reps}" placeholder="0"><span class="gu">reps</span></div>
+      const g=last && last.sets[j];
+      const canCopy = g && !String(st.weight||'').trim() && !String(st.reps||'').trim();
+      sets+=`<div class="gset${g?' ghost':''}${beatsTarget(st,g)?' beat':''}">${canCopy
+        ? `<button class="gsi gcopy" data-gcopy="${i}:${j}" aria-label="Copy last time: ${fmtW(g.weight)} kg × ${g.reps}">${j+1}</button>`
+        : `<div class="gsi">${j+1}</div>`}`;
+      sets+=`
+        <div class="gcell"><input inputmode="decimal" data-gex="${i}" data-gset="${j}" data-gfield="weight" value="${st.weight}" placeholder="${g?fmtW(g.weight):'0'}"><span class="gu">kg</span></div>
+        <div class="gcell"><input inputmode="numeric" data-gex="${i}" data-gset="${j}" data-gfield="reps" value="${st.reps}" placeholder="${g?g.reps:'0'}"><span class="gu">reps</span></div>
         <button class="grm" data-grm="${i}:${j}" aria-label="Remove set">${ic('x')}</button></div>`;
     });
     const nOpen=noteOpen(e);
@@ -2135,6 +2226,10 @@ function bindGym(){
   app.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>startSession(b.getAttribute('data-start')));
   app.querySelectorAll('[data-gresume]').forEach(b=>b.onclick=()=>openWorkout(b.getAttribute('data-gresume')));
   app.querySelectorAll('[data-gaddset]').forEach(b=>b.onclick=()=>gAddSet(+b.getAttribute('data-gaddset')));
+  // Tap a set's number to copy last time's numbers into it, then adjust what changed.
+  app.querySelectorAll('[data-gcopy]').forEach(b=>b.onclick=()=>{ const [i,j]=b.getAttribute('data-gcopy').split(':').map(Number);
+    const ex=gymSession.exercises[i], st=ex&&ex.sets[j], last=ex&&exerciseLastSets(ex.exId, gymSession.id), g=last&&last.sets[j]; if(!st||!g) return;
+    st.weight=fmtW(g.weight); st.reps=String(g.reps); scheduleSetSave(ex,st); flushSetSave(ex,st); saveGymDraft(); haptic(); renderGym(); });
   app.querySelectorAll('[data-grm]').forEach(b=>b.onclick=()=>{ const p=b.getAttribute('data-grm').split(':'); gRmSet(+p[0],+p[1]); });
   app.querySelectorAll('[data-gexrm]').forEach(b=>b.onclick=()=>gRmExercise(+b.getAttribute('data-gexrm')));
   app.querySelectorAll('[data-gmoveex]').forEach(b=>b.onclick=()=>{ const p=b.getAttribute('data-gmoveex').split(':'); gMoveEx(+p[0],+p[1]); });
@@ -2160,11 +2255,12 @@ async function startSession(kind){
   busy=true;
   const ds=ymd(today);
   try{
-    const wk=await rest('POST','gym_workouts',{body:{workout_date:ds, label, finished:false, ex_order:exIds, ex_notes:{}}, prefer:'return=representation'});
-    const w=Array.isArray(wk)?wk[0]:wk;
+    const body={id:crypto.randomUUID(), workout_date:ds, label, finished:false, ex_order:exIds, ex_notes:{}};
+    const wk=await rest('POST','gym_workouts',{body, prefer:'return=representation'});
+    const w=(Array.isArray(wk)?wk[0]:wk) || {...body};   // null = queued offline
     gymWorkouts.unshift(w);
     gymSession={ id:w.id, label, date:ds, note:'', ex_order:exIds.slice(), ex_notes:{},
-      exercises: exIds.map(id=>({exId:id, note:'', sets:[{weight:'',reps:''}]})),
+      exercises: exIds.map(id=>({exId:id, note:'', sets:freshSets(id)})),
       finished:false, tickedRoutine:false,
       preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() };
     gymTab='log'; stopRest(); renderGym();
@@ -2268,8 +2364,9 @@ async function restoreGymDraft(){
   if(!Array.isArray(d.ex) || !d.ex.some(e=>e.sets.some(x=>x.dirty))){ clearGymDraft(); return; }
   let w=gymWorkouts.find(x=>x.id===d.wid);
   if(!w){
-    try{ const r=await rest('POST','gym_workouts',{body:{workout_date:d.date, label:d.label||'Workout', finished:false, ex_order:d.ex.map(e=>e.exId), ex_notes:{}}, prefer:'return=representation'});
-      w=Array.isArray(r)?r[0]:r; if(!w) return; gymWorkouts.unshift(w); }
+    try{ const body={id:d.wid||crypto.randomUUID(), workout_date:d.date, label:d.label||'Workout', finished:false, ex_order:d.ex.map(e=>e.exId), ex_notes:{}};
+      const r=await rest('POST','gym_workouts',{body, prefer:'return=representation'});
+      w=(Array.isArray(r)?r[0]:r) || {...body}; gymWorkouts.unshift(w); }
     catch(e){ console.error(e); return; }   // keep the draft; try again next launch
   }
   gymSession={ id:w.id, label:w.label||'Workout', date:w.workout_date, note:w.note||'',
@@ -2328,7 +2425,7 @@ async function flushAllSets(){
   if(s._metaQ) await s._metaQ;
   return unsavedCount()===0;
 }
-function retryUnsaved(){ if(gymSession && unsavedCount()) flushAllSets(); }
+function retryUnsaved(){ if(gymSession && unsavedCount()) (outbox().length?flushOutbox():(flushing||Promise.resolve())).then(()=>flushAllSets()); }
 window.addEventListener('online', retryUnsaved);
 // Wait for anything already queued on these sets, so a POST still in flight can't
 // land after the DELETE that was meant to remove it.
@@ -2373,7 +2470,7 @@ async function gRmExercise(i){ const ex=gymSession.exercises[i]; if(!ex) return;
   persistExOrder(); persistExNotes(); renderGym(); }
 function gAddExercise(id){ if(!gymSession) return;
   if(gymSession.exercises.some(e=>String(e.exId)===String(id))){ toast('Already in this workout'); return; }
-  gymSession.exercises.push({exId:id, note:'', sets:[{weight:'',reps:''}]}); persistExOrder(); renderGym(); }
+  gymSession.exercises.push({exId:id, note:'', sets:freshSets(id, gymSession.id)}); persistExOrder(); renderGym(); }
 async function completeGymRoutine(ds){
   const g=roleRoutine('gym') || routines.find(r=>/gym/i.test(r.name||'')); if(!g) return;
   try{ await setLog(g, ds, true, undefined, true); }catch(e){ console.warn('link gym routine failed', e); }
@@ -2384,6 +2481,7 @@ async function gFinish(){
   const preLevel=gymSession.preLevel, preTiers=gymSession.preTiers, preGym=gymSession.preGym;
   // Everything typed must be on the server before the workout closes; otherwise the
   // screen is the only copy, and it's gone the moment the session is cleared.
+  if(outbox().length) await flushOutbox();
   if(!(await flushAllSets())){
     const n=unsavedCount();
     const bad=gymSession.exercises.some(ex=>ex.sets.some(st=>isNaN(parseWeight(st.weight))));
@@ -2398,11 +2496,15 @@ async function gFinish(){
       gymWorkouts=gymWorkouts.filter(w=>w.id!==wid);
       gymSession=null; stopRest(); gymTab='log'; render(); renderGym(); busy=false; return;
     }
+    // How many of last time's sets did he beat? Counted before the session is cleared.
+    let tried=0, beat=0;
+    for(const ex of gymSession.exercises){ const last=exerciseLastSets(ex.exId, wid); if(!last) continue;
+      ex.sets.forEach((st,j)=>{ const g=last.sets[j]; if(!g || !(parseInt(st.reps,10)>0)) return; tried++; if(beatsTarget(st,g)) beat++; }); }
     await rest('PATCH','gym_workouts?id=eq.'+wid,{body:{finished:true},prefer:'return=minimal'});
     const w=gymWorkouts.find(x=>x.id===wid); if(w) w.finished=true;
     stopRest(); gymSession=null; gymTab='history';
     await loadGym(); await load(); render();
-    toast('Workout saved'); clearGymDraft();
+    toast('Workout saved'+(tried?' · beat '+beat+' of '+tried+' set'+(tried>1?'s':''):'')); clearGymDraft();
     const gymNews=announceGymMilestones(preGym);
     setTimeout(()=>{ if(!checkSetComplete(preTiers)) checkLevelUp(preLevel); }, gymNews?2600:0);
   }catch(e){ toast('Could not finish — check connection', true); console.error(e); }
@@ -2557,7 +2659,8 @@ function renderRest(rebar){ const v=$('rtimerval'); if(v) v.textContent=fmtTime(
   restAnim.currentTime=total-rem; }
 document.addEventListener('input',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
   const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset'), f=g.getAttribute('data-gfield');
-  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]){ ex.sets[j][f]=g.value; scheduleSetSave(ex,ex.sets[j]); saveGymDraft(); } });
+  const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]){ ex.sets[j][f]=g.value; scheduleSetSave(ex,ex.sets[j]); saveGymDraft();
+    const last=exerciseLastSets(ex.exId, gymSession.id), row=g.closest('.gset'); if(row) row.classList.toggle('beat', beatsTarget(ex.sets[j], last&&last.sets[j])); } });
 document.addEventListener('change',(e)=>{ const g=e.target.closest('[data-gex]'); if(!g||!gymSession) return;
   const i=+g.getAttribute('data-gex'), j=+g.getAttribute('data-gset');
   const ex=gymSession.exercises[i]; if(ex&&ex.sets[j]) flushSetSave(ex,ex.sets[j]); });
@@ -2856,9 +2959,9 @@ function addToCalendar(a){
   const url=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
   const el=document.createElement('a'); el.href=url; el.download=(a.title.replace(/[^\w -]+/g,'').trim()||'appointment')+'.ics';
   document.body.appendChild(el); el.click(); el.remove(); setTimeout(()=>URL.revokeObjectURL(url), 2000); }
-function openTaskForm(t){
+function openTaskForm(t, preset){
   const isNew=!t;
-  const d = t || { title:'', kind:'todo', due_date:'', due_time:'', end_time:'', location:'', note:'' };
+  const d = t || { title:'', kind:'todo', due_date:(preset&&preset.date)||'', due_time:'', end_time:'', location:'', note:'' };
   const defaultDate = tkMode==='cal' && tkCalSel ? tkCalSel : ymd(calToday());
   const kind = d.kind || 'todo';
   $('taskEdSheet').innerHTML = `
@@ -2923,9 +3026,9 @@ function openTaskForm(t){
       location: k==='appt' ? ($('tk-loc').value.trim()||null) : null,
       note: $('tk-note').value.trim()||null };
     try{
-      if(isNew){ await rest('POST','tasks',{body,prefer:'return=minimal'}); }
+      if(isNew){ body.id=crypto.randomUUID(); await rest('POST','tasks',{body,prefer:'return=minimal'}); }
       else { await rest('PATCH','tasks?id=eq.'+d.id,{body,prefer:'return=minimal'}); }
-      await loadTasks(); close(); toast('Saved');
+      await loadTasks(); applyOutboxLocally(); close(); toast(outbox().length?'Saved · will sync':'Saved');
       if(k==='appt' && date && tkMode==='cal') tkCalSel=date;
       render();
     }catch(e){ toast('Could not save', true); console.error(e); }
@@ -2937,7 +3040,10 @@ function tkTodayStripHtml(){
   if(!tasksReady) return '';
   const ds=ymd(calToday());
   const items=tkSorted(tasks.filter(t=>!t.done && t.due_date && t.due_date<=ds && !tkStale(t)));
-  if(!items.length) return '';
+  // Build 21: the strip is always there, with a + to add something for today without
+  // leaving Today. Empty, it's a single quiet line.
+  const add=`<button class="tkadd" id="tkQuickAdd" aria-label="Add something for today">${ic('plus')}</button>`;
+  if(!items.length) return `<div class="tkstrip empty" id="tkStrip"><div class="tkstriph">On today<span class="tkempty">nothing due</span>${add}</div></div>`;
   const shown=items.slice(0,3);
   const lines=shown.map(t=>{
     const appt=tkIsAppt(t);
@@ -2948,7 +3054,7 @@ function tkTodayStripHtml(){
   }).join('');
   const extra=items.length-shown.length;
   return `<div class="tkstrip" id="tkStrip">
-    <div class="tkstriph">On today<span class="go">Open</span></div>
+    <div class="tkstriph">On today<span class="go">Open</span>${add}</div>
     ${lines}${extra?`<div class="tkmore">+${extra} more</div>`:''}</div>`;
 }
 
@@ -3370,10 +3476,11 @@ function toast(msg,err,level,undo){
 function showLogin(){ $('login').classList.add('show'); }
 async function start(){
   $('login').classList.remove('show');
-  try{ await load(); render(); paintDayBar(); restoreGymDraft(); }
+  try{ if(navigator.onLine && outbox().length) await flushOutbox().catch(()=>{});
+    await load(); applyOutboxLocally(); render(); paintDayBar(); restoreGymDraft(); }
   catch(e){ console.error(e);
     if(String(e).includes('HTTP 401') || String(e).includes('JWT')){ clearSession(); showLogin(); }
-    else { $('app').innerHTML=`<div class="loading">Couldn't connect.<br>Check your internet and refresh.</div>`; toast('Connection failed',true); } }
+    else { $('app').innerHTML=`<div class="loading">${navigator.onLine?"Couldn't connect.":"You're offline, and this phone has no saved copy yet."}<br>Check your internet and refresh.</div>`; toast('Connection failed',true); } }
 }
 $('l-go').onclick = async ()=>{
   const email=$('l-email').value.trim(), pass=$('l-pass').value;
