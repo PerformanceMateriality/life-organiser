@@ -395,6 +395,19 @@
   .tkstriph .tkadd:active{transform:scale(.94)}
   .tkstriph .tkadd svg{width:16px;height:16px}
   .tkstrip.empty{cursor:default}
+  /* build 22: the Plan tomorrow sheet */
+  .pllist{display:flex;flex-direction:column;gap:2px;margin:2px 0 12px}
+  .plrow{display:flex;align-items:baseline;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line)}
+  .plrow .plt{flex:0 0 52px;font-size:12.5px;font-weight:600;color:var(--work);font-variant-numeric:tabular-nums}
+  .plrow .plt.todo{color:var(--muted)}
+  .plrow .pln{font-size:15px}
+  .plempty{color:var(--muted2);font-size:13.5px;padding:8px 2px 4px}
+  .plnew{display:flex;gap:8px;align-items:stretch}
+  .plnew #pl-title{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:11px 12px;font-size:16px;outline:none}
+  .plnew #pl-time{flex:0 0 96px;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:0 8px;font-size:16px;outline:none}
+  .plnew #pl-add{flex:0 0 46px;padding:0;display:grid;place-items:center}
+  .plhint{font-size:11.5px;color:var(--muted2);margin:6px 2px 0}
+  .plundo{display:block;margin:12px auto 0;background:none;border:0;color:var(--muted2);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
   .tkline{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:4px 0}
   .tkline .lt{flex:0 0 auto;font-weight:600;font-size:12px;color:var(--work);
     font-variant-numeric:tabular-nums;min-width:38px}
@@ -490,6 +503,10 @@
   .formbtns button{flex:1;border:none;border-radius:12px;padding:13px;font-size:14.5px;font-weight:600;cursor:pointer}
   .btn-save{background:var(--mind);color:#12101f}
   .btn-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--line)}
+  /* build 22: the shape lives on the buttons themselves, not only inside .formbtns, so a
+     lone Save/Cancel-style button (calendar, planner) isn't a bare rectangle */
+  .btn-save,.btn-cancel{border-radius:12px;padding:13px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+  .btn-save{border:none}
   .btn-del{background:transparent;color:var(--danger);border:1px solid var(--danger)!important;flex:0 0 auto!important;padding:13px 16px!important}
   .hidden{display:none!important}
 
@@ -773,7 +790,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 21</div>
+  <div class="foot">Life Organiser · build 22</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1698,9 +1715,50 @@ async function untickRoutine(r,ds,el){
   }
   pending.delete(r.id);
 }
+// Build 22: the "Plan tomorrow" routine opens a planner for the next day instead of
+// ticking straight away; it ticks itself once something has been added. Recognised by
+// name for now — the role check in sql/routines.sql only allows 'gym' and 'weigh', and
+// adding 'plan' there would need an SQL run. Renaming it to something without "plan"
+// turns it back into a plain tick routine.
+function isPlanRoutine(r){ return !r.role && /\bplan\b/i.test(r.name||''); }
+function openPlanner(r, ds){
+  const target=ymd(addDays(parseYmd(ds),1));
+  const label=parseYmd(target).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}).toLowerCase();
+  const paint=()=>{
+    const items=tkSorted(tasks.filter(t=>!t.done && t.due_date===target));
+    const timed=items.filter(t=>t.due_time);
+    const rows=items.length ? items.map(t=>`<div class="plrow"><span class="plt${t.due_time?'':' todo'}">${t.due_time?tkFmtTime(t.due_time):'to-do'}</span><span class="pln">${escapeHtml(t.title)}</span></div>`).join('')
+      : `<div class="plempty">Nothing planned yet.</div>`;
+    const done=isDone(r.id,ds);
+    $('detailSheet').innerHTML=`<h2>Plan ${label} <button class="x" id="plClose" aria-label="Close">${ic('x')}</button></h2>
+      <div class="pllist">${rows}</div>
+      <div class="plnew"><input type="text" id="pl-title" placeholder="Add something for ${label.split(' ')[0]}…" autocomplete="off">
+        <input type="time" id="pl-time" aria-label="Time (optional)"><button class="btn-save" id="pl-add" type="button" aria-label="Add">${ic('plus')}</button></div>
+      <div class="plhint">With a time it's an appointment; without one, a to-do.</div>
+      ${timed.length?`<button class="btn-cancel" id="pl-cal" type="button" style="width:100%;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px">${ic('cal')} Add ${timed.length>1?'all '+timed.length:'it'} to Calendar</button>`:''}
+      <button class="btn-save" id="pl-done" type="button" style="width:100%;margin-top:10px">Done</button>
+      ${done?`<button class="plundo" id="pl-untick" type="button">Not planned after all? Untick ${escapeHtml(r.name)}</button>`:''}`;
+    $('plClose').onclick=$('pl-done').onclick=()=>$('detail').classList.remove('show');
+    const add=async ()=>{
+      const title=$('pl-title').value.trim(), time=$('pl-time').value||null; if(!title){ $('pl-title').focus(); return; }
+      const body={ id:crypto.randomUUID(), title, kind:time?'appt':'todo', due_date:target, due_time:time };
+      try{ await rest('POST','tasks',{body,prefer:'return=minimal'}); }
+      catch(e){ toast('Could not add that', true); console.error(e); return; }
+      tasks.push({ done:false, done_at:null, end_time:null, location:null, note:null, sort_order:0, created_at:new Date().toISOString(), ...body });
+      if(!isDone(r.id,ds)) tickRoutine(r, ds, findRoutineEl(r.id,ds), null);
+      paint(); setTimeout(()=>{ const t=$('pl-title'); if(t) t.focus(); }, 30);
+    };
+    $('pl-add').onclick=add;
+    $('pl-title').onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); add(); } };
+    if($('pl-cal')) $('pl-cal').onclick=()=>shareIcs(timed, 'Plan '+target);
+    if($('pl-untick')) $('pl-untick').onclick=()=>{ $('detail').classList.remove('show'); untickRoutine(r, ds, findRoutineEl(r.id,ds)); };
+  };
+  paint(); $('detail').classList.add('show');
+}
 function onTile(el,e){
   const r=routines.find(x=>x.id===el.dataset.tile); if(!r) return;
   const ds=ymd(selected);
+  if(isPlanRoutine(r) && tasksReady){ openPlanner(r, ds); return; }
   if(r.track_value){ openValueSheet(r); return; }
   const rect=el.getBoundingClientRect();
   const pt = e && e.detail ? {x:e.clientX-rect.left, y:e.clientY-rect.top} : null;
@@ -2930,14 +2988,23 @@ async function toggleTask(id, btn){
   }catch(e){ toast('Could not update that task', true); console.error(e); }
   tkBusy=false;
 }
-// Build 19: "Add to Calendar" hands the iPhone a one-event .ics, which opens its own
-// "Add event" screen. Nothing goes to a server — the file is made here, on the phone.
-// Times are "floating" (no time zone), so 10:00 stays 10:00 wherever the phone is.
+// Add to Calendar: the app builds an .ics file on the phone and hands it over. Nothing
+// goes to a server. Times are "floating" (no time zone), so 10:00 stays 10:00.
+// Build 19 navigated to a data:text/calendar URL; iOS blocks top-level data: navigation,
+// which in the home-screen app showed only a flicker (Martijn, 2026-10-19). Build 22
+// hands the file to the system share sheet (Web Share with a file), falling back to
+// opening a blob URL, and on desktop to a download. To-dos can go too: without a time
+// they become all-day events.
 function icsEscape(t){ return String(t||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/([,;])/g,'\\$1'); }
-function icsFor(a){
+function icsFor(list){
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Life Organiser//EN'];
+  for(const a of list) lines.push(...icsEvent(a));
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n')+'\r\n'; }
+function icsEvent(a){
   const dt=(ds,hm)=>ds.replace(/-/g,'')+(hm?'T'+hm.slice(0,5).replace(':','')+'00':'');
-  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Life Organiser//EN','BEGIN:VEVENT',
-    'UID:lo-'+Date.now()+'-'+Math.random().toString(36).slice(2)+'@life-organiser',
+  const lines=['BEGIN:VEVENT',
+    'UID:lo-'+(a.id||(Date.now()+'-'+Math.random().toString(36).slice(2)))+'@life-organiser',
     'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z'];
   if(a.due_time){
     const start=a.due_time.slice(0,5);
@@ -2948,16 +3015,23 @@ function icsFor(a){
   lines.push('SUMMARY:'+icsEscape(a.title));
   if(a.location) lines.push('LOCATION:'+icsEscape(a.location));
   if(a.note) lines.push('DESCRIPTION:'+icsEscape(a.note));
-  lines.push('END:VEVENT','END:VCALENDAR');
-  return lines.join('\r\n')+'\r\n'; }
+  lines.push('END:VEVENT');
+  return lines; }
 function addToCalendar(a){
   if(!a.title || !a.due_date){ toast('Give it a title and a date first', true); return; }
-  const ics=icsFor(a);
-  // iPhone: opening the calendar file shows the system "Add event" screen.
-  // Desktop: download it; opening the file adds it to Outlook / Calendar.
-  if(/iPhone|iPad|iPod/.test(navigator.userAgent)){ location.href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics); return; }
+  return shareIcs([a], a.title);
+}
+async function shareIcs(list, name){
+  const ics=icsFor(list), fname=(String(name).replace(/[^\w -]+/g,'').trim()||'calendar')+'.ics';
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(ios){
+    try{ const file=new File([ics], fname, {type:'text/calendar'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; } }
+    catch(e){ if(e && e.name==='AbortError') return; console.warn('share failed', e); }
+    location.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'})); return;
+  }
   const url=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
-  const el=document.createElement('a'); el.href=url; el.download=(a.title.replace(/[^\w -]+/g,'').trim()||'appointment')+'.ics';
+  const el=document.createElement('a'); el.href=url; el.download=fname;
   document.body.appendChild(el); el.click(); el.remove(); setTimeout(()=>URL.revokeObjectURL(url), 2000); }
 function openTaskForm(t, preset){
   const isNew=!t;
@@ -2982,17 +3056,18 @@ function openTaskForm(t, preset){
         <div><label>Ends (optional)</label><input type="time" id="tk-end" value="${d.end_time?d.end_time.slice(0,5):''}"></div>
         <div><label>Where (optional)</label><input type="text" id="tk-loc" value="${escapeHtml(d.location||'')}" placeholder="e.g. Heerlen"></div>
       </div>
-      <button class="btn-cancel" id="tk-ics" type="button" style="width:100%;margin:2px 0 12px;display:flex;align-items:center;justify-content:center;gap:8px">${ic('cal')} Add to Calendar</button>
     </div>
     <div class="field"><label>Note (optional)</label>
       <textarea id="tk-note" rows="3" placeholder="Anything worth remembering…">${escapeHtml(d.note||'')}</textarea></div>
+    <button class="btn-cancel" id="tk-ics" type="button" style="width:100%;margin:2px 0 12px;display:flex;align-items:center;justify-content:center;gap:8px">${ic('cal')} Add to Calendar</button>
     <div id="tk-hint" style="color:var(--muted2);font-size:11.5px;margin:-4px 2px 4px"></div>
     <div class="formbtns">${isNew?'':'<button class="btn-del" id="tk-del">Delete</button>'}
       <button class="btn-cancel" id="tk-cancel">Cancel</button>
       <button class="btn-save" id="tk-save">Save</button></div>`;
   $('taskEd').classList.add('show');
-  $('tk-ics').onclick=()=>addToCalendar({ title:$('tk-title').value.trim(), due_date:$('tk-date').value, due_time:$('tk-time').value,
-    end_time:$('tk-end').value, location:$('tk-loc').value.trim(), note:$('tk-note').value.trim() });
+  $('tk-ics').onclick=()=>{ const appt=k==='appt';
+    addToCalendar({ id:d.id, title:$('tk-title').value.trim(), due_date:$('tk-date').value, due_time:$('tk-time').value,
+      end_time:appt?$('tk-end').value:'', location:appt?$('tk-loc').value.trim():'', note:$('tk-note').value.trim() }); };
   let k = kind;
   const paint=()=>{
     $('tk-kt').classList.toggle('on', k==='todo');
