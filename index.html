@@ -841,7 +841,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 25</div>
+  <div class="foot">Life Organiser · build 26</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1607,7 +1607,10 @@ function tileVal(r,ds){
   if(isFoodRoutine(r)){ const f=foodDays.get(ds); if(!f) return '';
     // Protein is the number to act on in the evening, so it leads until it is hit.
     const pr=nutrientRoutine('protein',/protein/i), t=pr&&pr.target_value!=null?Number(pr.target_value):null, p=Math.round(Number(f.protein_g)||0);
-    return t!=null && p<t ? `P ${p} / ${fmtW(t)} g` : `${fmtW(f.kcal)} kcal`; }
+    // His wording (2026-10-26): what is left, not the slash. Once protein is hit, calories
+    // vs target; no thousands separator, which would not fit at 375px.
+    const fr=foodRoutine(), kt=fr&&fr.target_value!=null?Number(fr.target_value):null;
+    return t!=null && p<t ? `${Math.round(t-p)} g protein left` : `${Math.round(Number(f.kcal)||0)}${kt!=null?' / '+kt:''} kcal`; }
   if(!r.track_value) return '';
   const l=getLog(r.id,ds); const v=l&&l.value!=null?fmtW(l.value):null; const u=escapeHtml(r.unit||'');
   if(r.target_value!=null) return `${v??0} / ${fmtW(r.target_value)}${u?' '+u:''}`;
