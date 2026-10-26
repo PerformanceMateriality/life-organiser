@@ -58,6 +58,9 @@
   .dl button svg{width:20px;height:20px}
   .dl.static{margin-left:0} .dl.static button{display:none}
   .htitle h1{margin:0;font-size:46px;line-height:.92;font-weight:300;font-stretch:112%;letter-spacing:-.045em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  /* build 25: at 375px (Display Zoom) the 46px date lost to the ring, arrows and gear and
+     read "mon …"; a step down keeps "wed 28" whole. */
+  @media (max-width:400px){ .htitle h1{font-size:38px} }
   .htitle .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
   .htitle .sub b{color:var(--text);font-weight:600}
   .htitle .sub.perfect b{color:var(--health)}
@@ -395,16 +398,53 @@
   .tkstriph .tkadd:active{transform:scale(.94)}
   .tkstriph .tkadd svg{width:16px;height:16px}
   .tkstrip.empty{cursor:default}
-  /* build 24: the Log food sheet */
-  .fdrow{margin:12px 0 0}
-  .fdk{display:flex;justify-content:space-between;font-size:13px;font-weight:500}
-  .fdk span{font-weight:300;font-feature-settings:'tnum';color:var(--muted)}
-  .fdrow .tbar{margin-top:6px}
-  .fdmini{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--muted)}
-  .fdmini b{color:var(--ink);font-weight:500}
-  .fdnote{font-size:12px;color:var(--muted);line-height:1.4;margin-top:12px}
+  /* build 25: the food page */
+  .fdback{display:flex;align-items:center;gap:4px;background:none;border:0;color:var(--muted);font:inherit;font-size:13px;font-weight:500;padding:4px 0 2px;cursor:pointer}
+  .fdback svg{width:18px;height:18px;transform:rotate(180deg)}
+  .fdsec{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:500;margin:20px 2px 8px}
+  .fdsec span{color:var(--muted2);font-weight:400;font-size:11.5px}
+  .fdcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+  .fdcard .tbar{margin:10px 0 0}
+  .fdcard.hit{background:color-mix(in srgb,var(--c) 16%,var(--surface));border-color:color-mix(in srgb,var(--c) 40%,transparent)}
+  .fdrowh{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+  .fdnum{font-weight:200;font-size:88px;line-height:.8;letter-spacing:-.06em;font-feature-settings:'tnum'}
+  .fdnum small{font-size:24px;font-weight:300;letter-spacing:-.02em;color:var(--muted)}
+  .fdcap{color:var(--muted);font-size:11.5px}
+  .fdgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .fdgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .fdk2{display:flex;justify-content:space-between;font-size:12.5px;font-weight:500;gap:6px}
+  .fdk2 span{color:var(--muted2);font-weight:400;white-space:nowrap}
+  .fdv{font-weight:300;font-size:32px;letter-spacing:-.04em;font-feature-settings:'tnum';margin-top:6px;line-height:1.05;white-space:nowrap}
+  .fdv small{font-size:12.5px;color:var(--muted);letter-spacing:0}
+  .fdv.sm{font-size:24px;margin:4px 0 2px}
+  .fddrink.miss .fdv{color:var(--flame)}
+  .fdmeal{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:14px 0 2px}
+  .fdmeal:first-child{padding-top:0}
+  .fdmeal span{text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted2)}
+  .fdit{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+  .fdmeal+.fdit,.fditems>.fdit:first-child{border-top:0}
+  .fdit b{font-weight:500;font-size:14px}
+  .fdamt{color:var(--muted);font-size:12px;margin-top:2px}
+  .fdflag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--surface2);color:var(--muted);margin-left:6px;vertical-align:2px}
+  .fdm{text-align:right;font-size:13px;white-space:nowrap;font-feature-settings:'tnum';display:flex;flex-direction:column;gap:2px}
+  .fdm span:first-child{color:var(--c)}
+  .fdm span:last-child{color:var(--muted2);font-size:11.5px}
+  .fdguess{color:var(--muted);font-size:12px;line-height:1.4;margin-top:8px;padding-top:10px;border-top:1px solid var(--line)}
+  .fdguess b{color:var(--text);font-weight:500}
+  .fdweekc{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;position:relative}
+  .fdtl{position:absolute;left:0;right:0;border-top:1px dashed rgba(255,255,255,.22)}
+  .fdtl span{position:absolute;right:0;top:-15px;font-size:10.5px;color:var(--muted2)}
+  .fdd{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .fdcol{width:100%;border-radius:6px;background:color-mix(in srgb,var(--c) 35%,var(--surface))}
+  .fdcol.hit{background:var(--c)}
+  .fdcol.none{background:repeating-linear-gradient(135deg,var(--surface2) 0 4px,transparent 4px 8px);border:1px solid var(--line)}
+  .fdcol.sel{outline:1.5px solid var(--text);outline-offset:2px}
+  .fdn{font-size:11px;color:var(--muted)}
+  .fdempty{color:var(--muted);font-size:13px;line-height:1.45;margin-top:10px}
+  .fdclaude{display:block;text-align:center;text-decoration:none;margin-top:14px;width:100%}
+  /* build 24: the 7-day average line (now on the build 25 page) */
   .fdweek{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
-  .fdweek b{display:block;color:var(--ink);font-weight:500;margin-top:3px}
+  .fdweek b{display:block;color:var(--text);font-weight:500;margin-top:3px}
   .fdweek span{display:block;font-size:11.5px;margin-top:2px}
   /* build 22: the Plan tomorrow sheet */
   .pllist{display:flex;flex-direction:column;gap:2px;margin:2px 0 12px}
@@ -801,7 +841,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 24</div>
+  <div class="foot">Life Organiser · build 25</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1529,14 +1569,15 @@ function renderLevelBar(){
 }
 const VIEW_TITLE={ tasks:'tasks', gym:'gym', history:'history', rewards:'rewards' };
 function render(){
-  document.querySelectorAll('.navbtn').forEach(b=>{ const on=b.dataset.view===view; b.classList.toggle('active',on);
+  document.querySelectorAll('.navbtn').forEach(b=>{ const on=b.dataset.view===(view==='food'?'today':view); b.classList.toggle('active',on);
     if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   $('restrow').style.display = view==='today' ? '' : 'none';
-  $('datebar').classList.toggle('static', view!=='today');
+  $('datebar').classList.toggle('static', view!=='today' && view!=='food');
   $('subtitle').className='sub';
-  if(view!=='today') $('dateLbl').textContent=VIEW_TITLE[view]||view;
+  if(view!=='today' && view!=='food') $('dateLbl').textContent=VIEW_TITLE[view]||view;
   renderLevelBar();
   if(view==='today') renderToday();
+  else if(view==='food') renderFood();
   else if(view==='history') renderHistory();
   else if(view==='gym') renderGym();
   else if(view==='tasks') renderTasks();
@@ -1776,7 +1817,7 @@ function onTile(el,e){
   const r=routines.find(x=>x.id===el.dataset.tile); if(!r) return;
   const ds=ymd(selected);
   if(isPlanRoutine(r) && tasksReady){ openPlanner(r, ds); return; }
-  if(isFoodRoutine(r)){ openFoodSheet(r, ds); return; }
+  if(isFoodRoutine(r)){ view='food'; render(); window.scrollTo(0,0); return; }
   if(r.track_value){ openValueSheet(r); return; }
   const rect=el.getBoundingClientRect();
   const pt = e && e.detail ? {x:e.clientX-rect.left, y:e.clientY-rect.top} : null;
@@ -1842,7 +1883,7 @@ async function applyFoodTicks(){
   }
   foodTicking=false;
   if(!changed.size) return;
-  if(view==='today') render();
+  if(view==='today' || view==='food') render();
   if(changed.has(ymd(today))) toast(hits.length ? 'Food log · '+hits.join(', ')+' ticked' : 'Food log synced');
 }
 // Single days are noisy; the 7-day average is what a recomp is steered by. Averages
@@ -1854,34 +1895,79 @@ function foodWeekLine(ds){
   return `<div class="fdweek">7-day average <b>${avg('kcal').toLocaleString('en-GB')} kcal · P ${avg('protein_g')} g · fiber ${avg('fiber_g')} g</b><span>${days.length} of 7 days logged</span></div>`;
 }
 const CLAUDE_URL='https://claude.ai/new';
-function openFoodSheet(r, ds){
-  const f=foodDays.get(ds), c=RAWCOLOR[r.category];
-  const label=parseYmd(ds).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}).toLowerCase();
-  const pr=nutrientRoutine('protein',/protein/i), fb=nutrientRoutine('fiber',/fib(er|re)/i), wr=nutrientRoutine('water',/water|hydrat/i);
-  const row=(name, v, t, u)=>{ const pct=t?Math.min(1,v/t):0;
-    return `<div class="fdrow"><div class="fdk">${name}<span>${fmtW(v)}${t?' / '+fmtW(t):''} ${u}</span></div>${t?`<div class="tbar" style="--c:${c}"><i style="transform:scaleX(${pct})"></i></div>`:''}</div>`; };
-  let body;
-  if(f){
-    const n=(f.items||[]).length;
-    body=`${row('Protein', Number(f.protein_g)||0, pr&&pr.target_value!=null?Number(pr.target_value):null, 'g')}
-      ${row('Calories', Number(f.kcal)||0, r.target_value!=null?Number(r.target_value):null, 'kcal')}
-      ${row('Fiber', Number(f.fiber_g)||0, fb&&fb.target_value!=null?Number(fb.target_value):null, 'g')}
-      <div class="fdmini"><span>Carbs <b>${fmtW(Number(f.carbs_g)||0)} g</b></span><span>Fat <b>${fmtW(Number(f.fat_g)||0)} g</b></span></div>
-      <div class="fdmini"><span>Water <b>${f.water_ml>0?fmtW(Math.round(f.water_ml/100)/10)+' L':'–'}</b></span><span>Caffeine <b>${f.caffeine_mg>0?f.caffeine_mg+' mg':'–'}</b></span><span>Alcohol <b>${fmtW(Number(f.alcohol_units)||0)}</b></span></div>
-      ${foodWeekLine(ds)}
-      <div class="fdnote">${n} item${n===1?'':'s'} · estimates, about ±20%${f.note?' · '+escapeHtml(f.note):''}</div>`;
+// Build 25: the food page. Opens from the Log food tile; the day arrows walk through
+// days, "‹ Today" goes back. Read-only by design (his choice, 2026-10-26): fixes go
+// through Claude, which confirms the whole day before it re-logs.
+const MEAL_LABEL={ breakfast:'Breakfast', lunch:'Lunch', dinner:'Dinner', snack:'Snacks', drink:'Drinks' };
+function foodTargets(){
+  const fr=foodRoutine(), t=(r)=>r&&r.target_value!=null?Number(r.target_value):null;
+  return { kcal:t(fr), protein:t(nutrientRoutine('protein',/protein/i)), fiber:t(nutrientRoutine('fiber',/fib(er|re)/i)),
+    water:t(nutrientRoutine('water',/water|hydrat/i)) };
+}
+function fdBar(v,t){ return t?`<div class="tbar"><i style="transform:scaleX(${Math.min(1,Math.max(0,v/t))})"></i></div>`:''; }
+function fdItems(f){
+  const items=f.items||[];
+  if(!items.length) return '';
+  const row=(i)=>`<div class="fdit"><div><b>${escapeHtml(i.name||'')}</b>${i.staple?'<span class="fdflag">regular</span>':''}${i.amount?`<div class="fdamt">${escapeHtml(i.amount)}</div>`:''}</div>
+    <div class="fdm"><span>${fmtW(Number(i.protein_g)||0)} g P</span><span>${Number(i.kcal)||0} kcal</span></div></div>`;
+  // Grouped by meal; days logged before the connector stored meals stay one list.
+  const grouped=items.some(i=>i.meal);
+  let html='';
+  if(grouped){
+    const order=[...Object.keys(MEAL_LABEL), null];
+    for(const m of order){ const g=items.filter(i=>(i.meal||null)===m); if(!g.length) continue;
+      const p=Math.round(g.reduce((a,i)=>a+(Number(i.protein_g)||0),0)), k=g.reduce((a,i)=>a+(Number(i.kcal)||0),0);
+      html+=`<div class="fdmeal">${m?MEAL_LABEL[m]:'Other'}<span>${p} g P · ${k} kcal</span></div>`+g.map(row).join(''); }
+  } else html=items.map(row).join('');
+  return `<div class="fdsec">What you had<span>${items.length} item${items.length===1?'':'s'}</span></div>
+    <div class="fdcard fditems">${html}${f.note?`<div class="fdguess"><b>Claude's guesses:</b> ${escapeHtml(f.note)}</div>`:''}</div>`;
+}
+function fdWeek(ds, target){
+  const days=[...Array(7)].map((_,i)=>ymd(addDays(parseYmd(ds),i-6)));
+  const vals=days.map(d=>{ const f=foodDays.get(d); return f?Number(f.protein_g)||0:null; });
+  const max=Math.max(target||0, ...vals.filter(v=>v!=null), 1)*1.1, H=96;
+  const n=vals.filter(v=>v!=null).length;
+  const cols=days.map((d,i)=>{ const v=vals[i], hit=v!=null&&target&&v>=target;
+    const h=v==null?10:Math.max(4,Math.round(v/max*H));
+    return `<div class="fdd"><div class="fdcol${v==null?' none':hit?' hit':''}${d===ds?' sel':''}" style="height:${h}px"></div><div class="fdn">${parseYmd(d).toLocaleDateString('en-GB',{weekday:'narrow'}).toLowerCase()}</div></div>`; }).join('');
+  return `<div class="fdsec">Protein, last 7 days<span>${n} of 7 logged</span></div>
+    <div class="fdcard"><div class="fdweekc" style="height:${H+22}px">${target?`<div class="fdtl" style="bottom:${22+Math.round(target/max*H)}px"><span>${fmtW(target)}</span></div>`:''}${cols}</div>${foodWeekLine(ds)}</div>`;
+}
+function renderFood(){
+  const ds=ymd(selected), f=foodDays.get(ds), fr=foodRoutine(), T=foodTargets();
+  dateLabel(); ringSvg(ds);
+  const sub=$('subtitle');
+  sub.textContent = f ? `food · logged ${new Date(f.updated_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}` : 'food · nothing logged';
+  let html=`<button class="fdback" id="fdBack" type="button">${ic('arrow')}<span>Today</span></button>`;
+  if(!f){
+    const before=ds<FOOD_FROM, anyWeek=[...Array(7)].some((_,i)=>foodDays.has(ymd(addDays(parseYmd(ds),-i))));
+    html+=`<div class="fdcard fdempty">${before?'The food log started on '+parseYmd(FOOD_FROM).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+'.'
+        :'Nothing logged for this day. The 21:57 check-in asks you, or tell Claude now.'}</div>
+      ${before?'':`<a class="btn-save fdclaude" href="${CLAUDE_URL}" target="_blank" rel="noopener">Log it in Claude</a>
+      ${fr && !isDone(fr.id,ds)?`<button class="plundo" id="fdTick" type="button">Tick ${escapeHtml(fr.name)} without logging</button>`:''}`}
+      ${anyWeek?fdWeek(ds, T.protein):''}`;
   } else {
-    body=`<div class="fdnote" style="margin-top:4px">Nothing logged for ${label} yet. The 21:57 check-in will ask you, or tell Claude now.</div>`;
+    const p=Number(f.protein_g)||0, hit=T.protein!=null&&p>=T.protein;
+    const left=T.protein!=null?Math.round(T.protein-p):null;
+    const mini=(name,v,t,u,c)=>`<div class="fdcard fdmini2${t!=null&&v>=t&&c!=='kcal'?' hit':''}"><div class="fdk2">${name}<span>${t!=null?'/ '+fmtW(t).replace(/\B(?=(\d{3})+(?!\d))/g,',')+' '+u:'no target'}</span></div>
+      <div class="fdv">${fmtW(v).replace(/\B(?=(\d{3})+(?!\d))/g,',')}<small> ${u}</small></div>${fdBar(v,t)}</div>`;
+    const drink=(name,v,shown)=>`<div class="fdcard fddrink${shown==null?' miss':''}"><div class="fdcap">${name}</div><div class="fdv sm">${shown==null?'–':shown}</div><div class="fdcap">${shown==null?'not logged':v}</div></div>`;
+    const wl=Number(f.water_ml)||0, cf=Number(f.caffeine_mg)||0, al=Number(f.alcohol_units)||0;
+    html+=`<div class="fdsec">Protein</div>
+      <div class="fdcard fdhero${hit?' hit':''}"><div class="fdrowh"><div class="fdnum">${fmtW(Math.round(p))}<small>${T.protein!=null?' / '+fmtW(T.protein):''} g</small></div>
+        <div class="fdcap" style="text-align:right">${hit?'target hit':left!=null?left+' g to go':''}</div></div>${fdBar(p,T.protein)}</div>
+      <div class="fdsec">Macros</div>
+      <div class="fdgrid">${mini('Calories',Number(f.kcal)||0,T.kcal,'kcal','kcal')}${mini('Fiber',Number(f.fiber_g)||0,T.fiber,'g')}${mini('Carbs',Number(f.carbs_g)||0,null,'g')}${mini('Fat',Number(f.fat_g)||0,null,'g')}</div>
+      <div class="fdsec">Drinks</div>
+      <div class="fdgrid3">${drink('Water', T.water!=null?'/ '+fmtW(T.water)+' L':'', wl>0?fmtW(Math.round(wl/100)/10)+' L':null)}${drink('Caffeine','', cf>0?cf+' mg':null)}${drink('Alcohol','drinks', fmtW(al))}</div>
+      ${fdItems(f)}
+      ${fdWeek(ds, T.protein)}
+      <a class="btn-save fdclaude" href="${CLAUDE_URL}" target="_blank" rel="noopener">Add or fix in Claude</a>
+      <div class="fdcap" style="text-align:center;margin-top:10px">Claude's estimates from your description, about ±20%</div>`;
   }
-  $('detailSheet').innerHTML=`
-    <div class="vsn" style="--c:${c}"><span class="i">${ic(routineIcon(r))}</span>${escapeHtml(r.name)}<span class="vt">${label}</span></div>
-    ${body}
-    <a class="btn-save" id="fd-claude" href="${CLAUDE_URL}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">${f?'Add or fix in Claude':'Log it in Claude'}</a>
-    ${!f && !isDone(r.id,ds)?`<button class="plundo" id="fd-tick" type="button">Tick without logging</button>`:''}
-    ${f?'':(isDone(r.id,ds)?`<button class="plundo" id="fd-untick" type="button">Untick ${escapeHtml(r.name)}</button>`:'')}`;
-  $('detail').classList.add('show');
-  const t=$('fd-tick'); if(t) t.onclick=()=>{ $('detail').classList.remove('show'); tickRoutine(r, ds, findRoutineEl(r.id,ds), null); };
-  const u=$('fd-untick'); if(u) u.onclick=()=>{ $('detail').classList.remove('show'); untickRoutine(r, ds, findRoutineEl(r.id,ds)); };
+  $('app').innerHTML=`<div class="fdpage" style="--c:${RAWCOLOR.health}">${html}</div>`;
+  $('fdBack').onclick=()=>{ view='today'; render(); window.scrollTo(0,0); };
+  const t=$('fdTick'); if(t) t.onclick=async ()=>{ await tickRoutine(fr, ds, null, null); render(); };
 }
 
 // ---- value sheet (tracked routines: protein, fiber, weigh-in…) ----
