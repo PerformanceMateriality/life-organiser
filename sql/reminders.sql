@@ -93,7 +93,11 @@ end $$;
 
 create index if not exists reminder_sends_date_idx on public.reminder_sends using btree (send_date desc);
 
--- Grants. `anon` deliberately absent, as everywhere else.
+-- Grants. `anon` deliberately absent, as everywhere else — revoked explicitly, because
+-- Supabase's default privileges grant it on every new table (found still set 2026-10-26).
+revoke all on table public.reminder_settings  from anon;
+revoke all on table public.push_subscriptions from anon;
+revoke all on table public.reminder_sends     from anon;
 grant all on table public.reminder_settings  to authenticated, service_role;
 grant all on table public.push_subscriptions to authenticated, service_role;
 grant all on table public.reminder_sends     to authenticated, service_role;

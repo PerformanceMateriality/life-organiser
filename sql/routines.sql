@@ -26,15 +26,12 @@ alter table public.routines add column if not exists target_value numeric;
 -- survives a rename.
 alter table public.routines add column if not exists role text;
 
-do $$ begin
-  if not exists (
-    select 1 from pg_constraint
-    where conname = 'routines_role_check' and conrelid = 'public.routines'::regclass
-  ) then
-    alter table public.routines add constraint routines_role_check
-      check (role is null or role = any (array['gym'::text, 'weigh'::text]));
-  end if;
-end $$;
+-- Build 24 widened the list (food log). Drop + re-add so a database on the old list
+-- gets the new one; the same list is in sql/food.sql, keep the two in step. 'plan' is
+-- allowed ahead of the parked "Plan tomorrow rename-proof" change.
+alter table public.routines drop constraint if exists routines_role_check;
+alter table public.routines add constraint routines_role_check
+  check (role is null or role = any (array['gym','weigh','food','protein','fiber','water','plan']));
 
 -- At most one routine per role, so the lookup can never be ambiguous.
 create unique index if not exists routines_role_key on public.routines (role) where role is not null;

@@ -395,6 +395,17 @@
   .tkstriph .tkadd:active{transform:scale(.94)}
   .tkstriph .tkadd svg{width:16px;height:16px}
   .tkstrip.empty{cursor:default}
+  /* build 24: the Log food sheet */
+  .fdrow{margin:12px 0 0}
+  .fdk{display:flex;justify-content:space-between;font-size:13px;font-weight:500}
+  .fdk span{font-weight:300;font-feature-settings:'tnum';color:var(--muted)}
+  .fdrow .tbar{margin-top:6px}
+  .fdmini{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--muted)}
+  .fdmini b{color:var(--ink);font-weight:500}
+  .fdnote{font-size:12px;color:var(--muted);line-height:1.4;margin-top:12px}
+  .fdweek{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .fdweek b{display:block;color:var(--ink);font-weight:500;margin-top:3px}
+  .fdweek span{display:block;font-size:11.5px;margin-top:2px}
   /* build 22: the Plan tomorrow sheet */
   .pllist{display:flex;flex-direction:column;gap:2px;margin:2px 0 12px}
   .plrow{display:flex;align-items:baseline;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line)}
@@ -790,7 +801,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 23</div>
+  <div class="foot">Life Organiser · build 24</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -877,7 +888,7 @@ function checkDayRollover(){
   paintDayBar();
 }
 setInterval(()=>{ checkDayRollover(); if(navigator.onLine && outbox().length) flushOutbox(); }, 30000);  // also retries a waiting outbox: weak signal never fires "online"
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ checkDayRollover(); if(navigator.onLine && outbox().length) flushOutbox(); } });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ checkDayRollover(); if(navigator.onLine && outbox().length) flushOutbox(); refreshFood(); } });
 
 // ---- Offline (build 21) ----
 // Reads: the service worker answers GETs from its last good copy when there's no network.
@@ -1042,6 +1053,7 @@ function routineIcon(r){
   const n=(r.name||'').toLowerCase();
   if(r.role==='gym' || /gym|workout|lift/.test(n)) return 'dumbbell';
   if(r.role==='weigh' || /weigh|weight/.test(n)) return 'scale';
+  if(r.role==='food') return 'plate';
   const map=[[/meditat|breath|mindful/,'lotus'],[/vitamin|multi|supplement|pill|creatine/,'pill'],[/fish|omega|oil|water|hydrat/,'drop'],
     [/magnes|zinc/,'hex'],[/fib/,'leaf'],[/mineral/,'gem'],[/protein/,'egg'],[/tread|walk|run|steps|cardio/,'walk'],
     [/plan|journal|review/,'cal'],[/etf|invest|shares|stock|savings/,'trend'],[/statiegeld|glass|trash|bottle|recycl/,'bottle'],
@@ -1186,6 +1198,7 @@ async function load(){
   logs = new Map();
   for(const row of lg){ if(!logs.has(row.routine_id)) logs.set(row.routine_id,new Map()); logs.get(row.routine_id).set(row.log_date,row); }
   try{ const rd = await rest('GET','rest_days?select=day') || []; restDays = new Set(rd.map(x=>x.day)); }catch(e){ restDays = new Set(); }
+  await loadFood(since);
   await loadGym();
   await loadTasks();
   await loadReminders();
@@ -1550,6 +1563,10 @@ const TODAY_ORDER=CATEGORIES.map(c=>c.key);   // same order and names as before 
 const FLAME_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS.flame}</svg>`;
 function isGymRoutine(r){ return r.role==='gym' || (!r.role && /gym/i.test(r.name||'')); }
 function tileVal(r,ds){
+  if(isFoodRoutine(r)){ const f=foodDays.get(ds); if(!f) return '';
+    // Protein is the number to act on in the evening, so it leads until it is hit.
+    const pr=nutrientRoutine('protein',/protein/i), t=pr&&pr.target_value!=null?Number(pr.target_value):null, p=Math.round(Number(f.protein_g)||0);
+    return t!=null && p<t ? `P ${p} / ${fmtW(t)} g` : `${fmtW(f.kcal)} kcal`; }
   if(!r.track_value) return '';
   const l=getLog(r.id,ds); const v=l&&l.value!=null?fmtW(l.value):null; const u=escapeHtml(r.unit||'');
   if(r.target_value!=null) return `${v??0} / ${fmtW(r.target_value)}${u?' '+u:''}`;
@@ -1759,6 +1776,7 @@ function onTile(el,e){
   const r=routines.find(x=>x.id===el.dataset.tile); if(!r) return;
   const ds=ymd(selected);
   if(isPlanRoutine(r) && tasksReady){ openPlanner(r, ds); return; }
+  if(isFoodRoutine(r)){ openFoodSheet(r, ds); return; }
   if(r.track_value){ openValueSheet(r); return; }
   const rect=el.getBoundingClientRect();
   const pt = e && e.detail ? {x:e.clientX-rect.left, y:e.clientY-rect.top} : null;
@@ -1769,6 +1787,101 @@ function onPcard(el){
   if(el.dataset.gymcard){ view='gym'; render(); return; }
   const ds=ymd(selected);
   if(isDone(r.id,ds)) untickRoutine(r,ds,el); else tickRoutine(r,ds,el,null);
+}
+
+// ---- Food log (build 24) ----
+// Claude writes food_days through the food-mcp connector (sql/food.sql); the app only
+// reads it. A logged day ticks the Log food tile and fills Protein / Fiber / Water.
+// Same rules as the gym auto-tick: ticks are only ever added and values only ever
+// raised, so a manual entry is never overwritten or unticked.
+const FOOD_FROM='2026-10-26';   // first day of the food log; older days are never touched
+let foodDays=new Map(), foodLoadedAt=0;
+async function loadFood(since){
+  try{
+    const rows = await rest('GET','food_days?select=day,kcal,protein_g,carbs_g,fat_g,fiber_g,alcohol_units,water_ml,caffeine_mg,items,note,updated_at&day=gte.'+since) || [];
+    foodDays = new Map(rows.map(f=>[f.day,f])); foodLoadedAt=Date.now();
+  }catch(e){ foodDays=new Map(); console.warn('Food log not ready (run sql/food.sql):', e.message||e); }
+}
+// The nightly log usually lands while the app sits in the background, so look again
+// whenever it comes back to the front (at most once a minute).
+async function refreshFood(){
+  if(!session || !routines.length || !navigator.onLine || Date.now()-foodLoadedAt<60000) return;
+  await loadFood(ymd(addDays(today,-160))); applyFoodTicks();
+}
+function isFoodRoutine(r){ return r.role==='food' || (!r.role && !r.track_value && /\bfood\b/i.test(r.name||'')); }
+function foodRoutine(){ return routines.find(isFoodRoutine) || null; }
+// Rename-proof by role; the name fallback covers the routines he already had before
+// build 24 gave them a role.
+function nutrientRoutine(role, re){ return roleRoutine(role) || routines.find(r=>!r.role && r.track_value && re.test(r.name||'')) || null; }
+function foodValueFor(role, f){
+  if(role==='protein') return Number(f.protein_g)||0;
+  if(role==='fiber') return Number(f.fiber_g)||0;
+  if(role==='water'){ const r=nutrientRoutine('water',/water|hydrat/i), ml=Number(f.water_ml)||0;
+    return /^ml$/i.test((r&&r.unit)||'') ? ml : Math.round(ml/100)/10; }
+  return 0;
+}
+let foodTicking=false;
+async function applyFoodTicks(){
+  if(foodTicking || !foodDays.size) return; foodTicking=true;
+  const fr=foodRoutine(), links=[['protein',/protein/i],['fiber',/fib(er|re)/i],['water',/water|hydrat/i]]
+    .map(([role,re])=>[role, nutrientRoutine(role,re)]).filter(([,r])=>r);
+  const changed=new Set(), hits=[];
+  for(const [ds,f] of foodDays){
+    if(ds<FOOD_FROM || ds>ymd(today)) continue;
+    try{
+      if(fr && !isDone(fr.id,ds)){ await setLog(fr, ds, true, undefined, true); changed.add(ds); }
+      for(const [role,r] of links){
+        const v=foodValueFor(role,f); if(!(v>0)) continue;   // 0 = not mentioned, not "none"
+        const cur=getLog(r.id,ds);
+        if(cur && (cur.completed || (cur.value!=null && Number(cur.value)>=v))) continue;
+        const done=valueDone(r,v);
+        await setLog(r, ds, true, v, done); changed.add(ds);
+        if(done && ds===ymd(today)) hits.push(r.name);
+      }
+    }catch(e){ console.warn('food auto-tick failed for', ds, e); break; }   // offline: try again next time
+  }
+  foodTicking=false;
+  if(!changed.size) return;
+  if(view==='today') render();
+  if(changed.has(ymd(today))) toast(hits.length ? 'Food log · '+hits.join(', ')+' ticked' : 'Food log synced');
+}
+// Single days are noisy; the 7-day average is what a recomp is steered by. Averages
+// only the days that were logged, and says how many that was.
+function foodWeekLine(ds){
+  const days=[]; for(let i=0;i<7;i++){ const f=foodDays.get(ymd(addDays(parseYmd(ds),-i))); if(f) days.push(f); }
+  if(days.length<2) return '';
+  const avg=(k)=>Math.round(days.reduce((a,f)=>a+(Number(f[k])||0),0)/days.length);
+  return `<div class="fdweek">7-day average <b>${avg('kcal').toLocaleString('en-GB')} kcal · P ${avg('protein_g')} g · fiber ${avg('fiber_g')} g</b><span>${days.length} of 7 days logged</span></div>`;
+}
+const CLAUDE_URL='https://claude.ai/new';
+function openFoodSheet(r, ds){
+  const f=foodDays.get(ds), c=RAWCOLOR[r.category];
+  const label=parseYmd(ds).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}).toLowerCase();
+  const pr=nutrientRoutine('protein',/protein/i), fb=nutrientRoutine('fiber',/fib(er|re)/i), wr=nutrientRoutine('water',/water|hydrat/i);
+  const row=(name, v, t, u)=>{ const pct=t?Math.min(1,v/t):0;
+    return `<div class="fdrow"><div class="fdk">${name}<span>${fmtW(v)}${t?' / '+fmtW(t):''} ${u}</span></div>${t?`<div class="tbar" style="--c:${c}"><i style="transform:scaleX(${pct})"></i></div>`:''}</div>`; };
+  let body;
+  if(f){
+    const n=(f.items||[]).length;
+    body=`${row('Protein', Number(f.protein_g)||0, pr&&pr.target_value!=null?Number(pr.target_value):null, 'g')}
+      ${row('Calories', Number(f.kcal)||0, r.target_value!=null?Number(r.target_value):null, 'kcal')}
+      ${row('Fiber', Number(f.fiber_g)||0, fb&&fb.target_value!=null?Number(fb.target_value):null, 'g')}
+      <div class="fdmini"><span>Carbs <b>${fmtW(Number(f.carbs_g)||0)} g</b></span><span>Fat <b>${fmtW(Number(f.fat_g)||0)} g</b></span></div>
+      <div class="fdmini"><span>Water <b>${f.water_ml>0?fmtW(Math.round(f.water_ml/100)/10)+' L':'–'}</b></span><span>Caffeine <b>${f.caffeine_mg>0?f.caffeine_mg+' mg':'–'}</b></span><span>Alcohol <b>${fmtW(Number(f.alcohol_units)||0)}</b></span></div>
+      ${foodWeekLine(ds)}
+      <div class="fdnote">${n} item${n===1?'':'s'} · estimates, about ±20%${f.note?' · '+escapeHtml(f.note):''}</div>`;
+  } else {
+    body=`<div class="fdnote" style="margin-top:4px">Nothing logged for ${label} yet. The 21:57 check-in will ask you, or tell Claude now.</div>`;
+  }
+  $('detailSheet').innerHTML=`
+    <div class="vsn" style="--c:${c}"><span class="i">${ic(routineIcon(r))}</span>${escapeHtml(r.name)}<span class="vt">${label}</span></div>
+    ${body}
+    <a class="btn-save" id="fd-claude" href="${CLAUDE_URL}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">${f?'Add or fix in Claude':'Log it in Claude'}</a>
+    ${!f && !isDone(r.id,ds)?`<button class="plundo" id="fd-tick" type="button">Tick without logging</button>`:''}
+    ${f?'':(isDone(r.id,ds)?`<button class="plundo" id="fd-untick" type="button">Untick ${escapeHtml(r.name)}</button>`:'')}`;
+  $('detail').classList.add('show');
+  const t=$('fd-tick'); if(t) t.onclick=()=>{ $('detail').classList.remove('show'); tickRoutine(r, ds, findRoutineEl(r.id,ds), null); };
+  const u=$('fd-untick'); if(u) u.onclick=()=>{ $('detail').classList.remove('show'); untickRoutine(r, ds, findRoutineEl(r.id,ds)); };
 }
 
 // ---- value sheet (tracked routines: protein, fiber, weigh-in…) ----
@@ -3489,8 +3602,13 @@ function openForm(routine){
         <option value=""${!r.role?' selected':''}>Nothing — a plain routine</option>
         <option value="gym"${r.role==='gym'?' selected':''}>Gym tracker — ticks when a set is logged</option>
         <option value="weigh"${r.role==='weigh'?' selected':''}>Weigh-in — feeds the body-weight trend</option>
+        <option value="food"${r.role==='food'?' selected':''}>Food log — ticks when Claude logs the day</option>
+        <option value="protein"${r.role==='protein'?' selected':''}>Protein — filled from the food log</option>
+        <option value="fiber"${r.role==='fiber'?' selected':''}>Fiber — filled from the food log</option>
+        <option value="water"${r.role==='water'?' selected':''}>Water — filled from the food log</option>
       </select>
       <div style="font-size:12px;color:var(--muted2);margin:6px 2px 0">Set this and the link survives a rename.</div></div>
+    <div class="field ${r.role==='food'?'':'hidden'}" id="f-kcalwrap"><label>Calorie target (kcal)</label><input type="number" id="f-kcal" value="${r.role==='food'&&r.target_value!=null?r.target_value:''}" placeholder="e.g. 2200"></div>
     <div class="field"><div class="toggle ${r.active?'on':''}" id="f-active"><div class="sw"></div>
       <div style="font-weight:600;font-size:14px">Active</div></div></div>
     <div class="formbtns">${isNew?'':'<button class="btn-del" id="f-del">Delete</button>'}
@@ -3498,6 +3616,7 @@ function openForm(routine){
   let track = r.track_value, active = r.active;
   $('f-track').onclick = ()=>{ track=!track; $('f-track').classList.toggle('on',track); $('f-numwrap').classList.toggle('hidden',!track); };
   $('f-active').onclick = ()=>{ active=!active; $('f-active').classList.toggle('on',active); };
+  $('f-role').onchange = ()=>$('f-kcalwrap').classList.toggle('hidden', $('f-role').value!=='food');
   $('f-cancel').onclick = renderEditorList;
   if(!isNew) $('f-del').onclick = ()=>deleteRoutine(r);
   $('f-save').onclick = async ()=>{
@@ -3505,7 +3624,8 @@ function openForm(routine){
     const role=$('f-role').value||null;
     const body={ name, category:$('f-cat').value, cadence:$('f-cad').value, track_value:track,
       unit: track?($('f-unit').value.trim()||null):null,
-      target_value: track && $('f-target').value!=='' ? Number($('f-target').value.trim().replace(',','.')) : null, active, role };
+      target_value: role==='food' ? ($('f-kcal').value!=='' ? Number($('f-kcal').value.trim().replace(',','.')) : null)
+        : track && $('f-target').value!=='' ? Number($('f-target').value.trim().replace(',','.')) : null, active, role };
     try{
       // A role is unique in the database, so hand it over rather than failing the save:
       // the person picking it here is stating where the link belongs.
@@ -3576,7 +3696,7 @@ function showLogin(){ $('login').classList.add('show'); }
 async function start(){
   $('login').classList.remove('show');
   try{ if(navigator.onLine && outbox().length) await flushOutbox().catch(()=>{});
-    await load(); applyOutboxLocally(); render(); paintDayBar(); restoreGymDraft(); }
+    await load(); applyOutboxLocally(); render(); paintDayBar(); restoreGymDraft(); applyFoodTicks(); }
   catch(e){ console.error(e);
     if(String(e).includes('HTTP 401') || String(e).includes('JWT')){ clearSession(); showLogin(); }
     else { $('app').innerHTML=`<div class="loading">${navigator.onLine?"Couldn't connect.":"You're offline, and this phone has no saved copy yet."}<br>Check your internet and refresh.</div>`; toast('Connection failed',true); } }
