@@ -138,36 +138,32 @@
   .pcard .go svg{width:18px;height:18px}
 
   /* History */
-  .tiles{display:flex;gap:10px;margin-bottom:16px}
-  .tile{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 12px;text-align:center}
-  .tile .big{font-size:24px;font-weight:600;line-height:1}
-  .tile .lbl{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.3px}
-  .legend{display:flex;gap:14px;justify-content:center;margin:0 0 18px;font-size:11.5px;color:var(--muted)}
+  .tiles{display:flex;margin-bottom:16px}
+  .tile{flex:1;background:var(--surface);border:1px solid var(--line)}
+  .tile .big{line-height:1}
+  .tile .lbl{color:var(--muted);margin-top:6px}
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted)}
   .legend span{display:flex;align-items:center;gap:5px}
-  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .legend i{display:inline-block}
   .hcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:9px}
   .hcard .top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
-  .hcard .top .n{font-weight:600;font-size:14.5px}
+  .hcard .top .n{font-size:14.5px}
   .hcard .top .s{margin-left:auto;font-size:12px;color:var(--muted)}
-  .hstrip{display:flex;gap:3px}
-  .hstrip .sq{flex:1;min-width:0;height:14px;border-radius:3px;background:rgba(255,255,255,.05)}
+  .hstrip{display:flex}
+  .hstrip .sq{flex:1;min-width:0;background:rgba(255,255,255,.05)}
 
   /* Rewards */
-  .lvlcard{background:linear-gradient(160deg,#242a44,#191d2c);border:1px solid var(--line);border-radius:20px;padding:22px;text-align:center;margin-bottom:6px}
-  .lvlbig{font-size:44px;font-weight:600;line-height:1}
-  .lvlrank{color:var(--mind);font-weight:600;letter-spacing:.5px;margin:4px 0 16px}
-  .lvlmeta{color:var(--muted);font-size:12.5px;margin-top:10px}
-  .rewh{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:22px 4px 12px}
+  .lvlcard{border-radius:20px}
+  .lvlmeta{color:var(--muted);font-size:12.5px}
+  .rewh{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
   .catlv{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px}
   .catlv-top{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:14px}
-  .catlv-top .dot{width:9px;height:9px;border-radius:50%}
+  .catlv-top .dot{width:9px;height:9px}
   .catlv-top .tn{font-weight:600}
-  .catlv-top .cl{margin-left:auto;color:var(--muted);font-weight:600}
-  .badges{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-  .badge2{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center;opacity:.45;filter:grayscale(.7)}
-  .badge2.got{opacity:1;filter:none;border-color:color-mix(in srgb,var(--flame) 40%,var(--line))}
-  .badge2 .bi{font-size:26px}
-  .badge2 .bn{font-weight:600;font-size:12.5px;margin-top:5px}
+  .catlv-top .cl{margin-left:auto}
+  .badges{display:grid}
+  .badge2{background:var(--surface);border:1px solid var(--line)}
+  .badge2.got{opacity:1;filter:none}
   .badge2 .bd{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.25}
   .rewnote{color:var(--muted2);font-size:11.5px;text-align:center;margin-top:18px}
 
@@ -175,36 +171,28 @@
   .quests{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:18px}
   .qhead{display:flex;align-items:center;gap:8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 11px}
   .qhead .qsum{margin-left:auto;letter-spacing:.3px;text-transform:none;font-size:12px;color:var(--muted2)}
-  .qhead .qsum b{color:var(--flame)}
   .quest{display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--line)}
   .quest:first-of-type{border-top:none;padding-top:2px}
   .quest .qic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;transition:box-shadow .3s}
-  .quest.done .qic{background:color-mix(in srgb,var(--flame) 22%,var(--surface2));box-shadow:0 0 0 1px color-mix(in srgb,var(--flame) 45%,transparent)}
   .quest .qmid{flex:1;min-width:0}
   .quest .qn{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
-  .quest .qn .qtick{color:var(--flame)}
   .quest .qd{font-size:11.5px;color:var(--muted);margin-top:1px}
-  .quest .qbar{height:5px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+  .quest .qbar{border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
   .quest .qbar > i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--mind),var(--flame))}
   .quest.done .qbar > i{background:var(--flame)}
   .quest .qxp{flex:0 0 auto;font-size:12.5px;font-weight:600;color:var(--muted2);min-width:42px;text-align:right}
-  .quest.done .qxp{color:var(--flame)}
   .qfoot{color:var(--muted2);font-size:11px;text-align:center;margin-top:11px;padding-top:9px;border-top:1px solid var(--line)}
-  .setnote{display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--flame) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--flame) 30%,var(--line));border-radius:12px;padding:10px 13px;margin-bottom:9px;font-size:12.5px;color:var(--text)}
-  .setnote b{color:var(--flame)}
+  .setnote{display:flex;align-items:center;gap:8px;border:1px solid color-mix(in srgb,var(--flame) 30%,var(--line));border-radius:12px;padding:10px 13px;margin-bottom:9px;font-size:12.5px;color:var(--text)}
 
   /* Badge progress on tiles */
-  .badge2{cursor:pointer;position:relative}
+  .badge2{position:relative}
   .badge2[data-badge]:active{transform:scale(.97)}
-  .badge2 .bprog{height:4px;border-radius:4px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:8px}
-  .badge2 .bprog > i{display:block;height:100%;border-radius:4px;background:var(--muted)}
+  .badge2 .bprog{border-radius:4px;background:rgba(255,255,255,.09);overflow:hidden}
+  .badge2 .bprog > i{display:block;height:100%;border-radius:4px}
   .badge2.got .bprog{display:none}
-  .badge2 .bcount{font-size:10px;color:var(--muted2);margin-top:4px}
-  .badge2 .bgot{position:absolute;top:7px;right:8px;font-size:12px;color:var(--flame)}
   /* Badge detail sheet */
   .bdhero{text-align:center;padding:8px 0 4px}
-  .bdhero .bdi{font-size:60px;line-height:1}
-  .bdhero .bdn{font-weight:600;font-size:20px;margin-top:8px}
+  .bdhero .bdn{font-size:20px;margin-top:8px}
   .bdhero .bds{color:var(--muted);font-size:13.5px;margin-top:4px}
   .bdstat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:18px}
   .bdstat .bl{display:flex;align-items:center;font-size:13px;color:var(--muted);margin-bottom:8px}
@@ -213,55 +201,45 @@
   .bdunlocked{text-align:center;color:var(--flame);font-weight:600;font-size:14px;margin-top:18px}
 
   /* Level-up moment */
-  .lvlup{background:radial-gradient(900px 500px at 50% 30%, rgba(251,191,36,.18), rgba(8,10,18,.92) 60%)!important}
-  .lucard{max-width:400px;margin:16vh auto 0;text-align:center;padding:20px}
-  .lucard .luspark{font-size:52px;animation:luspin 2.4s linear infinite;display:inline-block}
+  .lucard{text-align:center;padding:20px}
+  .lucard .luspark{font-size:52px;animation:luspin 2.4s linear infinite}
   @keyframes luspin{to{transform:rotate(360deg)}}
-  .lucard .lulabel{margin-top:6px;font-size:14px;letter-spacing:4px;text-transform:uppercase;color:var(--flame);font-weight:600}
-  .lucard .lubig{font-size:74px;font-weight:600;line-height:1;margin:6px 0 2px;
-    color:var(--text)}
-  .lucard .lurank{font-size:17px;font-weight:600;color:var(--mind)}
-  .lucard .lurankup{display:inline-block;margin-top:12px;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:600;
-    color:var(--flame);background:color-mix(in srgb,var(--flame) 14%,transparent);border:1px solid color-mix(in srgb,var(--flame) 45%,transparent)}
+  .lucard .lurank{font-size:17px;color:var(--mind)}
+  .lucard .lurankup{display:inline-block;margin-top:12px;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid color-mix(in srgb,var(--flame) 45%,transparent)}
   .lucard .lunext{color:var(--muted);font-size:13px;margin-top:16px}
-  .lucard .lugo{margin-top:22px;width:100%;background:var(--flame);color:#2a1e02;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;cursor:pointer}
+  .lucard .lugo{margin-top:22px;width:100%;border:none;border-radius:14px;padding:14px;font-size:15px;cursor:pointer}
   .lucard .lugo:active{transform:scale(.97)}
   @keyframes lupop{0%{transform:scale(.6);opacity:0}55%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
 
   /* Gym */
-  .gymhero{display:flex;gap:10px;margin-bottom:12px}
-  .gbtn{flex:1;background:linear-gradient(160deg,#242a44,#191d2c);border:1px solid var(--line);border-radius:16px;padding:15px 12px;text-align:center;cursor:pointer;color:var(--text)}
+  .gymhero{margin-bottom:12px}
+  .gbtn{flex:1;border:1px solid var(--line);cursor:pointer;color:var(--text)}
   .gbtn:active{transform:scale(.98)}
-  .gbtn .gt{font-weight:600;font-size:15px}
-  .gbtn .gs{font-size:11px;color:var(--muted);margin-top:3px}
+  .gbtn .gs{color:var(--muted)}
   .gbtn.empty{background:var(--surface);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:22px;width:56px}
   .gsub{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:16px}
-  .gsub button{flex:1;background:transparent;border:none;color:var(--muted);border-radius:10px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .gsub button{flex:1;background:transparent;border:none;color:var(--muted);border-radius:10px;padding:9px;font-size:13px;cursor:pointer}
   .gsub button.on{background:var(--surface2);color:var(--text)}
 
-  .gsesshead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-  .gsesshead .gn{font-weight:600;font-size:18px}
-  .gsesshead .gd{color:var(--muted);font-size:12.5px;margin-top:2px}
   .gex{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin-bottom:10px}
   .gex .gexh{display:flex;align-items:center;gap:8px;margin-bottom:4px}
   .gex .gexn{font-weight:600;font-size:14.5px}
-  .gex .gexpr{margin-left:auto;font-size:11px;color:var(--flame);font-weight:600}
+  .gex .gexpr{font-size:11px}
   .gex .gexrm{background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;padding:0 2px}
   .gex .gexlast{font-size:11px;color:var(--muted2);margin-bottom:9px}
   .gset{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .gset .gsi{width:20px;color:var(--muted2);font-size:12px;font-weight:600;text-align:center;flex:0 0 auto}
   .gcell{flex:1;display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
-  .gcell input{width:100%;background:transparent;border:none;color:var(--text);font-size:16px;font-weight:600;outline:none;text-align:center}
+  .gcell input{width:100%;background:transparent;border:none;color:var(--text);outline:none;text-align:center}
   .gcell .gu{font-size:11px;color:var(--muted);flex:0 0 auto}
   .gset .grm{background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;width:28px;flex:0 0 auto}
   .gaddset{width:100%;background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:10px;padding:8px;font-size:12.5px;font-weight:600;cursor:pointer;margin-top:3px}
   .gaddex{width:100%;background:var(--surface2);border:1px dashed var(--line);color:var(--text);border-radius:12px;padding:12px;font-size:13.5px;font-weight:600;cursor:pointer;margin:2px 0 12px}
 
-  .rtimer{position:sticky;bottom:80px;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:9px;margin:12px 0;box-shadow:0 6px 20px rgba(0,0,0,.35)}
-  .rtimer.run{border-color:color-mix(in srgb,var(--mind) 50%,var(--line));background:color-mix(in srgb,var(--mind) 10%,var(--surface2))}
-  .rtimer .rt{font-weight:600;font-size:19px;font-variant-numeric:tabular-nums;min-width:50px}
+  .rtimer{background:var(--surface2);border:1px solid var(--line);display:flex;align-items:center;margin:12px 0}
+  .rtimer .rt{font-variant-numeric:tabular-nums}
   .rtimer .rlbl{color:var(--muted);font-size:12px;margin-right:auto}
-  .rtimer button{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:7px 11px;font-size:13px;font-weight:600;cursor:pointer}
+  .rtimer button{background:var(--surface);border:1px solid var(--line);color:var(--text);padding:7px 11px;font-size:13px;cursor:pointer}
   .gsave{display:flex;gap:10px;margin:14px 0 4px}
   .gsave button{flex:1;border:none;border-radius:12px;padding:14px;font-size:14.5px;font-weight:600;cursor:pointer}
 
@@ -274,7 +252,7 @@
   .gprog{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:9px}
   .gprog .gph{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
   .gprog .gpn{font-weight:600;font-size:14px}
-  .gprog .gppr{margin-left:auto;font-size:12.5px;color:var(--flame);font-weight:600}
+  .gprog .gppr{margin-left:auto;font-size:12.5px}
   .gchart{width:100%;height:56px;display:block;overflow:visible}
   .gempty{color:var(--muted2);font-size:13px;text-align:center;padding:26px 10px}
   .gnote{color:var(--muted2);font-size:11.5px;line-height:1.45;margin:-8px 0 14px;padding:0 2px}
@@ -285,19 +263,19 @@
   .gpick .pglabel{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 2px 4px}
 
   /* Gym v2 (build 11) */
-  .gresume{background:linear-gradient(160deg,#2a3350,#1b2136);border:1px solid color-mix(in srgb,var(--mind) 45%,var(--line));border-radius:16px;padding:13px 14px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:12px}
+  .gresume{border:1px solid color-mix(in srgb,var(--mind) 45%,var(--line));border-radius:16px;padding:13px 14px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:12px}
   .gresume:active{transform:scale(.99)}
   .gresume .gri{font-size:22px;flex:0 0 auto}
   .gresume .grt{font-weight:600;font-size:14.5px}
   .gresume .grs{font-size:11.5px;color:var(--muted);margin-top:2px}
-  .gresume .grgo{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--mind);flex:0 0 auto}
+  .gresume .grgo{margin-left:auto;font-size:12.5px;font-weight:600;flex:0 0 auto}
   .gchip{font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:999px;
     background:color-mix(in srgb,var(--flame) 16%,var(--surface2));color:var(--flame);border:1px solid color-mix(in srgb,var(--flame) 35%,transparent)}
   .gdetails{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin-bottom:12px}
   .gdetails .gdrow{display:flex;gap:10px}
   .gdetails .gdrow>div{flex:1;min-width:0}
   .gdetails label{display:block;font-size:11px;color:var(--muted);margin:0 2px 5px}
-  .gdetails input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 10px;font-size:14px;outline:none;font-family:inherit}
+  .gdetails input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 10px;outline:none;font-family:inherit}
   .gexord{display:flex;gap:3px;margin-left:auto}
   .gexord button{background:var(--surface2);border:none;color:var(--text);width:26px;height:24px;border-radius:7px;font-size:10px;line-height:1;cursor:pointer}
   .gexord button:disabled{opacity:.3;cursor:default}
@@ -340,14 +318,11 @@
   .tkitem{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);
     border-radius:16px;padding:12px 13px;margin-bottom:8px;transition:border-color .2s,opacity .2s}
   .tkitem.isdone{opacity:.5}
-  .tkitem.isover{border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
-  .tkbox{flex:0 0 auto;width:28px;height:28px;margin-top:1px;border-radius:9px;border:2px solid var(--muted2);
-    background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:all .15s;color:transparent;font-size:15px;font-weight:600;line-height:1}
-  .tkitem.isdone .tkbox{background:var(--health);border-color:var(--health);color:#0f1220}
+  .tkbox{flex:0 0 auto;width:28px;height:28px;margin-top:1px;border:2px solid var(--muted2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:transparent;font-size:15px;font-weight:600;line-height:1}
+  .tkitem.isdone .tkbox{background:var(--health);border-color:var(--health)}
   .tkbox:active{transform:scale(.9)}
   .tktime{flex:0 0 auto;width:46px;margin-top:1px;text-align:center;font-variant-numeric:tabular-nums}
-  .tktime .th{font-weight:600;font-size:14px;line-height:1.1}
+  .tktime .th{line-height:1.1}
   .tktime .tm{font-size:10.5px;color:var(--muted2);margin-top:2px}
   .tktime .allday{font-size:10px;color:var(--muted2);font-weight:600;letter-spacing:.3px}
   .tkmain{flex:1;min-width:0;cursor:pointer}
@@ -356,7 +331,6 @@
   .tkmeta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:4px;font-size:12px;color:var(--muted)}
   .tkmeta .tag{font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted2)}
   .tkmeta .tag.late{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
-  .tkmeta .tag.soon{color:var(--flame);border-color:color-mix(in srgb,var(--flame) 40%,var(--line))}
   .tknote{font-size:12px;color:var(--muted2);margin-top:5px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
   .tkempty{color:var(--muted2);font-size:13.5px;text-align:center;padding:40px 16px;line-height:1.55}
   .tkdonehead{width:100%;background:transparent;border:1px solid var(--line);color:var(--muted);
@@ -375,8 +349,6 @@
     color:var(--text);font-size:13px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:3px;padding:0;font-family:inherit}
   .tkday.out{color:var(--muted2);opacity:.4}
-  .tkday.today{border-color:color-mix(in srgb,var(--mind) 55%,transparent);color:var(--mind)}
-  .tkday.sel{background:var(--surface2);border-color:var(--line)}
   .tkday .dots{display:flex;gap:2px;height:5px;align-items:center}
   .tkday .dots i{width:5px;height:5px;border-radius:50%;display:block}
   .tkday.hasover{color:var(--danger)}
@@ -386,8 +358,7 @@
   .tktray{margin-top:18px}
 
   /* today-view agenda strip */
-  .tkstrip{background:var(--surface);border:1px solid var(--line);border-radius:16px;
-    padding:11px 13px;margin-bottom:18px;cursor:pointer}
+  .tkstrip{background:var(--surface);border:1px solid var(--line);padding:11px 13px;cursor:pointer}
   .tkstrip:active{transform:scale(.995)}
   .tkstriph{display:flex;align-items:center;gap:8px;font-size:11.5px;text-transform:uppercase;
     letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:9px}
@@ -460,9 +431,7 @@
   .plhint{font-size:11.5px;color:var(--muted2);margin:6px 2px 0}
   .plundo{display:block;margin:12px auto 0;background:none;border:0;color:var(--muted2);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
   .tkline{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:4px 0}
-  .tkline .lt{flex:0 0 auto;font-weight:600;font-size:12px;color:var(--work);
-    font-variant-numeric:tabular-nums;min-width:38px}
-  .tkline .lt.todo{color:var(--health)}
+  .tkline .lt{flex:0 0 auto;font-weight:600;font-size:12px;font-variant-numeric:tabular-nums;min-width:38px}
   .tkline .ln{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tkline .lx{flex:0 0 auto;font-size:10.5px;color:var(--danger);font-weight:600}
   .tkmore{font-size:11.5px;color:var(--muted2);margin-top:6px}
@@ -510,15 +479,13 @@
     border-radius:12px;padding:12px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:8px}
   .rembtn:active{transform:scale(.98)}
   .rembtn:disabled{opacity:.45;cursor:default}
-  .rembtn.primary{background:var(--mind);color:#12101f;border-color:transparent}
+  .rembtn.primary{border-color:transparent}
 
   /* Overlays */
-  .overlay{position:fixed;inset:0;background:rgba(8,10,18,.86);backdrop-filter:blur(4px);z-index:60;
-    display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 40px}
-  .overlay.show{display:block}
+  .overlay{position:fixed;inset:0;z-index:60;overflow-y:auto}
   .sheet{max-width:600px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:16px}
-  .sheet h2{margin:2px 0 14px;font-size:18px;display:flex;align-items:center}
-  .sheet h2 .x{margin-left:auto;background:var(--surface2);border:none;color:var(--text);width:34px;height:34px;border-radius:10px;font-size:18px;cursor:pointer}
+  .sheet h2{margin:2px 0 14px;display:flex;align-items:center}
+  .sheet h2 .x{margin-left:auto;background:var(--surface2);border:none;color:var(--text);cursor:pointer}
   .addbtn{width:100%;background:var(--surface2);border:1px dashed var(--line);color:var(--text);border-radius:14px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px}
   .egroup{margin-bottom:16px}
   .egroup .glabel{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 2px 8px;display:flex;align-items:center;gap:8px}
@@ -529,15 +496,13 @@
   .erow .en .c{font-size:11.5px;color:var(--muted);margin-top:2px}
   .erow .ord{display:flex;flex-direction:column;gap:2px}
   .erow .ord button,.erow .ib{background:var(--surface2);border:none;color:var(--text);border-radius:8px;cursor:pointer}
-  .erow .ord button{width:26px;height:20px;font-size:11px;line-height:1}
-  .erow .ib{width:34px;height:34px;font-size:15px}
+  .erow .ord button{font-size:11px;line-height:1}
+  .erow .ib{font-size:15px}
 
   .field{margin-bottom:12px}
   .field label{display:block;font-size:12.5px;color:var(--muted);margin:0 2px 6px}
   .field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number],
-  .field input[type=date],.field input[type=time],.field select,.field textarea{
-    width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);
-    border-radius:12px;padding:11px 12px;font-size:15px;outline:none;font-family:inherit}
+  .field input[type=date],.field input[type=time],.field select,.field textarea{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:11px 12px;outline:none;font-family:inherit}
   /* native date/time pickers follow the dark theme instead of rendering white */
   .field input[type=date],.field input[type=time]{color-scheme:dark;min-height:45px}
   .field input[type=date]::-webkit-calendar-picker-indicator,
@@ -552,7 +517,6 @@
   .toggle.on .sw::after{transform:translateX(18px)}
   .formbtns{display:flex;gap:10px;margin-top:16px}
   .formbtns button{flex:1;border:none;border-radius:12px;padding:13px;font-size:14.5px;font-weight:600;cursor:pointer}
-  .btn-save{background:var(--mind);color:#12101f}
   .btn-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--line)}
   /* build 22: the shape lives on the buttons themselves, not only inside .formbtns, so a
      lone Save/Cancel-style button (calendar, planner) isn't a bare rectangle */
@@ -561,12 +525,8 @@
   .btn-del{background:transparent;color:var(--danger);border:1px solid var(--danger)!important;flex:0 0 auto!important;padding:13px 16px!important}
   .hidden{display:none!important}
 
-  .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);
-    display:flex;gap:3px;background:rgba(26,30,46,.92);backdrop-filter:blur(10px);border:1px solid var(--line);
-    border-radius:16px;padding:5px;z-index:40;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:calc(100vw - 16px)}
-  .navbtn{background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;
-    padding:9px 11px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
-  .navbtn.active{background:var(--surface2);color:var(--text)}
+  .nav{position:fixed;display:flex;z-index:40}
+  .navbtn{background:transparent;border:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;white-space:nowrap}
   .navbtn .nlbl{display:inline}
   /* 5 items don't fit small phones at full size — step down, then to icons only */
   @media (max-width:430px){ .navbtn{font-size:12px;padding:9px 8px;gap:4px} .nav{gap:2px;padding:4px} }
@@ -577,12 +537,9 @@
     font-size:11.5px;white-space:nowrap;pointer-events:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
   .daybar[hidden]{display:none}
   .daybar b{color:var(--text);font-weight:500}
-  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(120px);
-    background:#222741;border:1px solid var(--line);color:var(--text);padding:11px 16px;border-radius:12px;
-    font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .3s;z-index:80;max-width:90%;text-align:center}
-  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast{position:fixed;font-size:13.5px;z-index:80}
   .toast.err{border-color:var(--danger)}
-  .toast.level{border-color:var(--flame);background:#2a2418;font-weight:600}
+  .toast.level{border-color:var(--flame)}
   .loading{text-align:center;color:var(--muted);padding:60px 0;font-size:14px}
   .foot{text-align:center;color:var(--muted2);font-size:11.5px;margin-top:26px}
   .confetti{position:fixed;width:9px;height:9px;border-radius:2px;pointer-events:none;z-index:70}
@@ -699,20 +656,13 @@
   .badge2 .bi{font-size:30px;font-weight:300;letter-spacing:-.04em;line-height:.9;font-variant-numeric:tabular-nums}
   .badge2 .bi small{display:block;font-size:10px;letter-spacing:0;color:var(--muted);margin-top:3px;font-weight:400}
   .badge2 .bn{font-size:11px;font-weight:500;margin-top:0;line-height:1.15}
-  .badge2 .bd,.badge2 .bcount{display:none}
+  .badge2 .bd{display:none}
   .badge2 .bprog{margin-top:5px;height:3px}
-  .badge2.got{background:var(--text);color:var(--bg);border-color:transparent}
-  .badge2.got .bi small{color:#4a5068}
-  .badge2 .bgot{display:none}
   .bdhero .bdi{font-size:96px;font-weight:200;letter-spacing:-.06em;line-height:.9}
   .bdhero .bdi small{display:block;font-size:13px;color:var(--muted);letter-spacing:0;font-weight:400;margin-top:6px}
   .bdhero .bdn{font-weight:500}
-  .quest .qic{color:var(--muted)}
   .quest .qic svg{width:18px;height:18px}
-  .quest.done .qic{background:var(--text);color:var(--bg);box-shadow:none}
   .quest .qbar{height:3px}
-  .quest .qbar > i,.quest.done .qbar > i{background:var(--text)}
-  .quest.done .qxp{color:var(--text)}
   /* ===== build 20: Rewards earn their colour, like a done tile =====
      Every quest and badge carries its area as --c: a category hue, amber for streaks, or
      "all" — a lavender|mint two-tone (soft 16% seam, no muddy middle) for things that count every area. Not yet earned:
@@ -759,7 +709,6 @@
   .lvlup{background:rgba(8,10,18,.92)!important;justify-content:center}
   .lucard{margin:0 auto;max-width:400px;width:100%}
   .lucard .luspark{display:none}
-  .lucard .lulabel{letter-spacing:0;text-transform:none;font-size:14px;color:var(--muted);font-weight:500}
   .lucard .lubig{font-size:150px;font-weight:200;letter-spacing:-.07em;line-height:.8;margin:8px 0 6px;background:none;-webkit-text-fill-color:currentColor;color:var(--text)}
   .lucard .lurank{font-weight:600}
   .lucard .lurankup{color:var(--text);background:var(--surface2);border-color:var(--line)}
@@ -841,7 +790,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 27</div>
+  <div class="foot">Life Organiser · build 29</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1544,7 +1493,6 @@ function questsForDate(ds){
   for(let k=0;k<n && picks.length<4;k++) picks.push(avail[(start+k)%n]);
   return picks;
 }
-function activeQuests(){ return questsForDate(ymd(today)); }
 function questDone(q,ds){ const p=q.progress(ds); return p.have>=p.need; }
 function completedQuestIds(ds){ const s=new Set(); for(const q of questsForDate(ds)) if(questDone(q,ds)) s.add(q.id); return s; }
 function questXp(q, ds){ return q.xpFlat!=null && ds >= XP_FLAT_FROM ? q.xpFlat : q.xp; }
@@ -1560,7 +1508,7 @@ function totalQuestXp(){
 // in place so a tick draws its segment instead of the whole ring being replaced.
 function ringSvg(ds){
   ds = ds || ymd(today);
-  const daily=routines.filter(r=>!CADENCE[r.cadence].periodic);
+  const daily=dailyRoutines();
   const n=daily.length, el=$('ring');
   const Rr=27, C=2*Math.PI*Rr, gap=n>1?3:0, seg=n?C/n-gap:0;
   const key=daily.map(r=>r.id).join(',');
@@ -1628,7 +1576,7 @@ function isGymRoutine(r){ return r.role==='gym' || (!r.role && /gym/i.test(r.nam
 function tileVal(r,ds){
   if(isFoodRoutine(r)){ const f=foodDays.get(ds); if(!f) return '';
     // Protein is the number to act on in the evening, so it leads until it is hit.
-    const pr=nutrientRoutine('protein',/protein/i), t=pr&&pr.target_value!=null?Number(pr.target_value):null, p=Math.round(Number(f.protein_g)||0);
+    const t=foodTargets().protein, p=Math.round(Number(f.protein_g)||0);
     // His wording (2026-10-26): what is left, not the slash. Once protein is hit, calories
     // vs target; no thousands separator, which would not fit at 375px.
     const fr=foodRoutine(), kt=fr&&fr.target_value!=null?Number(fr.target_value):null;
@@ -1705,7 +1653,6 @@ addEventListener('resize', ()=>{ if(view==='today') fitStreaks(); });
 // time a font finishes — the text gets wider when it swaps in.
 if(document.fonts){ document.fonts.ready.then(()=>{ if(view==='today') fitStreaks(); });
   document.fonts.addEventListener('loadingdone', ()=>{ if(view==='today') fitStreaks(); }); }
-function periodicDueCount(ds){ return routines.filter(r=>CADENCE[r.cadence].periodic && !isDone(r.id,ds) && periodicStatus(r).due).length; }
 function bindStrip(){ const s=$('tkStrip'); if(s) s.onclick=()=>{ view='tasks'; render(); };
   const a=$('tkQuickAdd'); if(a) a.onclick=(e)=>{ e.stopPropagation(); openTaskForm(null, {date:ymd(calToday())}); }; }
 // Refresh everything around the tiles without rebuilding them, so an animation in
@@ -1879,19 +1826,20 @@ function isFoodRoutine(r){ return r.role==='food' || (!r.role && !r.track_value 
 function foodRoutine(){ return routines.find(isFoodRoutine) || null; }
 // Rename-proof by role; the name fallback covers the routines he already had before
 // build 24 gave them a role.
-function nutrientRoutine(role, re){ return roleRoutine(role) || routines.find(r=>!r.role && r.track_value && re.test(r.name||'')) || null; }
+const NUTRIENT_NAME={ protein:/protein/i, fiber:/fib(er|re)/i, water:/water|hydrat/i };
+function nutrientRoutine(role){ const re=NUTRIENT_NAME[role]; return roleRoutine(role) || routines.find(r=>!r.role && r.track_value && re.test(r.name||'')) || null; }
 function foodValueFor(role, f){
   if(role==='protein') return Number(f.protein_g)||0;
   if(role==='fiber') return Number(f.fiber_g)||0;
-  if(role==='water'){ const r=nutrientRoutine('water',/water|hydrat/i), ml=Number(f.water_ml)||0;
+  if(role==='water'){ const r=nutrientRoutine('water'), ml=Number(f.water_ml)||0;
     return /^ml$/i.test((r&&r.unit)||'') ? ml : Math.round(ml/100)/10; }
   return 0;
 }
 let foodTicking=false;
 async function applyFoodTicks(){
   if(foodTicking || !foodDays.size) return; foodTicking=true;
-  const fr=foodRoutine(), links=[['protein',/protein/i],['fiber',/fib(er|re)/i],['water',/water|hydrat/i]]
-    .map(([role,re])=>[role, nutrientRoutine(role,re)]).filter(([,r])=>r);
+  const fr=foodRoutine(), links=Object.keys(NUTRIENT_NAME)
+    .map(role=>[role, nutrientRoutine(role)]).filter(([,r])=>r);
   const changed=new Set(), hits=[];
   for(const [ds,f] of foodDays){
     if(ds<FOOD_FROM || ds>ymd(today)) continue;
@@ -1927,8 +1875,7 @@ const CLAUDE_URL='https://claude.ai/new';
 const MEAL_LABEL={ breakfast:'Breakfast', lunch:'Lunch', dinner:'Dinner', snack:'Snacks', drink:'Drinks' };
 function foodTargets(){
   const fr=foodRoutine(), t=(r)=>r&&r.target_value!=null?Number(r.target_value):null;
-  return { kcal:t(fr), protein:t(nutrientRoutine('protein',/protein/i)), fiber:t(nutrientRoutine('fiber',/fib(er|re)/i)),
-    water:t(nutrientRoutine('water',/water|hydrat/i)) };
+  return { kcal:t(fr), protein:t(nutrientRoutine('protein')), fiber:t(nutrientRoutine('fiber')), water:t(nutrientRoutine('water')) };
 }
 function fdBar(v,t){ return t?`<div class="tbar"><i style="transform:scaleX(${Math.min(1,Math.max(0,v/t))})"></i></div>`:''; }
 function fdItems(f){
@@ -2163,7 +2110,7 @@ function sqColor(state, raw){
 }
 function renderHistory(){
   const dsToday = ymd(today);
-  const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
+  const daily = dailyRoutines();
   ringSvg(dsToday);
   $('subtitle').textContent = `Last ${HDAYS/7} weeks`;
   const wkStart = parseYmd(weekKey(today));
@@ -2219,7 +2166,7 @@ function renderRewards(){
     if(gymReady) gymBadges().forEach((b)=>{ if(b.got) ids.push('g:'+b.name); });
     questsForDate(dsToday).forEach((q)=>{ if(questDone(q,dsToday)) ids.push('q:'+dsToday+':'+q.id); });
     rwSync(ids); }
-  const daily = routines.filter(r=>!CADENCE[r.cadence].periodic);
+  const daily = dailyRoutines();
   ringSvg(dsToday);
   $('subtitle').textContent = 'Your progress';
   const info=levelInfo(totalXp());
@@ -2279,10 +2226,11 @@ function exerciseLastSets(id, excludeWid){
     if(ss.length) return {date:w.workout_date, sets:ss}; }
   return null;
 }
-function gymChartData(id){
+// Best set per training day for one exercise: by weight, or (e1rm) by estimated 1RM.
+function gymChartData(id, useE1rm){
   const byW=new Map(gymWorkouts.map(w=>[w.id,w])); const top={};
   for(const s of gymSets){ if(s.exercise_id!==id) continue; const w=byW.get(s.workout_id); if(!w) continue;
-    top[w.workout_date]=Math.max(top[w.workout_date]||0, Number(s.weight)||0); }
+    top[w.workout_date]=Math.max(top[w.workout_date]||0, useE1rm ? e1rm(s.weight,s.reps) : Number(s.weight)||0); }
   return Object.keys(top).sort().map(d=>({date:d, top:top[d]}));
 }
 function gymPrEvents(){
@@ -2358,12 +2306,6 @@ function chartSvg(pts, opt){
 // ---- Estimated 1RM (Epley) ----
 function e1rm(w,reps){ w=Number(w)||0; reps=Number(reps)||0; if(w<=0||reps<=0) return 0; if(reps===1) return w; return w*(1+reps/30); }
 function exerciseE1RM(id){ let m=0; for(const s of gymSets){ if(s.exercise_id===id) m=Math.max(m, e1rm(s.weight,s.reps)); } return m; }
-function gymE1rmChartData(id){
-  const byW=new Map(gymWorkouts.map(w=>[w.id,w])); const top={};
-  for(const s of gymSets){ if(s.exercise_id!==id) continue; const w=byW.get(s.workout_id); if(!w) continue;
-    top[w.workout_date]=Math.max(top[w.workout_date]||0, e1rm(s.weight,s.reps)); }
-  return Object.keys(top).sort().map(d=>({date:d, top:top[d]}));
-}
 // ---- Body-weight trend (from the weigh-in routine's logged values) ----
 // `role` is the stable handle (build 15); the name regexes stay as a fallback for a
 // database where routines-role.sql has not run yet, and for a routine created before
@@ -2380,7 +2322,7 @@ function weighInPoints(){
 
 function renderGym(){ restAnim=null;
   const dsToday=ymd(today);
-  const daily=routines.filter(r=>!CADENCE[r.cadence].periodic);
+  const daily=dailyRoutines();
   ringSvg(dsToday);
   $('subtitle').textContent=gymSession?'session in progress':'workouts and progress';
   const app=$('app');
@@ -2497,7 +2439,7 @@ function gymProgressHtml(){
   if(e1) h+=`<div class="gnote">Estimated 1-rep max — Epley formula (weight × (1 + reps/30)). Lets you compare a heavy triple against a lighter set of ten.</div>`;
   for(const e of logged){
     const val = e1 ? exerciseE1RM(e.id) : exercisePR(e.id);
-    const pts = e1 ? gymE1rmChartData(e.id) : gymChartData(e.id);
+    const pts = gymChartData(e.id, e1);
     const lbl = e1 ? 'Best e1RM' : 'PR';
     h+=`<div class="gprog"><div class="gph"><span class="gpn">${escapeHtml(e.name)}</span><span class="gppr">${lbl} ${fmtW(val)}kg</span></div>${chartSvg(pts)}</div>`; }
   return h;
@@ -2544,8 +2486,7 @@ async function startSession(kind){
     gymWorkouts.unshift(w);
     gymSession={ id:w.id, label, date:ds, note:'', ex_order:exIds.slice(), ex_notes:{},
       exercises: exIds.map(id=>({exId:id, note:'', sets:freshSets(id)})),
-      finished:false, tickedRoutine:false,
-      preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() };
+      finished:false, tickedRoutine:false, ...sessionBaseline() };
     gymTab='log'; stopRest(); renderGym();
   }catch(e){ toast('Could not start workout — did the SQL run?', true); console.error(e); }
   busy=false;
@@ -2568,15 +2509,19 @@ function buildExercisesFromWorkout(w){
     return { exId:id, note: notes[id]||'', sets: ss };
   });
 }
+// Where XP, badge sets and gym milestones stood when the session opened, so Finish can
+// celebrate exactly what this workout added.
+function sessionBaseline(){ return { preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() }; }
+function sessionFromWorkout(w){
+  return { id:w.id, label:w.label||'Workout', date:w.workout_date, note:w.note||'',
+    ex_order:Array.isArray(w.ex_order)?w.ex_order.slice():null, ex_notes:(w.ex_notes&&typeof w.ex_notes==='object')?w.ex_notes:{},
+    exercises: buildExercisesFromWorkout(w), finished: w.finished!==false,
+    tickedRoutine: gymSets.some(s=>s.workout_id===w.id), ...sessionBaseline() };
+}
 function openWorkout(wid){
   if(busy) return;
   const w=gymWorkouts.find(x=>String(x.id)===String(wid)); if(!w) return;
-  gymSession={ id:w.id, label:w.label||'Workout', date:w.workout_date, note:w.note||'',
-    ex_order:Array.isArray(w.ex_order)?w.ex_order.slice():null, ex_notes:(w.ex_notes&&typeof w.ex_notes==='object')?w.ex_notes:{},
-    exercises: buildExercisesFromWorkout(w),
-    finished: w.finished!==false,
-    tickedRoutine: gymSets.some(s=>s.workout_id===w.id),
-    preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() };
+  gymSession=sessionFromWorkout(w);
   gymTab='log'; stopRest(); renderGym();
 }
 function nextSetNo(ex){ let m=0; ex.sets.forEach(s=>{ if(s.set_no) m=Math.max(m,s.set_no); }); return m+1; }
@@ -2652,11 +2597,7 @@ async function restoreGymDraft(){
       w=(Array.isArray(r)?r[0]:r) || {...body}; gymWorkouts.unshift(w); }
     catch(e){ console.error(e); return; }   // keep the draft; try again next launch
   }
-  gymSession={ id:w.id, label:w.label||'Workout', date:w.workout_date, note:w.note||'',
-    ex_order:Array.isArray(w.ex_order)?w.ex_order.slice():null, ex_notes:(w.ex_notes&&typeof w.ex_notes==='object')?w.ex_notes:{},
-    exercises: buildExercisesFromWorkout(w), finished: w.finished!==false,
-    tickedRoutine: gymSets.some(s=>s.workout_id===w.id),
-    preLevel:levelInfo(totalXp()).level, preTiers:completedTierCount(), preGym:gymMilestones(), prToasted:new Set() };
+  gymSession=sessionFromWorkout(w);
   let n=0, added=false;
   for(const de of d.ex){
     if(!gymExercises.some(x=>x.id===de.exId)) continue;
@@ -2960,7 +2901,6 @@ const TK_APPT_C = 'var(--work)';
 
 function tkIsAppt(t){ return t.kind==='appt'; }
 function tkVisible(t){ return tkIsAppt(t) ? tkShowAppts : tkShowTodos; }
-function tkOpen(){ return tasks.filter(t=>!t.done); }
 // The chip count must match what turning the filter on actually reveals,
 // so past appointments (hidden from the list) don't count.
 function tkCountOpen(kind){ return tasks.filter(t=>!t.done && t.kind===kind && !tkStale(t)).length; }
@@ -3136,7 +3076,7 @@ function tkCalHtml(){
 // ---- the view ----
 function renderTasks(){
   const dsToday=ymd(calToday());
-  const daily=routines.filter(r=>!CADENCE[r.cadence].periodic);
+  const daily=dailyRoutines();
   ringSvg(dsToday);
   const app=$('app');
   if(!tasksReady){
