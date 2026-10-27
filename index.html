@@ -841,7 +841,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 26</div>
+  <div class="foot">Life Organiser · build 27</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1241,6 +1241,7 @@ async function load(){
   await loadFood(since);
   await loadGym();
   await loadTasks();
+  await loadAgenda();
   await loadReminders();
   // Ask the browser whether this device is already subscribed, at boot rather than
   // only when the Reminders screen opens. Without this, remSub is null everywhere else
@@ -1248,6 +1249,26 @@ async function load(){
   // indicator that lies until you go and look at the thing it describes.
   try{ await refreshSub(); }catch(e){ /* no worker, no push support: chip falls back */ }
 }
+// ---- iPhone Agenda mirror (build 27) ----
+// An iOS Shortcuts automation sends his private calendars to agenda-sync, which mirrors
+// them into calendar_events (sql/agenda.sql). They join `tasks` as read-only appointments
+// (ext:true), so the strip, the list and the calendar view show them with no extra code.
+// Appointments live in the Agenda; the app only reads them.
+let agendaTasks=[];
+const hm=(d)=>`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:00`;
+async function loadAgenda(){
+  try{
+    const since=addDays(calToday(),-30).toISOString();
+    const rows=await rest('GET','calendar_events?select=*&order=start_at.asc&start_at=gte.'+since) || [];
+    agendaTasks=rows.map(e=>{ const s=new Date(e.start_at), en=e.end_at?new Date(e.end_at):null;
+      return { id:'cal:'+e.id, ext:true, kind:'appt', title:e.title, location:e.location||null, note:null, done:false, done_at:null,
+        due_date:ymd(s), due_time:e.all_day?null:hm(s),
+        end_time:!e.all_day && en && ymd(en)===ymd(s) ? hm(en) : null, sort_order:0, created_at:e.synced_at }; });
+  }catch(e){ console.warn('Agenda not ready (run sql/agenda.sql):', e.message||e); }
+  mergeAgenda();
+}
+function mergeAgenda(){ tasks=tasks.filter(t=>!t.ext).concat(agendaTasks); }
+const AGENDA_NOTE='From your iPhone Agenda · change it there';
 async function loadTasks(){
   try{
     // sort_order is NOT in the order clause: nothing writes it, so it is 0 on every row
@@ -1255,6 +1276,7 @@ async function loadTasks(){
     // manual reordering exists; tkSorted() is what actually orders the lists.
     tasks = await rest('GET','tasks?select=*&order=due_date.asc,due_time.asc,created_at.asc') || [];
     tasksReady = true;
+    mergeAgenda();
   }catch(e){
     // A failed REload (e.g. offline with no saved copy) keeps the list already on screen;
     // only a first load that fails means the table isn't there.
@@ -1787,7 +1809,7 @@ function openPlanner(r, ds){
   const label=parseYmd(target).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}).toLowerCase();
   const paint=()=>{
     const items=tkSorted(tasks.filter(t=>!t.done && t.due_date===target));
-    const timed=items.filter(t=>t.due_time);
+    const timed=items.filter(t=>t.due_time && !t.ext);   // agenda items are already in Calendar
     const rows=items.length ? items.map(t=>`<div class="plrow"><span class="plt${t.due_time?'':' todo'}">${t.due_time?tkFmtTime(t.due_time):'to-do'}</span><span class="pln">${escapeHtml(t.title)}</span></div>`).join('')
       : `<div class="plempty">Nothing planned yet.</div>`;
     const done=isDone(r.id,ds);
@@ -1851,6 +1873,7 @@ async function loadFood(since){
 async function refreshFood(){
   if(!session || !routines.length || !navigator.onLine || Date.now()-foodLoadedAt<60000) return;
   await loadFood(ymd(addDays(today,-160))); applyFoodTicks();
+  await loadAgenda(); if(view==='tasks') renderTasks(); else if(view==='today') render();
 }
 function isFoodRoutine(r){ return r.role==='food' || (!r.role && !r.track_value && /\bfood\b/i.test(r.name||'')); }
 function foodRoutine(){ return routines.find(isFoodRoutine) || null; }
@@ -3014,6 +3037,7 @@ function tkItemHtml(t, hideDate){
   let tags='';
   if(over) tags+=`<span class="tag late">overdue</span>`;
   if(passed) tags+=`<span class="tag">passed</span>`;
+  if(t.ext) tags+=`<span class="tag">agenda</span>`;
   return `<div class="tkitem ${appt?'appt':'todo'}${t.done?' isdone':''}${over?' isover':''}">
     ${lead}
     <div class="tkmain" data-tkedit="${t.id}">
@@ -3167,7 +3191,8 @@ function bindTasks(){
   app.querySelectorAll('[data-tkmode]').forEach(b=>b.onclick=()=>{
     tkMode=b.getAttribute('data-tkmode'); tkSavePrefs(); renderTasks(); });
   app.querySelectorAll('[data-tktoggle]').forEach(b=>b.onclick=()=>toggleTask(b.getAttribute('data-tktoggle'), b));
-  app.querySelectorAll('[data-tkedit]').forEach(b=>b.onclick=()=>openTaskForm(tasks.find(t=>t.id===b.getAttribute('data-tkedit'))));
+  app.querySelectorAll('[data-tkedit]').forEach(b=>b.onclick=()=>{ const t=tasks.find(x=>x.id===b.getAttribute('data-tkedit'));
+    if(t && t.ext){ toast(AGENDA_NOTE); return; } openTaskForm(t); });
   app.querySelectorAll('[data-tkmo]').forEach(b=>b.onclick=()=>{
     const s=tkMonthStart(); tkCalMonth=new Date(s.getFullYear(), s.getMonth()+Number(b.getAttribute('data-tkmo')), 1);
     renderTasks(); });
@@ -3260,6 +3285,7 @@ async function shareIcs(list, name){
   const el=document.createElement('a'); el.href=url; el.download=fname;
   document.body.appendChild(el); el.click(); el.remove(); setTimeout(()=>URL.revokeObjectURL(url), 2000); }
 function openTaskForm(t, preset){
+  if(t && t.ext){ toast(AGENDA_NOTE); return; }
   const isNew=!t;
   const d = t || { title:'', kind:'todo', due_date:(preset&&preset.date)||'', due_time:'', end_time:'', location:'', note:'' };
   const defaultDate = tkMode==='cal' && tkCalSel ? tkCalSel : ymd(calToday());

@@ -43,9 +43,9 @@ create index if not exists tasks_due_date_idx on public.tasks using btree (due_d
 create index if not exists tasks_kind_idx     on public.tasks using btree (kind);
 create index if not exists tasks_done_idx     on public.tasks using btree (done);
 
--- `anon` revoked 2026-09-23. No service_role grant: reminders deliberately cover
--- routines only, so nothing server-side reads tasks. See sql/README.md.
-grant all on table public.tasks to authenticated;
+-- `anon` revoked 2026-09-23. service_role since build 27 (2026-10-26): the evening
+-- check-in in Claude (food-mcp) adds to-dos and reads tomorrow's plan.
+grant all on table public.tasks to authenticated, service_role;
 
 alter table public.tasks enable row level security;
 
