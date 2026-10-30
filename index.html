@@ -364,11 +364,40 @@
     letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:9px}
   .tkstriph .go{margin-left:auto;text-transform:none;letter-spacing:.2px;font-size:12px;color:var(--mind);font-weight:600}
   .tkstriph .tkempty{margin-left:auto;text-transform:none;letter-spacing:0;font-size:12px;color:var(--muted2);font-weight:400}
-  .tkstriph .tkadd{flex:0 0 auto;width:30px;height:30px;margin:-5px -4px -5px 6px;border:0;border-radius:10px;background:var(--surface2);color:var(--text);
+  .tkstriph .tkadd{flex:0 0 auto;width:30px;height:30px;padding:0;margin:-5px -4px -5px 6px;border:0;border-radius:10px;background:var(--surface2);color:var(--text);
     display:grid;place-items:center;cursor:pointer;transition:transform .12s var(--ease)}
   .tkstriph .tkadd:active{transform:scale(.94)}
   .tkstriph .tkadd svg{width:16px;height:16px}
   .tkstrip.empty{cursor:default}
+  /* build 30: projects */
+  .pjgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+  .pjcard{display:block;width:100%;text-align:left;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px;cursor:pointer;min-width:0}
+  .pjcard:active{transform:scale(.985)}
+  .pjn{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;min-width:0}
+  .pjn span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pjdot{flex:0 0 auto;width:9px;height:9px;border-radius:3px;background:var(--c)}
+  .pjbig{font-weight:200;font-size:40px;letter-spacing:-.05em;line-height:1;margin-top:8px;font-feature-settings:'tnum';white-space:nowrap}
+  .pjbig small{font-size:13px;color:var(--muted);letter-spacing:0;font-weight:400}
+  .pjcard .tbar{height:4px;margin:10px 0 0}
+  .pjnx{font-size:11.5px;color:var(--muted);margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pjnx b{color:var(--text);font-weight:500}
+  .pjrow{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 14px}
+  .pjchip{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;max-width:100%}
+  .pjchip span.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pjchip .tkn{font-size:11px;color:var(--muted2)}
+  .pjchip.ghost{color:var(--muted);border-style:dashed}
+  .pjchip.arch{opacity:.6}
+  .tkmeta .tag.pj{color:var(--c);border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+  .pjhead{display:flex;align-items:center;gap:10px;margin:8px 0 0}
+  .pjhead h1{flex:1;min-width:0;font-weight:300;font-size:34px;letter-spacing:-.04em;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pjhead .pjdot{width:12px;height:12px;border-radius:4px}
+  .pjedit{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:8px 13px;font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+  .pjhero{margin:14px 0 18px}
+  .pjhero .fdnum{font-size:76px}
+  .pjarch{font-size:12px;color:var(--muted);margin:10px 2px 0}
+  .pjcols{display:flex;gap:10px;flex-wrap:wrap}
+  .pjcol{width:36px;height:36px;border-radius:12px;border:2px solid transparent;background:var(--c);cursor:pointer;box-shadow:inset 0 0 0 3px var(--bg)}
+  .pjcol.on{border-color:var(--text)}
   /* build 25: the food page */
   .fdback{display:flex;align-items:center;gap:4px;background:none;border:0;color:var(--muted);font:inherit;font-size:13px;font-weight:500;padding:4px 0 2px;cursor:pointer}
   .fdback svg{width:18px;height:18px;transform:rotate(180deg)}
@@ -790,7 +819,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 29</div>
+  <div class="foot">Life Organiser · build 30</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1064,6 +1093,8 @@ let gymProgMetric = 'weight'; // Progress tab metric: 'weight' | 'e1rm'
 
 // ---- Tasks state (build 13) ----
 let tasks = [];             // all task rows
+let projects = [];          // build 30: project rows, archived ones included
+let projectsReady = false;  // false until sql/projects.sql has run
 let tasksReady = false;     // false if the tasks table hasn't been created yet
 
 // ---- Reminders state (build 14) ----
@@ -1160,6 +1191,8 @@ async function exportData(){
     let tk=[];
     try{ tk = await rest('GET','tasks?select=*&order=created_at.asc') || []; }
     catch(e){ console.warn('tasks not exported (not set up yet)', e.message||e); }
+    let pj=[];
+    try{ pj = await rest('GET','projects?select=*&order=created_at.asc') || []; }catch(e){ /* not set up yet */ }
     let rem={ reminder_settings:[], reminder_sends:[] };
     try{
       const [rst,rsn]=await Promise.all([
@@ -1171,7 +1204,7 @@ async function exportData(){
     const payload={ app:'Life Organiser', version:14, exported_at:new Date().toISOString(),
       routines:rs||[], routine_logs:lg||[], rest_days:rd||[],
       gym_exercises:gym.gym_exercises, gym_workouts:gym.gym_workouts, gym_sets:gym.gym_sets,
-      tasks:tk,
+      tasks:tk, projects:pj,
       reminder_settings:rem.reminder_settings, reminder_sends:rem.reminder_sends };
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
@@ -1190,6 +1223,7 @@ async function load(){
   await loadFood(since);
   await loadGym();
   await loadTasks();
+  await loadProjects();
   await loadAgenda();
   await loadReminders();
   // Ask the browser whether this device is already subscribed, at boot rather than
@@ -1537,9 +1571,10 @@ function renderLevelBar(){
      <span class="xpbar"><i style="--p:${pct/100}"></i></span><span class="xpn">${info.into}/${info.need}</span>`;
   lb.onclick=()=>{ view='rewards'; render(); };
 }
-const VIEW_TITLE={ tasks:'tasks', gym:'gym', history:'history', rewards:'rewards' };
+const VIEW_TITLE={ tasks:'tasks', gym:'gym', history:'history', rewards:'rewards', project:'project' };
 function render(){
-  document.querySelectorAll('.navbtn').forEach(b=>{ const on=b.dataset.view===(view==='food'?'today':view); b.classList.toggle('active',on);
+  const navView = view==='food' ? 'today' : view==='project' ? projectBack : view;
+  document.querySelectorAll('.navbtn').forEach(b=>{ const on=b.dataset.view===navView; b.classList.toggle('active',on);
     if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   $('restrow').style.display = view==='today' ? '' : 'none';
   $('datebar').classList.toggle('static', view!=='today' && view!=='food');
@@ -1551,6 +1586,7 @@ function render(){
   else if(view==='history') renderHistory();
   else if(view==='gym') renderGym();
   else if(view==='tasks') renderTasks();
+  else if(view==='project') renderProject();
   else renderRewards();
 }
 function dateLabel(){
@@ -1617,7 +1653,7 @@ function renderToday(){
   const ds = ymd(selected);
   dateLabel(); renderRestRow(ds); ringSvg(ds); todaySubtitle(ds);
   let html='';
-  if(ds===ymd(today)){ const strip=tkTodayStripHtml(); if(strip) html+=strip; }
+  if(ds===ymd(today)){ const strip=tkTodayStripHtml(); if(strip) html+=strip; html+=pjTodayHtml(); }
   if(!routines.length){ $('app').innerHTML=html+'<div class="loading">No routines yet. Tap the gear to add one.</div>'; bindStrip(); return; }
   // Grouped as before the rebrand: each category holds its daily tiles and, under them,
   // its own periodic routines (gym and treadmill under Fitness, ETF and garden under Work…).
@@ -1654,7 +1690,8 @@ addEventListener('resize', ()=>{ if(view==='today') fitStreaks(); });
 if(document.fonts){ document.fonts.ready.then(()=>{ if(view==='today') fitStreaks(); });
   document.fonts.addEventListener('loadingdone', ()=>{ if(view==='today') fitStreaks(); }); }
 function bindStrip(){ const s=$('tkStrip'); if(s) s.onclick=()=>{ view='tasks'; render(); };
-  const a=$('tkQuickAdd'); if(a) a.onclick=(e)=>{ e.stopPropagation(); openTaskForm(null, {date:ymd(calToday())}); }; }
+  const a=$('tkQuickAdd'); if(a) a.onclick=(e)=>{ e.stopPropagation(); openTaskForm(null, {date:ymd(calToday())}); };
+  $('app').querySelectorAll('.pjcard[data-pj]').forEach(b=>b.onclick=()=>openProject(b.dataset.pj,'today')); }
 // Refresh everything around the tiles without rebuilding them, so an animation in
 // flight is never cut off by a re-render.
 function syncTodayChrome(ds, wasPerfect){
@@ -2978,6 +3015,8 @@ function tkItemHtml(t, hideDate){
   if(over) tags+=`<span class="tag late">overdue</span>`;
   if(passed) tags+=`<span class="tag">passed</span>`;
   if(t.ext) tags+=`<span class="tag">agenda</span>`;
+  const pj=t.project_id && !pjHideTag ? pjById(t.project_id) : null;
+  if(pj) tags+=`<span class="tag pj" style="--c:${pjColor(pj)}">${escapeHtml(pj.name)}</span>`;
   return `<div class="tkitem ${appt?'appt':'todo'}${t.done?' isdone':''}${over?' isover':''}">
     ${lead}
     <div class="tkmain" data-tkedit="${t.id}">
@@ -3101,6 +3140,7 @@ function renderTasks(){
         <button data-tkmode="cal" class="${tkMode==='cal'?'on':''}" aria-label="Calendar view">${ic('grid')}</button>
       </div>
     </div>
+    ${pjRowHtml()}
     <button class="tkadd" id="tkAdd">+ Add a to-do or appointment</button>
     ${tkMode==='cal' ? tkCalHtml() : tkListHtml()}`;
   bindTasks();
@@ -3130,13 +3170,21 @@ function bindTasks(){
   const dt=$('tkDoneToggle'); if(dt) dt.onclick=()=>{ tkShowDone=!tkShowDone; renderTasks(); };
   app.querySelectorAll('[data-tkmode]').forEach(b=>b.onclick=()=>{
     tkMode=b.getAttribute('data-tkmode'); tkSavePrefs(); renderTasks(); });
-  app.querySelectorAll('[data-tktoggle]').forEach(b=>b.onclick=()=>toggleTask(b.getAttribute('data-tktoggle'), b));
-  app.querySelectorAll('[data-tkedit]').forEach(b=>b.onclick=()=>{ const t=tasks.find(x=>x.id===b.getAttribute('data-tkedit'));
-    if(t && t.ext){ toast(AGENDA_NOTE); return; } openTaskForm(t); });
+  bindTaskItems(app);
+  app.querySelectorAll('.pjchip[data-pj]').forEach(b=>b.onclick=()=>openProject(b.dataset.pj,'tasks'));
+  const pn=$('pjNew'); if(pn) pn.onclick=()=>openProjectForm(null);
+  const pa=$('pjArch'); if(pa) pa.onclick=()=>{ pjShowArchived=!pjShowArchived; renderTasks(); };
   app.querySelectorAll('[data-tkmo]').forEach(b=>b.onclick=()=>{
     const s=tkMonthStart(); tkCalMonth=new Date(s.getFullYear(), s.getMonth()+Number(b.getAttribute('data-tkmo')), 1);
     renderTasks(); });
   app.querySelectorAll('[data-tkday]').forEach(b=>b.onclick=()=>{ tkCalSel=b.getAttribute('data-tkday'); renderTasks(); });
+}
+
+// Tick boxes and taps on a to-do: the Tasks list and a project page share them.
+function bindTaskItems(app){
+  app.querySelectorAll('[data-tktoggle]').forEach(b=>b.onclick=()=>toggleTask(b.getAttribute('data-tktoggle'), b));
+  app.querySelectorAll('[data-tkedit]').forEach(b=>b.onclick=()=>{ const t=tasks.find(x=>x.id===b.getAttribute('data-tkedit'));
+    if(t && t.ext){ toast(AGENDA_NOTE); return; } openTaskForm(t); });
 }
 
 // ---- mutations ----
@@ -3151,7 +3199,7 @@ async function toggleTask(id, btn){
     await rest('PATCH','tasks?id=eq.'+id,{body,prefer:'return=minimal'});
     Object.assign(t, body);
     if(next && btn){ haptic(); if(navigator.vibrate) navigator.vibrate(16); }
-    renderTasks();
+    render();
   }catch(e){ toast('Could not update that task', true); console.error(e); }
   tkBusy=false;
 }
@@ -3227,7 +3275,12 @@ async function shareIcs(list, name){
 function openTaskForm(t, preset){
   if(t && t.ext){ toast(AGENDA_NOTE); return; }
   const isNew=!t;
-  const d = t || { title:'', kind:'todo', due_date:(preset&&preset.date)||'', due_time:'', end_time:'', location:'', note:'' };
+  const d = t || { title:'', kind:'todo', due_date:(preset&&preset.date)||'', due_time:'', end_time:'', location:'', note:'', project_id:(preset&&preset.project)||null };
+  // Projects hold to-dos only. Offered once a project exists; an archived project stays
+  // listed for the to-do that is already in it.
+  const pjOpts=projects.filter(p=>!p.archived_at || p.id===d.project_id);
+  const pjField = projectsReady && pjOpts.length ? `<div class="field" id="tk-pjx"><label>Project (optional)</label>
+      <select id="tk-proj"><option value="">None</option>${pjOpts.map(p=>`<option value="${p.id}"${p.id===d.project_id?' selected':''}>${escapeHtml(p.name)}${p.archived_at?' (archived)':''}</option>`).join('')}</select></div>` : '';
   const defaultDate = tkMode==='cal' && tkCalSel ? tkCalSel : ymd(calToday());
   const kind = d.kind || 'todo';
   $('taskEdSheet').innerHTML = `
@@ -3238,6 +3291,7 @@ function openTaskForm(t, preset){
     </div>
     <div class="field"><label>What is it?</label>
       <input type="text" id="tk-title" value="${escapeHtml(d.title||'')}" placeholder="e.g. Call the garage"></div>
+    ${pjField}
     <div class="field rowly">
       <div><label id="tk-dlbl">Date</label>
         <input type="date" id="tk-date" value="${d.due_date||(isNew&&kind==='appt'?defaultDate:'')}"></div>
@@ -3265,6 +3319,7 @@ function openTaskForm(t, preset){
     $('tk-kt').classList.toggle('on', k==='todo');
     $('tk-ka').classList.toggle('on', k==='appt');
     $('tk-apptx').classList.toggle('hidden', k!=='appt');
+    if($('tk-pjx')) $('tk-pjx').classList.toggle('hidden', k==='appt');
     $('tk-dlbl').textContent = k==='appt' ? 'Date (required)' : 'Date (optional)';
     $('tk-hint').textContent = k==='appt'
       ? 'Appointments sit on the calendar and pass on their own — there is nothing to tick.'
@@ -3292,6 +3347,7 @@ function openTaskForm(t, preset){
       end_time: k==='appt' ? ($('tk-end').value||null) : null,
       location: k==='appt' ? ($('tk-loc').value.trim()||null) : null,
       note: $('tk-note').value.trim()||null };
+    if($('tk-proj')) body.project_id = k==='todo' ? ($('tk-proj').value||null) : null;
     try{
       if(isNew){ body.id=crypto.randomUUID(); await rest('POST','tasks',{body,prefer:'return=minimal'}); }
       else { await rest('PATCH','tasks?id=eq.'+d.id,{body,prefer:'return=minimal'}); }
@@ -3299,6 +3355,113 @@ function openTaskForm(t, preset){
       if(k==='appt' && date && tkMode==='cal') tkCalSel=date;
       render();
     }catch(e){ toast('Could not save', true); console.error(e); }
+  };
+}
+
+// ---- projects (build 30) ----
+// A project groups to-dos ("Bruiloft", "Huis"). Optional date: a dated project counts down
+// on Today; an undated one lives in Tasks only, so Today doesn't fill up (his answer,
+// 2026-10-29). No XP. "Done" archives it; nothing is deleted and its to-dos stay put.
+let projectId=null, projectBack='today', pjShowArchived=false, pjHideTag=false;
+const PJ_COLORS={ rose:'#f472b6', sky:'#38bdf8', amber:'#fbbf24', lavender:'#a78bfa', mint:'#34d399', orange:'#fb923c' };
+async function loadProjects(){
+  try{ projects = await rest('GET','projects?select=*&order=created_at.asc') || []; projectsReady=true; }
+  catch(e){
+    if(projectsReady){ console.warn('Projects reload failed, keeping what is loaded:', e.message||e); return; }
+    projectsReady=false; projects=[]; console.warn('Projects table not ready (run sql/projects.sql):', e.message||e); }
+}
+function pjColor(p){ return PJ_COLORS[p && p.color] || PJ_COLORS.rose; }
+function pjById(id){ return projects.find(p=>p.id===id) || null; }
+function pjActive(){ return projects.filter(p=>!p.archived_at); }
+function pjTodos(id){ return tasks.filter(t=>t.project_id===id && !t.ext); }
+function pjDaysLeft(p){ return p && p.due_date ? Math.round((parseYmd(p.due_date)-calToday())/86400000) : null; }
+// Today: dated, active projects whose day hasn't passed, soonest first.
+function pjTodayList(){ return pjActive().filter(p=>p.due_date && pjDaysLeft(p)>=0).sort((a,b)=>a.due_date.localeCompare(b.due_date)); }
+function pjCountHtml(p){ const n=pjDaysLeft(p);
+  if(n===0) return 'today'; if(n===1) return '1<small> day</small>';
+  return n<0 ? `${-n}<small> days ago</small>` : `${n}<small> days</small>`; }
+function pjTodayHtml(){
+  if(!projectsReady) return '';
+  const list=pjTodayList(); if(!list.length) return '';
+  return `<div class="pjgrid">${list.map(p=>{
+    const all=pjTodos(p.id), done=all.filter(t=>t.done).length, nx=tkSorted(all.filter(t=>!t.done))[0];
+    return `<button class="pjcard" data-pj="${p.id}" type="button" style="--c:${pjColor(p)}">
+      <div class="pjn"><span class="pjdot"></span><span>${escapeHtml(p.name)}</span></div>
+      <div class="pjbig">${pjCountHtml(p)}</div>
+      <div class="tbar"><i style="transform:scaleX(${all.length?done/all.length:0})"></i></div>
+      <div class="pjnx">${nx?`next: <b>${escapeHtml(nx.title)}</b>${nx.due_date?' · '+tkFmtDay(nx.due_date).toLowerCase():''}`:all.length?'all done':'no to-dos yet'}</div>
+    </button>`; }).join('')}</div>`;
+}
+function pjChipHtml(p){ const n=pjTodos(p.id).filter(t=>!t.done).length;
+  return `<button class="pjchip${p.archived_at?' arch':''}" data-pj="${p.id}" type="button" style="--c:${pjColor(p)}"><span class="pjdot"></span><span class="nm">${escapeHtml(p.name)}</span>${n?`<span class="tkn">${n}</span>`:''}</button>`; }
+function pjRowHtml(){
+  if(!projectsReady) return '';
+  const act=pjActive(), arch=projects.filter(p=>p.archived_at);
+  return `<div class="pjrow">${act.map(pjChipHtml).join('')}
+    ${pjShowArchived?arch.map(pjChipHtml).join(''):''}
+    ${arch.length?`<button class="pjchip ghost" id="pjArch" type="button">${pjShowArchived?'Hide archived':'Archived · '+arch.length}</button>`:''}
+    <button class="pjchip ghost" id="pjNew" type="button">+ Project</button></div>`;
+}
+function openProject(id, back){ projectId=id; projectBack=back||'today'; view='project'; render(); window.scrollTo(0,0); }
+function renderProject(){
+  const p=pjById(projectId);
+  if(!p){ view=projectBack; render(); return; }
+  ringSvg(ymd(calToday()));
+  const all=pjTodos(p.id), open=tkSorted(all.filter(t=>!t.done)), done=tkSorted(all.filter(t=>t.done)).reverse();
+  const n=pjDaysLeft(p), when=p.due_date?parseYmd(p.due_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}):'';
+  $('subtitle').textContent = p.archived_at ? 'archived' : p.due_date ? when : 'no date';
+  const big = n!=null ? pjCountHtml(p) : `${done.length}<small> / ${all.length} done</small>`;
+  const right = n!=null ? `${when}<br>${done.length} of ${all.length} done` : `${open.length} open`;
+  pjHideTag=true;
+  const html=`<button class="fdback" id="pjBack" type="button">${ic('arrow')}<span>${projectBack==='tasks'?'Tasks':'Today'}</span></button>
+    <div class="pjhead"><span class="pjdot"></span><h1>${escapeHtml(p.name)}</h1><button class="pjedit" id="pjEdit" type="button">Edit</button></div>
+    <div class="fdcard pjhero"><div class="fdrowh"><div class="fdnum">${big}</div><div class="fdcap" style="text-align:right;line-height:1.5">${right}</div></div>
+      <div class="tbar"><i style="transform:scaleX(${all.length?done.length/all.length:0})"></i></div></div>
+    ${open.length?tkGroupHtml('Open', open, '', false):`<div class="tkempty" style="padding:18px 12px">${all.length?'Everything in this project is done.':'No to-dos in this project yet.'}</div>`}
+    ${p.archived_at?'':`<button class="tkadd" id="pjAdd" type="button">+ Add a to-do to ${escapeHtml(p.name)}</button>`}
+    ${tkGroupHtml('Done', done, '', false)}
+    ${p.archived_at?`<div class="pjarch">Archived ${new Date(p.archived_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}. Restore it with Edit.</div>`:''}`;
+  pjHideTag=false;
+  const app=$('app');
+  app.innerHTML=`<div style="--c:${pjColor(p)}">${html}</div>`;
+  $('pjBack').onclick=()=>{ view=projectBack; render(); window.scrollTo(0,0); };
+  $('pjEdit').onclick=()=>openProjectForm(p);
+  const add=$('pjAdd'); if(add) add.onclick=()=>openTaskForm(null,{project:p.id});
+  bindTaskItems(app);
+}
+function openProjectForm(p){
+  const isNew=!p, d=p||{ name:'', color:'rose', due_date:'' };
+  let col = d.color in PJ_COLORS ? d.color : 'rose';
+  $('taskEdSheet').innerHTML = `
+    <h2>${isNew?'New project':'Edit project'} <button class="x" id="pjClose" aria-label="Close">${ic('x')}</button></h2>
+    <div class="field"><label>Name</label><input type="text" id="pj-name" maxlength="60" value="${escapeHtml(d.name||'')}" placeholder="e.g. Bruiloft"></div>
+    <div class="field"><label>Colour</label><div class="pjcols">${Object.keys(PJ_COLORS).map(k=>`<button type="button" class="pjcol${k===col?' on':''}" data-col="${k}" style="--c:${PJ_COLORS[k]}" aria-label="${k}"></button>`).join('')}</div></div>
+    <div class="field"><label>Date (optional)</label><input type="date" id="pj-date" value="${d.due_date||''}"></div>
+    <div style="color:var(--muted2);font-size:11.5px;margin:-4px 2px 12px">With a date it counts down on Today. Without one it stays in Tasks.</div>
+    <div class="formbtns">${isNew?'':`<button class="btn-cancel" id="pj-arch">${d.archived_at?'Restore':'Archive'}</button>`}
+      <button class="btn-cancel" id="pj-cancel">Cancel</button>
+      <button class="btn-save" id="pj-save">Save</button></div>`;
+  $('taskEd').classList.add('show');
+  const close=()=>$('taskEd').classList.remove('show');
+  $('pjClose').onclick=close; $('pj-cancel').onclick=close;
+  $('taskEdSheet').querySelectorAll('[data-col]').forEach(b=>b.onclick=()=>{ col=b.dataset.col;
+    $('taskEdSheet').querySelectorAll('[data-col]').forEach(x=>x.classList.toggle('on', x===b)); });
+  const ar=$('pj-arch'); if(ar) ar.onclick=async ()=>{
+    if(!d.archived_at && !confirm(`Archive "${d.name}"? It leaves Today and Tasks; its to-dos stay. Restore it any time.`)) return;
+    try{ await rest('PATCH','projects?id=eq.'+d.id,{ body:{ archived_at: d.archived_at?null:new Date().toISOString() }, prefer:'return=minimal' });
+      await loadProjects(); close(); toast(d.archived_at?'Restored':'Archived'); render(); }
+    catch(e){ toast('Could not save', true); console.error(e); }
+  };
+  $('pj-save').onclick=async ()=>{
+    const name=$('pj-name').value.trim().slice(0,60);
+    if(!name){ toast('Give it a name', true); return; }
+    const body={ name, color:col, due_date:$('pj-date').value||null };
+    try{
+      if(isNew){ body.id=crypto.randomUUID(); await rest('POST','projects',{ body, prefer:'return=minimal' }); }
+      else await rest('PATCH','projects?id=eq.'+d.id,{ body, prefer:'return=minimal' });
+      await loadProjects(); close(); toast('Saved');
+      if(isNew) openProject(body.id, view==='project'?projectBack:(view==='tasks'?'tasks':'today')); else render();
+    }catch(e){ toast(navigator.onLine?'Could not save':'Projects need a connection', true); console.error(e); }
   };
 }
 
