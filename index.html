@@ -123,6 +123,10 @@
   .chk{position:absolute;top:9px;right:9px;width:20px;height:20px;border-radius:50%;background:var(--onc);color:var(--c);display:grid;place-items:center}
   .chk svg{width:13px;height:13px;stroke-width:3}
   .t.done{border-color:transparent;box-shadow:0 10px 24px -14px var(--c)}
+  /* build 32: close enough — outlined in the area colour, hollow tick, no flood */
+  .t.part{border-color:color-mix(in srgb,var(--c) 55%,transparent)}
+  .pchk{position:absolute;top:9px;right:9px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--c);color:var(--c);display:grid;place-items:center}
+  .pchk svg{width:12px;height:12px;stroke-width:2.6}
   .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .pcard{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 11px;
     color:var(--text);cursor:pointer;min-height:58px;text-align:left;width:100%;font:inherit;transition:transform .12s var(--ease),background-color .25s,border-color .25s}
@@ -142,7 +146,7 @@
   .tile{flex:1;background:var(--surface);border:1px solid var(--line)}
   .tile .big{line-height:1}
   .tile .lbl{color:var(--muted);margin-top:6px}
-  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--muted)}
   .legend span{display:flex;align-items:center;gap:5px}
   .legend i{display:inline-block}
   .hcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:9px}
@@ -819,7 +823,7 @@
 
   <main id="app"><div class="loading">Connecting to your dashboard…</div></main>
   <div class="daybar" id="dayBar" hidden></div>
-  <div class="foot">Life Organiser · build 30</div>
+  <div class="foot">Life Organiser · build 32</div>
 </div>
 
 <nav class="nav" aria-label="Sections">
@@ -1081,6 +1085,22 @@ function routineIcon(r){
 }
 function getLog(rid,ds){ return logs.get(rid)?.get(ds); }
 function isDone(rid,ds){ const l=getLog(rid,ds); return !!(l && l.completed); }
+// Build 32 (Martijn, 2026-11-07): "close enough". Protein, fiber and water at >= 80% of
+// target keep the streak and earn half XP, but are NOT a tick: no perfect day, no
+// check-off count, the ring and category counts stay as they were. Derived from the
+// logged value at read time, so the real figure is never touched. Only from
+// PARTIAL_FROM, so older days don't change; a future change to the 80% must go by date
+// the same way (XP and streak badges are derived from it).
+const PARTIAL_FROM='2026-11-07', PARTIAL_PCT=0.8, PARTIAL_ROLES=['protein','fiber','water'];
+function isPartialRoutine(r){ return !!r && PARTIAL_ROLES.some(role=>nutrientRoutine(role)===r); }
+function isPartial(rid,ds){
+  if(ds<PARTIAL_FROM) return false;
+  const l=getLog(rid,ds); if(!l || l.completed || l.value==null) return false;
+  const r=routines.find(x=>x.id===rid); if(!isPartialRoutine(r) || r.target_value==null) return false;
+  const t=Number(r.target_value); return t>0 && Number(l.value)>=partialMin(t);
+}
+function partialMin(t){ return Math.round(t*PARTIAL_PCT*100)/100; }   // 3 L * 0.8 is 2.4000000000000004 unrounded
+function isKept(rid,ds){ return isDone(rid,ds) || isPartial(rid,ds); }   // what a streak counts
 
 // ---- Gym state ----
 let gymExercises = [];   // library
@@ -1404,9 +1424,9 @@ async function setLog(routine, ds, on, value, completed, note){
 // metrics
 function streak(rid){
   let n=0, d=new Date(today), guard=0;
-  if(!isDone(rid,ymd(d)) && !isRest(ymd(d))) d=addDays(d,-1);
+  if(!isKept(rid,ymd(d)) && !isRest(ymd(d))) d=addDays(d,-1);
   while(guard++ < 600){ const ds=ymd(d);
-    if(isDone(rid,ds)){ n++; d=addDays(d,-1); }
+    if(isKept(rid,ds)){ n++; d=addDays(d,-1); }
     else if(isRest(ds)){ d=addDays(d,-1); }
     else break;
   }
@@ -1430,17 +1450,20 @@ function valueDone(routine, num){ if(num===null||num===undefined||num==='') retu
 function catOf(rid){ const r=routines.find(x=>x.id===rid); return r?r.category:null; }
 function xpOfRoutine(r, ds){ return xpRate(r.category, ds); }
 function xpOfLog(rid, ds){ return xpRate(catOf(rid), ds); }
-function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [ds,l] of m){ if(l.completed) x+=xpOfLog(rid, ds); } } return x + totalQuestXp() + gymBonusXp() + gymBadgeXp() + gymWeekXp(); }
+// Build 32: a close-enough day earns half the rate, rounded down (7 of 15).
+function partialXp(rate){ return Math.floor(rate/2); }
+function logXp(rid, ds, l, rate){ return l.completed ? rate : isPartial(rid,ds) ? partialXp(rate) : 0; }
+function activityXp(){ let x=0; for(const [rid,m] of logs){ for(const [ds,l] of m){ x+=logXp(rid, ds, l, xpOfLog(rid, ds)); } } return x + totalQuestXp() + gymBonusXp() + gymBadgeXp() + gymWeekXp(); }
 function totalXp(){ return activityXp() + setBonusXp(); }
-function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [ds,l] of m){ if(l.completed) x+=xpRate(cat, ds); } } return x; }
+function xpByCat(cat){ let x=0; for(const [rid,m] of logs){ if(catOf(rid)!==cat) continue; for(const [ds,l] of m){ x+=logXp(rid, ds, l, xpRate(cat, ds)); } } return x; }
 function levelInfo(xp){ let lvl=1, acc=0, need=100; while(xp >= acc+need){ acc+=need; lvl++; need=100+(lvl-1)*50; } return { level:lvl, into:xp-acc, need, total:xp }; }
 function totalCheckoffs(){ let c=0; for(const [,m] of logs) for(const [,l] of m) if(l.completed) c++; return c; }
-function completedDates(rid){ const m=logs.get(rid); if(!m) return []; const a=[]; for(const [ds,l] of m) if(l.completed) a.push(ds); a.sort(); return a; }
+function keptDates(rid){ const m=logs.get(rid); if(!m) return []; const a=[]; for(const [ds] of m) if(isKept(rid,ds)) a.push(ds); a.sort(); return a; }
 function longestStreak(rid){
-  const a=completedDates(rid); if(!a.length) return 0;
+  const a=keptDates(rid); if(!a.length) return 0;
   let best=0, run=0;
   for(let d=new Date(parseYmd(a[0])); d<=today; d=addDays(d,1)){ const ds=ymd(d);
-    if(isDone(rid,ds)){ run++; if(run>best) best=run; }
+    if(isKept(rid,ds)){ run++; if(run>best) best=run; }
     else if(isRest(ds)){ /* frozen — hold the run */ }
     else run=0;
   }
@@ -1594,7 +1617,7 @@ function dateLabel(){
   $('dateLbl').textContent=`${wd} ${selected.getDate()}`;
   $('nextDay').disabled = ymd(selected)>=ymd(today);
 }
-function dayXp(ds){ return routines.reduce((a,r)=>a+(isDone(r.id,ds)?xpOfRoutine(r,ds):0),0); }
+function dayXp(ds){ return routines.reduce((a,r)=>a+(isDone(r.id,ds)?xpOfRoutine(r,ds):isPartial(r.id,ds)?partialXp(xpOfRoutine(r,ds)):0),0); }
 function todaySubtitle(ds){
   const d=parseYmd(ds), diff=Math.round((d-today)/86400000);
   const word = diff===0 ? '' : diff===-1 ? 'yesterday · ' : '';
@@ -1627,16 +1650,18 @@ function streakHtml(n){
   return `<span class="s${n>99?' k3':''}"><span class="vw"><span class="v">${n}</span></span>${FLAME_SVG}</span>`;
 }
 function tileLabel(r,ds){ const n=streak(r.id), tv=tileVal(r,ds);
-  return escapeHtml(`${r.name}${tv?', '+tv.replace(/&amp;/g,'&'):''}${n?', '+n+'-day streak':''}${r.track_value?', tap to log a value':''}`); }
+  return escapeHtml(`${r.name}${tv?', '+tv.replace(/&amp;/g,'&'):''}${isPartial(r.id,ds)?', close enough, streak kept':''}${n?', '+n+'-day streak':''}${r.track_value?', tap to log a value':''}`); }
 function tileLayer(r,ds,fill){
   const l=getLog(r.id,ds), tv=tileVal(r,ds);
   return `<span class="lay${fill?' fill':''}${tv?' hv':''}"${fill?' aria-hidden="true"':''}><span class="i">${ic(routineIcon(r))}</span>
     <span class="n">${escapeHtml(r.name)}</span>${tv?`<span class="tv">${tv}</span>`:''}${streakHtml(streak(r.id))}${
-    !fill&&l&&l.note?'<span class="nf" title="Has a note"></span>':''}${fill?`<span class="chk">${ic('check')}</span>`:''}</span>`;
+    !fill&&isPartial(r.id,ds)?PCHK:!fill&&l&&l.note?'<span class="nf" title="Has a note"></span>':''}${fill?`<span class="chk">${ic('check')}</span>`:''}</span>`;
 }
+// Build 32: the hollow tick of a close-enough day (sits where the note dot would).
+const PCHK=`<span class="pchk" title="Close enough: streak kept, half XP">${ic('check')}</span>`;
 function tileHtml(r,ds){
-  const done=isDone(r.id,ds);
-  return `<button class="t${done?' done':''}" data-tile="${r.id}" data-s="${streak(r.id)}" style="--c:${RAWCOLOR[r.category]}" aria-pressed="${done}" aria-label="${tileLabel(r,ds)}">${tileLayer(r,ds,false)}${tileLayer(r,ds,true)}</button>`;
+  const done=isDone(r.id,ds), part=!done&&isPartial(r.id,ds);
+  return `<button class="t${done?' done':''}${part?' part':''}" data-tile="${r.id}" data-s="${streak(r.id)}" style="--c:${RAWCOLOR[r.category]}" aria-pressed="${done}" aria-label="${tileLabel(r,ds)}">${tileLayer(r,ds,false)}${tileLayer(r,ds,true)}</button>`;
 }
 function pcardStatus(r,ds){
   if(isDone(r.id,ds)) return 'done';
@@ -1722,7 +1747,10 @@ function paintRoutine(el,r,ds,o={}){
   if(el.classList.contains('pcard')){ el.outerHTML=pcardHtml(r,ds); return; }
   const done=isDone(r.id,ds), fill=el.querySelector('.fill');
   const oldN=Number(el.dataset.s||0), n=streak(r.id); el.dataset.s=n;
-  el.classList.toggle('done',done); el.setAttribute('aria-pressed',done); el.setAttribute('aria-label',tileLabel(r,ds));
+  const part=!done&&isPartial(r.id,ds);
+  el.classList.toggle('done',done); el.classList.toggle('part',part); el.setAttribute('aria-pressed',done); el.setAttribute('aria-label',tileLabel(r,ds));
+  const base=el.querySelector('.lay:not(.fill)'), pc=base&&base.querySelector('.pchk');
+  if(pc && !part) pc.remove(); else if(base && part && !pc){ base.querySelector('.nf')?.remove(); base.insertAdjacentHTML('beforeend',PCHK); }
   el.querySelectorAll('.lay').forEach(l=>{ const s=l.querySelector('.s'); if(s) s.outerHTML=streakHtml(n);
     const tv=l.querySelector('.tv'); if(tv) tv.innerHTML=tileVal(r,ds);
     const nf=l.querySelector('.nf'); const log=getLog(r.id,ds); if(nf && !(log&&log.note)) nf.remove(); });
@@ -1877,7 +1905,7 @@ async function applyFoodTicks(){
   if(foodTicking || !foodDays.size) return; foodTicking=true;
   const fr=foodRoutine(), links=Object.keys(NUTRIENT_NAME)
     .map(role=>[role, nutrientRoutine(role)]).filter(([,r])=>r);
-  const changed=new Set(), hits=[];
+  const changed=new Set(), hits=[], close=[];
   for(const [ds,f] of foodDays){
     if(ds<FOOD_FROM || ds>ymd(today)) continue;
     try{
@@ -1889,13 +1917,15 @@ async function applyFoodTicks(){
         const done=valueDone(r,v);
         await setLog(r, ds, true, v, done); changed.add(ds);
         if(done && ds===ymd(today)) hits.push(r.name);
+        else if(!done && ds===ymd(today) && isPartial(r.id,ds)) close.push(r.name);
       }
     }catch(e){ console.warn('food auto-tick failed for', ds, e); break; }   // offline: try again next time
   }
   foodTicking=false;
   if(!changed.size) return;
   if(view==='today' || view==='food') render();
-  if(changed.has(ymd(today))) toast(hits.length ? 'Food log · '+hits.join(', ')+' ticked' : 'Food log synced');
+  const parts=[hits.length?hits.join(', ')+' ticked':'', close.length?close.join(', ')+' close enough':''].filter(Boolean);
+  if(changed.has(ymd(today))) toast(parts.length ? 'Food log · '+parts.join(' · ') : 'Food log synced');
 }
 // Single days are noisy; the 7-day average is what a recomp is steered by. Averages
 // only the days that were logged, and says how many that was.
@@ -2135,12 +2165,15 @@ function dayState(r, ds){
   const log = getLog(r.id, ds);
   if(CADENCE[r.cadence].periodic){ return (log && log.completed) ? 'done' : 'na'; }
   if(log && log.completed) return 'done';
+  if(isPartial(r.id, ds)) return 'close';   // build 32: streak kept
   if(log && log.value!=null) return 'partial';
   return 'miss';
 }
+// Build 32: a close-enough square is outlined in full colour, like the tile.
+const CLOSE_RING=(raw)=>'inset 0 0 0 1.5px '+raw;
 function sqColor(state, raw){
   if(state==='done') return raw;
-  if(state==='partial') return 'color-mix(in srgb,'+raw+' 42%, transparent)';
+  if(state==='partial' || state==='close') return 'color-mix(in srgb,'+raw+' 42%, transparent)';
   if(state==='miss') return 'rgba(255,255,255,.06)';
   if(state==='rest') return 'repeating-linear-gradient(135deg,rgba(255,255,255,.24) 0 1px,transparent 1px 3px)';
   return 'rgba(255,255,255,.03)';
@@ -2163,6 +2196,7 @@ function renderHistory(){
       <div class="tile"><div class="big num">${checkoffs}</div><div class="lbl">Check-offs</div></div>
     </div>
     <div class="legend"><span><i style="background:#34d399"></i>Done</span>
+      <span><i style="background:color-mix(in srgb,#34d399 42%,transparent);box-shadow:${CLOSE_RING('#34d399')}"></i>Close enough</span>
       <span><i style="background:color-mix(in srgb,#34d399 42%,transparent)"></i>Partial</span>
       <span><i style="background:rgba(255,255,255,.06)"></i>Missed</span>
       <span><i style="background:repeating-linear-gradient(135deg,rgba(255,255,255,.3) 0 1px,transparent 1px 3px)"></i>Rest day</span></div>`;
@@ -2186,7 +2220,7 @@ function renderHistory(){
       const per = CADENCE[r.cadence].periodic;
       const sk=streak(r.id);
       const sub = per ? CADENCE[r.cadence].label : (sk>0?`${FLAME_SVG}${sk}`:'no active streak');
-      const sq = days.map(d=>`<div class="sq" style="background:${sqColor(dayState(r,d),raw)}"></div>`).join('');
+      const sq = days.map(d=>{ const st=dayState(r,d); return `<div class="sq" style="background:${sqColor(st,raw)}${st==='close'?';box-shadow:'+CLOSE_RING(raw):''}"></div>`; }).join('');
       html += `<div class="hcard"><div class="top"><span class="n">${escapeHtml(r.name)}</span><span class="s${!per&&sk>0?' on':''}">${sub}</span></div><div class="hstrip">${sq}</div></div>`;
     }
     html += `</div>`;
